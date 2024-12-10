@@ -41,7 +41,7 @@ jobs:
         run: |
           npm run build
           mkdir -p ./dist/api
-          cp -p ./output/us_us_list.json ./dist/api
+          cp -p ./output/us_rs_list.json ./dist/api
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact

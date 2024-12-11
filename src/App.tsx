@@ -112,7 +112,7 @@ function App() {
 
   return (
     <>
-      <Title level={2}>Ping Stock Screener</Title>
+      <Title level={2}>US Stock Screener</Title>
       {error}
       {!error &&
         <Table

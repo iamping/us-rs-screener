@@ -1,4 +1,5 @@
 export interface Stock {
+  key: number
   ticker: string
   companyName: string
   sector: string

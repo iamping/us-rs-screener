@@ -1,126 +1,101 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { fetchStockRsList } from "./services/us-rs-screener.service";
 import { Stock } from "./models/Stock";
-import { Table, TableColumnsType, Typography } from "antd";
-import { formatDecimal, formatNumber } from "./utils/common.util";
+import { AutoComplete, AutoCompleteProps, Checkbox, Flex, Input, Table, TableColumnsType, Typography } from "antd";
+import { formatNumber, getAutoCompleteOptions } from "./utils/common.util";
+import { populateColumn } from "./utils/table.util";
 
-const { Text, Title } = Typography;
+const { Search } = Input;
+const { Title } = Typography;
+const EXC_NO_OTC = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
 
 function App() {
 
   const [stockList, setStockList] = useState<Stock[]>([]);
   const [error, setError] = useState<null | string>(null);
+  const [options, setOptions] = useState<AutoCompleteProps['options']>([]);
+  const [keyword, setKeyword] = useState('');
+  const [includeOTC, setIncludeOTC] = useState(false);
+  const [includeBitotech, setIncludeBitotech] = useState(false);
+  const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
     setError(null);
     fetchStockRsList
       .then(response => response.clone().json())
-      .then((stocks: Stock[]) => setStockList(stocks.map((e, i) => ({ ...e, key: i + 1 }))))
+      .then((stocks: Stock[]) => {
+        setStockList(stocks.map((e, i) => ({ ...e, key: i + 1 })));
+      })
       .catch(e => {
         console.error(e);
         setError('Something went wrong');
       });
   }, []);
 
-  const filters = {
-    exchange: [...new Set(stockList.map(e => e.exchange))].map(e => ({text: e, value: e}))
-  }
+  
 
-  const columns: TableColumnsType<Stock> = [
-    { title: '#', dataIndex: 'key', key: 'key' },
-    { title: 'Ticker', dataIndex: 'ticker', key: 'ticker', },
-    {
-      title: '',
-      dataIndex: 'companyName',
-      key: 'companyName',
-      render: (val) => <Text type="secondary">{val}</Text>
-    },
-    { title: 'Sector', dataIndex: 'sector', key: 'sector' },
-    { title: 'Industry', dataIndex: 'industry', key: 'industry' },
-    { 
-      title: 'Exchange', 
-      dataIndex: 'exchange', 
-      key: 'exchange',
-      filters: filters.exchange,
-      defaultFilteredValue: ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'],
-      onFilter: (value, record) => record.exchange.indexOf(value as string) === 0, 
-    },
-    {
-      title: 'Market Cap (B)',
-      dataIndex: 'marketCap',
-      key: 'marketCap',
-      align: 'right',
-      render: (val) => formatDecimal(val / 1000000000)
-    },
-    {
-      title: 'Avg $ Vol (M)',
-      dataIndex: 'avgDollarVolume',
-      key: 'avgDollarVolume',
-      align: 'right',
-      filters: [
-        { text: '>= 20,000,000', value: 'gt' },
-        { text: '< 20,000,000', value: 'lt' },
-      ],
-      onFilter: (value, record) => value === 'gt'
-        ? record.avgDollarVolume >= 20000000
-        : record.avgDollarVolume < 20000000,
-      render: (val) => formatDecimal(val / 1000000),
-      sorter: (a, b) => a.avgDollarVolume - b.avgDollarVolume
-    },
-    {
-      title: 'RS Rating',
-      dataIndex: 'rsRating',
-      key: 'rsRating',
-      align: 'right',
-      sorter: {
-        compare: (a, b) => a.rsRating - b.rsRating,
-        multiple: 2
-      }
-    },
-    {
-      title: 'RS 3M',
-      dataIndex: 'rsRating3M',
-      key: 'rsRating3M',
-      align: 'right',
-      defaultSortOrder: 'descend',
-      sorter: {
-        compare: (a, b) => a.rsRating3M - b.rsRating3M,
-        multiple: 1
-      }
-    },
-    {
-      title: 'RS 6M',
-      dataIndex: 'rsRating6M',
-      key: 'rsRating6M',
-      align: 'right',
-      sorter: {
-        compare: (a, b) => a.rsRating6M - b.rsRating6M,
-        multiple: 3
-      }
-    },
-    {
-      title: 'RS 1Y',
-      dataIndex: 'rsRating1Y',
-      key: 'rsRating1Y',
-      align: 'right',
-      sorter: {
-        compare: (a, b) => a.rsRating1Y - b.rsRating1Y,
-        multiple: 4
-      }
+  const filteredStockList = useMemo(() => {
+    setOptions(getAutoCompleteOptions(stockList));
+    let tempList = [];
+    tempList = keyword.length > 0 ? stockList.filter(e => e.ticker.indexOf(keyword) >= 0) : stockList;
+    tempList = includeOTC ? tempList : tempList.filter(e => EXC_NO_OTC.includes(e.exchange));
+    tempList = includeBitotech ? tempList : tempList.filter(e => e.industry !== 'Biotechnology');
+    return tempList;
+  }, [stockList, keyword, includeOTC, includeBitotech]);
+
+  const columns: TableColumnsType<Stock> = useMemo(() => {
+    const filters = {
+      industry: [...new Set(filteredStockList.map(e => e.industry).sort())].map(e => ({ text: e, value: e }))
     }
-  ]
+    return populateColumn(filters);
+  }, [filteredStockList])
+  
+
+  const onSelect = (data: string) => {
+    setKeyword(data.toUpperCase());
+  };
+
+  const onSearch = (keyword: string) => {
+    setOptions(getAutoCompleteOptions(stockList, keyword));
+  };
+
+  const onClear = () => {
+    onSelect('');
+  }
 
   return (
     <>
       <Title level={2}>US Stock Screener</Title>
       {error}
       {!error &&
-        <Table
-          dataSource={stockList}
-          columns={columns}
-          size="small"
-          pagination={{ pageSize: 20, showTotal: (total) => `Total ${formatNumber(total)} items` }}
-        />
+        <>
+          <Flex style={{ marginBottom: 8 }} gap={8} align="center" wrap={true}>
+            <AutoComplete
+              options={options}
+              style={{ width: 200 }}
+              onSelect={onSelect}
+              onSearch={onSearch}
+            >
+              <Search placeholder="Search ticker" allowClear onClear={onClear} onSearch={onSelect} />
+            </AutoComplete>
+            <Flex gap={8}>
+              <Checkbox onChange={(event) => setIncludeOTC(event.target.checked)}>Include OTC</Checkbox>
+              <Checkbox onChange={(event) => setIncludeBitotech(event.target.checked)}>Include Biotechnology</Checkbox>
+            </Flex>
+          </Flex>
+
+          <Table
+            dataSource={filteredStockList}
+            columns={columns}
+            size="small"
+            scroll={{x: 1500, y: 'calc(100vh - 260px)'}}
+            pagination={{ 
+              pageSize: pageSize, 
+              showTotal: (total) => `Total ${formatNumber(total)} items`,
+              onShowSizeChange: (_, size) => setPageSize(size)
+            }}
+          />
+        </>
       }
     </>
   )

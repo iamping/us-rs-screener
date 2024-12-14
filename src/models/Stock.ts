@@ -19,4 +19,6 @@ export interface Stock {
   rsRating3M: number
   rsRating6M: number
   rsRating1Y: number
+  sectorRank: number
+  industryRank: number
 }

@@ -6,10 +6,28 @@ const { Text } = Typography;
 
 interface Filter {
   industry: { text: string, value: string }[]
+  sector: { text: string, value: string }[]
   // exchange: { text: string, value: string }[]
 }
 
+const getRsFilters = (col: 'rsRating' | 'rsRating3M' | 'rsRating6M' | 'rsRating1Y') => {
+  return {
+    filters: [
+      { text: '70 and above', value: 70 },
+      { text: '80 and above', value: 80 },
+      { text: '90 and above', value: 90 },
+    ],
+    onFilter: (value: boolean | React.Key, record: Stock) => record[col] >= Number(value)
+  }
+}
+
 export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
+
+  const rsRatingFilter = getRsFilters('rsRating');
+  const rsRating3MFilter = getRsFilters('rsRating3M');
+  const rsRating6MFilter = getRsFilters('rsRating6M');
+  const rsRating1YFilter = getRsFilters('rsRating1Y');
+
   return [
     {
       title: 'Ticker',
@@ -23,23 +41,8 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       title: '',
       dataIndex: 'companyName',
       key: 'companyName',
-      render: (val) => <Text type="secondary">{val}</Text>,
-      ellipsis: true
-    },
-    {
-      title: 'Sector',
-      dataIndex: 'sector',
-      key: 'sector',
-      sorter: (a, b) => a.sector > b.sector ? 1 : -1
-    },
-    {
-      title: 'Industry',
-      dataIndex: 'industry',
-      key: 'industry',
-      filters: filters.industry,
-      onFilter: (value, record) => record.industry.indexOf(value as string) === 0,
       ellipsis: true,
-      sorter: (a, b) => a.industry > b.industry ? 1 : -1
+      render: (val) => <Text type="secondary">{val}</Text>,
     },
     // {
     //   title: 'Exchange',
@@ -54,6 +57,7 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'marketCap',
       key: 'marketCap',
       align: 'right',
+      width: 150,
       filters: [
         { text: '2B and above', value: 'gt' },
         { text: '2B and below', value: 'lt' },
@@ -69,6 +73,7 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'avgDollarVolume',
       key: 'avgDollarVolume',
       align: 'right',
+      width: 140,
       filters: [
         { text: '20M and above', value: 'gt' },
         { text: '20M and below', value: 'lt' },
@@ -84,7 +89,9 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'rsRating',
       key: 'rsRating',
       align: 'right',
-      width: 100,
+      width: 120,
+      filters: rsRatingFilter.filters,
+      onFilter: rsRatingFilter.onFilter,
       sorter: (a, b) => a.rsRating - b.rsRating,
     },
     {
@@ -92,7 +99,9 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'rsRating3M',
       key: 'rsRating3M',
       align: 'right',
-      width: 80,
+      width: 100,
+      filters: rsRating3MFilter.filters,
+      onFilter: rsRating3MFilter.onFilter,
       sorter: (a, b) => a.rsRating3M - b.rsRating3M,
     },
     {
@@ -100,7 +109,9 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'rsRating6M',
       key: 'rsRating6M',
       align: 'right',
-      width: 80,
+      width: 100,
+      filters: rsRating6MFilter.filters,
+      onFilter: rsRating6MFilter.onFilter,
       sorter: (a, b) => a.rsRating6M - b.rsRating6M,
     },
     {
@@ -108,8 +119,49 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'rsRating1Y',
       key: 'rsRating1Y',
       align: 'right',
-      width: 80,
-      sorter: (a, b) => a.rsRating1Y - b.rsRating1Y
-    }
+      width: 100,
+      filters: rsRating1YFilter.filters,
+      onFilter: rsRating1YFilter.onFilter,
+      sorter: (a, b) => a.rsRating1Y - b.rsRating1Y,
+    },
+    {
+      title: 'Sector Rank',
+      dataIndex: 'sectorRank',
+      key: 'sectorRank',
+      align: 'right',
+      width: 120,
+      sorter: (a, b) => a.sectorRank - b.sectorRank
+    },
+    {
+      title: 'Industry Rank',
+      dataIndex: 'industryRank',
+      key: 'industryRank',
+      align: 'right',
+      width: 150,
+      filters: [
+        { text: '40 and below', value: 40 },
+        { text: '80 and below', value: 80 },
+        { text: '120 and below', value: 120 }
+      ],
+      onFilter: (value, record: Stock) => record.industryRank <= Number(value),
+      sorter: (a, b) => a.industryRank - b.industryRank
+    },
+    {
+      title: 'Sector',
+      dataIndex: 'sector',
+      key: 'sector',
+      filters: filters.sector,
+      onFilter: (value, record) => record.sector.indexOf(value as string) === 0,
+      sorter: (a, b) => a.sector > b.sector ? 1 : -1
+    },
+    {
+      title: 'Industry',
+      dataIndex: 'industry',
+      key: 'industry',
+      filters: filters.industry,
+      onFilter: (value, record) => record.industry.indexOf(value as string) === 0,
+      sorter: (a, b) => a.industry > b.industry ? 1 : -1
+    },
+    
   ];
 }

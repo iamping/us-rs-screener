@@ -32,8 +32,6 @@ function App() {
       });
   }, []);
 
-  
-
   const filteredStockList = useMemo(() => {
     setOptions(getAutoCompleteOptions(stockList));
     let tempList = [];
@@ -43,12 +41,16 @@ function App() {
     return tempList;
   }, [stockList, keyword, includeOTC, includeBitotech]);
 
-  const columns: TableColumnsType<Stock> = useMemo(() => {
-    const filters = {
-      industry: [...new Set(filteredStockList.map(e => e.industry).sort())].map(e => ({ text: e, value: e }))
+  const filtersMemo = useMemo(() => {
+    return {
+      sector: [...new Set(stockList.map(e => e.sector).sort())].map(e => ({ text: e, value: e })),
+      industry: [...new Set(stockList.map(e => e.industry).sort())].map(e => ({ text: e, value: e }))
     }
-    return populateColumn(filters);
-  }, [filteredStockList])
+  }, [stockList])
+
+  const columns: TableColumnsType<Stock> = useMemo(() => {
+    return populateColumn(filtersMemo);
+  }, [filtersMemo])
   
 
   const onSelect = (data: string) => {
@@ -88,7 +90,7 @@ function App() {
             dataSource={filteredStockList}
             columns={columns}
             size="small"
-            scroll={{x: 1500, y: 'calc(100vh - 260px)'}}
+            scroll={{x: 1500}}
             pagination={{ 
               pageSize: pageSize, 
               showTotal: (total) => `Total ${formatNumber(total)} items`,

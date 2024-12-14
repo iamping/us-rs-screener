@@ -42,6 +42,7 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'companyName',
       key: 'companyName',
       ellipsis: true,
+      width: 200,
       render: (val) => <Text type="secondary">{val}</Text>,
     },
     // {
@@ -57,7 +58,7 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'marketCap',
       key: 'marketCap',
       align: 'right',
-      width: 150,
+      width: 160,
       filters: [
         { text: '2B and above', value: 'gt' },
         { text: '2B and below', value: 'lt' },
@@ -73,7 +74,7 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       dataIndex: 'avgDollarVolume',
       key: 'avgDollarVolume',
       align: 'right',
-      width: 140,
+      width: 150,
       filters: [
         { text: '20M and above', value: 'gt' },
         { text: '20M and below', value: 'lt' },
@@ -150,6 +151,7 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       title: 'Sector',
       dataIndex: 'sector',
       key: 'sector',
+      width: 200,
       filters: filters.sector,
       onFilter: (value, record) => record.sector.indexOf(value as string) === 0,
       sorter: (a, b) => a.sector > b.sector ? 1 : -1
@@ -158,6 +160,7 @@ export const populateColumn = (filters: Filter): TableColumnsType<Stock> => {
       title: 'Industry',
       dataIndex: 'industry',
       key: 'industry',
+      width: 300,
       filters: filters.industry,
       onFilter: (value, record) => record.industry.indexOf(value as string) === 0,
       sorter: (a, b) => a.industry > b.industry ? 1 : -1

@@ -7,11 +7,13 @@ import App from './App';
 
 import '@tanstack/react-table'; //or vue, svelte, solid, qwik, etc.
 import { RowData } from '@tanstack/react-table';
+import { FilterVariant } from './components/ui/filter-icon-button';
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     width?: number;
     ellipsis?: boolean;
+    filterVariant?: FilterVariant;
   }
 }
 

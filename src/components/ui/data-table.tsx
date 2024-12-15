@@ -14,6 +14,8 @@ import {
 } from '@tanstack/react-table';
 import { SortIcon } from './sort-icon';
 import { formatDecimal } from '../../utils/common.util';
+import { EllipsisText } from './ellipsis-text';
+import { FilterIconButton } from './filter-icon-button';
 
 const fallBackData: Stock[] = [];
 const noOtc = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
@@ -24,13 +26,19 @@ const columns = [
   columnHelper.accessor('ticker', {
     header: () => 'Ticker',
     cell: (cell) => cell.getValue(),
-    meta: { width: 90 }
+    meta: { width: 100 },
+    enableColumnFilter: false
   }),
   columnHelper.accessor('companyName', {
     header: () => '',
-    cell: (cell) => cell.getValue(),
+    cell: (cell) => (
+      <EllipsisText width={200} color="gray.500">
+        {cell.getValue()}
+      </EllipsisText>
+    ),
     meta: { width: 200 },
-    enableSorting: false
+    enableSorting: false,
+    enableColumnFilter: false
   }),
   columnHelper.accessor('marketCap', {
     header: () => <Text textAlign="right">Market Cap (B)</Text>,
@@ -45,7 +53,7 @@ const columns = [
   columnHelper.accessor('rsRating', {
     header: () => <Text textAlign="right">RS Rating</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 120 }
+    meta: { width: 120, filterVariant: 'range' }
   }),
   columnHelper.accessor('rsRating3M', {
     header: () => <Text textAlign="right">RS 3M</Text>,
@@ -77,7 +85,7 @@ const columns = [
   columnHelper.accessor('sectorRank', {
     header: () => <Text textAlign="right">Sector Rank</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 120 }
+    meta: { width: 130 }
   }),
   columnHelper.accessor('industry', {
     header: () => 'Industry',
@@ -92,7 +100,8 @@ const columns = [
 ];
 
 export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
+  console.log('render table');
+  const [columnFilters] = useState<ColumnFiltersState>([
     {
       id: 'exchange',
       value: noOtc
@@ -127,17 +136,25 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
               <Table.Row key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   const canSort = header.column.getCanSort();
+                  const canFilter = header.column.getCanFilter();
+                  const width = header.column.columnDef.meta?.width ?? 'auto';
+                  const filterVariant = header.column.columnDef.meta?.filterVariant;
                   return (
                     <Table.ColumnHeader
                       key={header.id}
-                      width={header.column.columnDef.meta?.width ?? 'auto'}
+                      width={width}
                       verticalAlign="top"
-                      _hover={{ background: canSort ? 'gray.100' : 'inherit' }}
+                      _hover={{ background: canSort ? 'gray.50' : 'inherit' }}
                       cursor={canSort ? 'pointer' : 'inherit'}
                       onClick={header.column.getToggleSortingHandler()}>
-                      <HStack>
-                        <Box flexGrow={1}>{flexRender(header.column.columnDef.header, header.getContext())}</Box>
+                      <HStack gap={1}>
+                        <Box flexGrow={1} marginRight={1}>
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </Box>
                         {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
+                        {canFilter && (
+                          <FilterIconButton isFiltered={false} width={width} filterVariant={filterVariant} />
+                        )}
                       </HStack>
                     </Table.ColumnHeader>
                   );

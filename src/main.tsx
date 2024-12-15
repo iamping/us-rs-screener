@@ -1,10 +1,24 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ChakraProvider, defaultSystem } from '@chakra-ui/react'
 import './main.css'
 import App from './App'
 
+import '@tanstack/react-table' //or vue, svelte, solid, qwik, etc.
+import { RowData } from '@tanstack/react-table'
+
+declare module '@tanstack/react-table' {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    width?: number,
+    ellipsis?: boolean
+  }
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ChakraProvider value={defaultSystem}>
+      <App />
+    </ChakraProvider>
   </StrictMode>,
 )

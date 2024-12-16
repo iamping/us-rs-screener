@@ -91,12 +91,12 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset 
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-end' }}>
       <PopoverTrigger asChild>
         <IconButton
+          className="filter-icon"
           title={`filter ${id}`}
           size="2xs"
           color={column.getIsFiltered() ? 'teal.500' : 'gray'}
           variant="ghost"
-          onClick={(e) => e.stopPropagation()}
-          _hover={{ color: 'black' }}>
+          onClick={(e) => e.stopPropagation()}>
           <PiFunnelBold />
         </IconButton>
       </PopoverTrigger>

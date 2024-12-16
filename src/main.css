@@ -2,12 +2,20 @@ body {
   padding: 0 10px;
 }
 
-.icon-hover {
+.sort-icon {
   color: grey;
 }
 
 .table-header:hover {
-  .icon-hover {
+  .sort-icon {
     color: #09090B;
   }
+}
+
+.filter-icon:hover {
+  color: #09090B;
+}
+
+.filter-icon:hover ~ .sort-icon {
+  color: grey;
 }

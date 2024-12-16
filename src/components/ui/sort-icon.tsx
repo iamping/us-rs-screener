@@ -9,6 +9,6 @@ export const SortIcon: FC<{ sortDirection: false | SortDirection }> = ({ sortDir
     case 'desc':
       return <PiSortAscendingBold color="#0d9488" title="sort desc" />;
     default:
-      return <PiListBold className="icon-hover" title="sort" />;
+      return <PiListBold className="sort-icon" title="sort" />;
   }
 };

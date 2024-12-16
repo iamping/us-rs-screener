@@ -1,3 +1,13 @@
 body {
   padding: 0 10px;
 }
+
+.icon-hover {
+  color: grey;
+}
+
+.table-header:hover {
+  .icon-hover {
+    color: #09090B;
+  }
+}

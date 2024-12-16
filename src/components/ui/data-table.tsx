@@ -183,6 +183,7 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
                   const filterVariant = header.column.columnDef.meta?.filterVariant;
                   return (
                     <Table.ColumnHeader
+                      className="table-header"
                       key={header.id}
                       width={width}
                       verticalAlign="top"

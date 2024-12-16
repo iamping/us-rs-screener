@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { Stock } from '../../models/Stock';
-import { Box, HStack, Table, Text } from '@chakra-ui/react';
+import { Box, HStack, IconButton, Separator, Table, Text } from '@chakra-ui/react';
 import { PaginationNextTrigger, PaginationPageText, PaginationPrevTrigger, PaginationRoot } from './pagination';
 import {
   ColumnFiltersState,
@@ -19,6 +19,7 @@ import { SortIcon } from './sort-icon';
 import { formatDecimal } from '../../utils/common.util';
 import { EllipsisText } from './ellipsis-text';
 import { FilterEmpty, FilterIconButton } from './filter-icon-button';
+import { PiFunnelXBold } from 'react-icons/pi';
 
 const fallBackData: Stock[] = [];
 const noOtc = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
@@ -58,25 +59,25 @@ const columns = [
   columnHelper.accessor('rsRating', {
     header: () => <Text textAlign="right">RS Rating</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 120, filterVariant: 'range' },
+    meta: { width: 130, filterVariant: 'range' },
     filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('rsRating3M', {
     header: () => <Text textAlign="right">RS 3M</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 100, filterVariant: 'range' },
+    meta: { width: 110, filterVariant: 'range' },
     filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('rsRating6M', {
     header: () => <Text textAlign="right">RS 6M</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 100, filterVariant: 'range' },
+    meta: { width: 110, filterVariant: 'range' },
     filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('rsRating1Y', {
     header: () => <Text textAlign="right">RS 1Y</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 100, filterVariant: 'range' },
+    meta: { width: 110, filterVariant: 'range' },
     filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('exchange', {
@@ -89,29 +90,32 @@ const columns = [
   columnHelper.accessor('sector', {
     header: () => 'Sector',
     cell: (cell) => cell.getValue(),
-    meta: { width: 200 }
+    meta: { width: 200 },
+    enableColumnFilter: false
   }),
   columnHelper.accessor('industry', {
     header: () => 'Industry',
     cell: (cell) => cell.getValue(),
-    meta: { width: 300 }
+    meta: { width: 300 },
+    enableColumnFilter: false
   }),
   columnHelper.accessor('sectorRank', {
     header: () => <Text textAlign="right">Sector Rank</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 130, filterVariant: 'range' },
-    enableColumnFilter: false
+    meta: { width: 150, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('industryRank', {
     header: () => <Text textAlign="right">Industry Rank</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 150, filterVariant: 'range' },
+    meta: { width: 160, filterVariant: 'range' },
     filterFn: 'inNumberRange'
   })
 ];
 
 export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
   console.log('render table');
+  const [globalReset, setGlobalReset] = useState(0);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: 'exchange',
@@ -146,12 +150,24 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
 
   // console.log(table.getState().columnFilters);
 
+  const resetAllFilters = () => {
+    table.resetColumnFilters(undefined);
+    setGlobalReset((val) => val + 1);
+  };
+
   useEffect(() => {
     table.setPageSize(20);
   }, [table]);
 
   return (
     <>
+      <HStack marginY={3}>
+        <Text>TODO: Global filtering</Text>
+        <IconButton size="xs" variant="ghost" onClick={resetAllFilters}>
+          <PiFunnelXBold />
+        </IconButton>
+      </HStack>
+      <Separator />
       <Table.ScrollArea>
         <Table.Root size="sm" tableLayout={'fixed'}>
           <Table.Header>
@@ -185,6 +201,7 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
                             popupWidth={width}
                             filterVariant={filterVariant}
                             column={header.column}
+                            globalReset={globalReset}
                           />
                         )}
                       </HStack>

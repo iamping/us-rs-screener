@@ -11,9 +11,11 @@ interface FilterProps<T> {
   popupWidth: number | string;
   filterVariant: FilterVariant;
   column: Column<T, unknown>;
+  globalReset: number;
 }
 
 interface RangeFilterProps {
+  id?: string;
   resetCount: number;
   initialValues: number[] | undefined;
   min: number;
@@ -21,7 +23,8 @@ interface RangeFilterProps {
   onChange: (val: number[]) => void;
 }
 
-export const FilterIconButton = <T,>({ popupWidth, filterVariant, column }: FilterProps<T>) => {
+export const FilterIconButton = <T,>({ id, popupWidth, filterVariant, column, globalReset }: FilterProps<T>) => {
+  // console.log(`render filter [${id}]`);
   const [isReset, setIsReset] = useState(false);
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<number[] | string[]>([]);
@@ -57,6 +60,8 @@ export const FilterIconButton = <T,>({ popupWidth, filterVariant, column }: Filt
     }
   };
 
+  useEffect(() => {}, [globalReset]);
+
   return (
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-end' }}>
       <PopoverTrigger asChild>
@@ -73,6 +78,7 @@ export const FilterIconButton = <T,>({ popupWidth, filterVariant, column }: Filt
           <VStack>
             {filterVariant === 'range' && (
               <RangeFilter
+                id={id}
                 initialValues={rangeCurrentValue}
                 min={min!}
                 max={max!}
@@ -82,10 +88,10 @@ export const FilterIconButton = <T,>({ popupWidth, filterVariant, column }: Filt
             )}
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
-              <Button size="sm" variant="ghost" onClick={onReset}>
+              <Button size="xs" variant="ghost" onClick={onReset}>
                 Reset
               </Button>
-              <Button size="sm" onClick={onApply}>
+              <Button size="xs" onClick={onApply}>
                 Apply
               </Button>
             </HStack>
@@ -97,7 +103,6 @@ export const FilterIconButton = <T,>({ popupWidth, filterVariant, column }: Filt
 };
 
 const RangeFilter: FC<RangeFilterProps> = ({ initialValues: initialValue, resetCount, min, max, onChange }) => {
-  // console.log(initialValue, min, max);
   const [value, setValue] = useState(initialValue);
   const onValueChange = (values: number[]) => {
     onChange(values);

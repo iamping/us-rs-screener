@@ -60,7 +60,9 @@ export const FilterIconButton = <T,>({ id, popupWidth, filterVariant, column, gl
     }
   };
 
-  useEffect(() => {}, [globalReset]);
+  useEffect(() => {
+    setResetCount((val) => val + 1);
+  }, [globalReset]);
 
   return (
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-end' }}>

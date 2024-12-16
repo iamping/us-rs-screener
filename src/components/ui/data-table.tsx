@@ -18,7 +18,7 @@ import {
 import { SortIcon } from './sort-icon';
 import { formatDecimal } from '../../utils/common.util';
 import { EllipsisText } from './ellipsis-text';
-import { FilterEmpty, FilterIconButton } from './filter-icon-button';
+import { FilterEmpty, Filter } from './filter';
 import { PiFunnelXBold } from 'react-icons/pi';
 
 const fallBackData: Stock[] = [];
@@ -90,14 +90,14 @@ const columns = [
   columnHelper.accessor('sector', {
     header: () => 'Sector',
     cell: (cell) => cell.getValue(),
-    meta: { width: 200 },
-    enableColumnFilter: false
+    meta: { width: 200, filterVariant: 'select' },
+    filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('industry', {
     header: () => 'Industry',
     cell: (cell) => cell.getValue(),
-    meta: { width: 300 },
-    enableColumnFilter: false
+    meta: { width: 300, filterVariant: 'select' },
+    filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('sectorRank', {
     header: () => <Text textAlign="right">Sector Rank</Text>,
@@ -114,7 +114,7 @@ const columns = [
 ];
 
 export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
-  console.log('render table');
+  // console.log('render table');
   const [globalReset, setGlobalReset] = useState(0);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
@@ -197,7 +197,7 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
                         {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
                         {isFilterNotReady && <FilterEmpty />}
                         {isFilterReady && (
-                          <FilterIconButton
+                          <Filter
                             id={header.id}
                             popupWidth={width}
                             filterVariant={filterVariant}

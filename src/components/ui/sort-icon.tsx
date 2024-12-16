@@ -1,14 +1,15 @@
 import { FC } from 'react';
 import { SortDirection } from '@tanstack/react-table';
-import { LuArrowUpAZ, LuArrowDownZA, LuArrowUpDown } from 'react-icons/lu';
+import { PiListBold, PiSortAscendingBold, PiSortDescendingBold } from 'react-icons/pi';
 
 export const SortIcon: FC<{ sortDirection: false | SortDirection }> = ({ sortDirection }) => {
   switch (sortDirection) {
     case 'asc':
-      return <LuArrowUpAZ color="#f97316" />;
+      return <PiSortAscendingBold color="#0d9488" />;
     case 'desc':
-      return <LuArrowDownZA color="#f97316" />;
+      return <PiSortDescendingBold color="#0d9488" />;
     default:
-      return <LuArrowUpDown color="grey" />;
+      // return <LuArrowUpDown color="grey" />;
+      return <PiListBold color="grey" />;
   }
 };

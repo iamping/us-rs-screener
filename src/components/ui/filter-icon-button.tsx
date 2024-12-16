@@ -1,111 +1,60 @@
 import { Button, Code, HStack, IconButton, Separator, Spacer, VStack } from '@chakra-ui/react';
 import { FC, useEffect, useState } from 'react';
-import { LuFilter } from 'react-icons/lu';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from './popover';
 import { Slider } from './slider';
+import { Column } from '@tanstack/react-table';
+import { PiFunnelBold } from 'react-icons/pi';
 
 export type FilterVariant = 'range' | 'select' | undefined;
-interface FilterProps {
-  isFiltered: boolean;
-  width: number | string;
+interface FilterProps<T> {
+  id?: string;
+  popupWidth: number | string;
   filterVariant: FilterVariant;
+  column: Column<T, unknown>;
 }
-
-// interface FilterBodyProps {
-//   filterVariant: FilterVariant;
-//   resetCount: number;
-//   initialValues: number[] | undefined;
-//   onChange: (val: number[] | string[]) => void;
-// }
 
 interface RangeFilterProps {
   resetCount: number;
-  initialValues: number[];
+  initialValues: number[] | undefined;
   min: number;
   max: number;
   onChange: (val: number[]) => void;
 }
 
-const RangeFilter: FC<RangeFilterProps> = ({ initialValues, resetCount, onChange, min, max }) => {
-  const [values, setValues] = useState(initialValues);
-  const onValueChange = (values: number[]) => {
-    onChange(values);
-    setValues(values);
-  };
-  useEffect(() => {
-    setValues([min, max]);
-  }, [resetCount, min, max]);
-
-  return (
-    <>
-      <Slider
-        size="md"
-        width="90%"
-        colorPalette="pink"
-        value={values}
-        min={min}
-        max={max}
-        onValueChange={(details) => onValueChange(details.value)}
-      />
-      <HStack width="100%">
-        <Code>from: {values[0]}</Code>
-        <Spacer />
-        <Code>to: {values[1]}</Code>
-      </HStack>
-    </>
-  );
-};
-
-// const FilterBody: FC<FilterBodyProps> = ({ filterVariant, initialValues, resetCount, onChange }) => {
-//   const [values, setValues] = useState(initialValues);
-//   const onValueChangeEnd = (values: number[]) => {
-//     onChange(values);
-//   };
-//   useEffect(() => {
-//     setValues([0, 100]);
-//   }, [resetCount]);
-
-//   switch (filterVariant) {
-//     case 'range':
-//       return (
-//         <Slider
-//           size="md"
-//           width="90%"
-//           colorPalette="pink"
-//           value={values}
-//           marks={[
-//             { value: 0, label: '0' },
-//             { value: 50, label: '50' },
-//             { value: 75, label: '75' },
-//             { value: 100, label: '100' }
-//           ]}
-//           onValueChangeEnd={(details) => onValueChangeEnd(details.value)}
-//         />
-//       );
-//     case 'select':
-//       return 'select';
-//     default:
-//       return 'default';
-//   }
-// };
-
-export const FilterIconButton: FC<FilterProps> = ({ isFiltered, width, filterVariant }) => {
+export const FilterIconButton = <T,>({ popupWidth, filterVariant, column }: FilterProps<T>) => {
+  const [isReset, setIsReset] = useState(false);
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState<number[] | string[]>([]);
   const [resetCount, setResetCount] = useState(0);
 
+  // variant range - handle filter current value
+  const [min, max] = column.getFacetedMinMaxValues() ?? [0, 100];
+  const rangeCurrentValue = (column.getFilterValue() ?? [min, max]) as number[];
+
   const onChange = (values: number[] | string[]) => {
+    setIsReset(false);
     setValues(values);
   };
 
   const onApply = () => {
-    console.log(values);
+    // console.log(`[${id}] onApply => `, values);
     setOpen(false);
+    column.setFilterValue(values);
+    if (isReset) {
+      column.setFilterValue(undefined);
+    }
   };
 
   const onReset = () => {
-    setValues([0, 100]);
+    setIsReset(true);
     setResetCount((val) => val + 1);
+    switch (filterVariant) {
+      case 'range':
+        setValues([min, max]);
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -113,24 +62,24 @@ export const FilterIconButton: FC<FilterProps> = ({ isFiltered, width, filterVar
       <PopoverTrigger asChild>
         <IconButton
           size="2xs"
-          color={isFiltered ? 'orange.500' : 'gray'}
+          color={column.getIsFiltered() ? 'teal.500' : 'gray'}
           variant="ghost"
           onClick={(e) => e.stopPropagation()}>
-          <LuFilter />
+          <PiFunnelBold />
         </IconButton>
       </PopoverTrigger>
-      <PopoverContent minWidth={200} width={width} onClick={(e) => e.stopPropagation()}>
+      <PopoverContent minWidth={200} width={popupWidth} onClick={(e) => e.stopPropagation()}>
         <PopoverBody padding={4}>
           <VStack>
             {filterVariant === 'range' && (
-              <RangeFilter initialValues={[0, 100]} min={0} max={100} resetCount={resetCount} onChange={onChange} />
+              <RangeFilter
+                initialValues={rangeCurrentValue}
+                min={min!}
+                max={max!}
+                resetCount={resetCount}
+                onChange={onChange}
+              />
             )}
-            {/* <FilterBody
-              filterVariant={filterVariant}
-              initialValues={[0, 100]}
-              resetCount={resetCount}
-              onChange={onChange}
-            /> */}
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
               <Button size="sm" variant="ghost" onClick={onReset}>
@@ -144,5 +93,45 @@ export const FilterIconButton: FC<FilterProps> = ({ isFiltered, width, filterVar
         </PopoverBody>
       </PopoverContent>
     </PopoverRoot>
+  );
+};
+
+const RangeFilter: FC<RangeFilterProps> = ({ initialValues: initialValue, resetCount, min, max, onChange }) => {
+  // console.log(initialValue, min, max);
+  const [value, setValue] = useState(initialValue);
+  const onValueChange = (values: number[]) => {
+    onChange(values);
+    setValue(values);
+  };
+
+  useEffect(() => {
+    setValue([min, max]);
+  }, [resetCount, min, max]);
+
+  return (
+    <>
+      <Slider
+        size="md"
+        width="90%"
+        colorPalette="pink"
+        value={value}
+        min={min}
+        max={max}
+        onValueChange={(details) => onValueChange(details.value)}
+      />
+      <HStack width="100%">
+        <Code>from: {value?.[0]}</Code>
+        <Spacer />
+        <Code>to: {value?.[1]}</Code>
+      </HStack>
+    </>
+  );
+};
+
+export const FilterEmpty = () => {
+  return (
+    <IconButton size="2xs" color="gray" variant="ghost" onClick={(e) => e.stopPropagation()}>
+      <PiFunnelBold />
+    </IconButton>
   );
 };

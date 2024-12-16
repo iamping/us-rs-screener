@@ -7,6 +7,9 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getFacetedMinMaxValues,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -15,7 +18,7 @@ import {
 import { SortIcon } from './sort-icon';
 import { formatDecimal } from '../../utils/common.util';
 import { EllipsisText } from './ellipsis-text';
-import { FilterIconButton } from './filter-icon-button';
+import { FilterEmpty, FilterIconButton } from './filter-icon-button';
 
 const fallBackData: Stock[] = [];
 const noOtc = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
@@ -43,32 +46,38 @@ const columns = [
   columnHelper.accessor('marketCap', {
     header: () => <Text textAlign="right">Market Cap (B)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000000)}</Text>,
-    meta: { width: 150 }
+    meta: { width: 150 },
+    enableColumnFilter: false
   }),
   columnHelper.accessor('avgDollarVolume', {
     header: () => <Text textAlign="right">Avg $ Vol (M)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000)}</Text>,
-    meta: { width: 150 }
+    meta: { width: 150 },
+    enableColumnFilter: false
   }),
   columnHelper.accessor('rsRating', {
     header: () => <Text textAlign="right">RS Rating</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 120, filterVariant: 'range' }
+    meta: { width: 120, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('rsRating3M', {
     header: () => <Text textAlign="right">RS 3M</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 100 }
+    meta: { width: 100, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('rsRating6M', {
     header: () => <Text textAlign="right">RS 6M</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 100 }
+    meta: { width: 100, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('rsRating1Y', {
     header: () => <Text textAlign="right">RS 1Y</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 100 }
+    meta: { width: 100, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('exchange', {
     header: () => 'Exchange',
@@ -82,26 +91,28 @@ const columns = [
     cell: (cell) => cell.getValue(),
     meta: { width: 200 }
   }),
-  columnHelper.accessor('sectorRank', {
-    header: () => <Text textAlign="right">Sector Rank</Text>,
-    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 130 }
-  }),
   columnHelper.accessor('industry', {
     header: () => 'Industry',
     cell: (cell) => cell.getValue(),
     meta: { width: 300 }
   }),
+  columnHelper.accessor('sectorRank', {
+    header: () => <Text textAlign="right">Sector Rank</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: { width: 130, filterVariant: 'range' },
+    enableColumnFilter: false
+  }),
   columnHelper.accessor('industryRank', {
     header: () => <Text textAlign="right">Industry Rank</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 150 }
+    meta: { width: 150, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
   })
 ];
 
 export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
   console.log('render table');
-  const [columnFilters] = useState<ColumnFiltersState>([
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: 'exchange',
       value: noOtc
@@ -110,18 +121,30 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
   const table = useReactTable({
     data: data ?? fallBackData,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     state: {
       columnFilters,
       columnVisibility: {
         exchange: false
       }
     },
+    // Core - the followings are like add-on features
+    getCoreRowModel: getCoreRowModel(),
+    // pagination
+    getPaginationRowModel: getPaginationRowModel(),
+    // filtering
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    // sorting
     getSortedRowModel: getSortedRowModel(),
-    autoResetPageIndex: false // cut down re-render twice
+    // generate lists of values for a given column
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedMinMaxValues: getFacetedMinMaxValues(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    // if set to true it'll make table render twice
+    autoResetPageIndex: false
   });
+
+  // console.log(table.getState().columnFilters);
 
   useEffect(() => {
     table.setPageSize(20);
@@ -136,7 +159,10 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
               <Table.Row key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   const canSort = header.column.getCanSort();
-                  const canFilter = header.column.getCanFilter();
+                  const isFilterNotReady =
+                    header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length === 0;
+                  const isFilterReady =
+                    header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;
                   const width = header.column.columnDef.meta?.width ?? 'auto';
                   const filterVariant = header.column.columnDef.meta?.filterVariant;
                   return (
@@ -152,8 +178,14 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
                           {flexRender(header.column.columnDef.header, header.getContext())}
                         </Box>
                         {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
-                        {canFilter && (
-                          <FilterIconButton isFiltered={false} width={width} filterVariant={filterVariant} />
+                        {isFilterNotReady && <FilterEmpty />}
+                        {isFilterReady && (
+                          <FilterIconButton
+                            id={header.id}
+                            popupWidth={width}
+                            filterVariant={filterVariant}
+                            column={header.column}
+                          />
                         )}
                       </HStack>
                     </Table.ColumnHeader>

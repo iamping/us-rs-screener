@@ -171,8 +171,6 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
     autoResetExpanded: false
   });
 
-  // console.log(table.getState().columnFilters);
-
   const resetAllFilters = () => {
     table.resetColumnFilters(undefined);
     table.setPageIndex(0);
@@ -181,9 +179,12 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
 
   return (
     <>
-      <HStack marginY={3}>
-        <Text>TODO: Global filtering</Text>
-        <IconButton size="xs" variant="ghost" onClick={resetAllFilters}>
+      <HStack marginY={3} justifyContent="flex-end">
+        <IconButton
+          size="xs"
+          variant="outline"
+          onClick={resetAllFilters}
+          disabled={table.getState().columnFilters.length === 0}>
           <PiFunnelXBold />
         </IconButton>
       </HStack>

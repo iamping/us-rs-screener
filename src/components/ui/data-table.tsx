@@ -194,19 +194,17 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
                         <Box flexGrow={1} marginRight={1}>
                           {flexRender(header.column.columnDef.header, header.getContext())}
                         </Box>
-                        <HStack gap={1} flexDirection="row-reverse">
-                          {isFilterNotReady && <FilterEmpty />}
-                          {isFilterReady && (
-                            <Filter
-                              id={header.id}
-                              popupWidth={width}
-                              filterVariant={filterVariant}
-                              column={header.column}
-                              globalReset={globalReset}
-                            />
-                          )}
-                          {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
-                        </HStack>
+                        {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
+                        {isFilterNotReady && <FilterEmpty />}
+                        {isFilterReady && (
+                          <Filter
+                            id={header.id}
+                            popupWidth={width}
+                            filterVariant={filterVariant}
+                            column={header.column}
+                            globalReset={globalReset}
+                          />
+                        )}
                       </HStack>
                     </Table.ColumnHeader>
                   );

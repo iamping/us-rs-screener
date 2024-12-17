@@ -16,6 +16,6 @@ body {
   color: #09090B;
 }
 
-.filter-icon:hover ~ .sort-icon {
+.sort-icon:has(~ .filter-icon:hover) {
   color: grey;
 }

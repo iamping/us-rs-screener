@@ -28,6 +28,10 @@ import { EllipsisText } from './ellipsis-text';
 import { FilterEmpty, Filter } from './filter';
 import { PiFunnelXBold } from 'react-icons/pi';
 import { amountFilterFn, avgDollarVolOptions, fallBackData, marketCapOptions, noOtc } from '../../utils/table.util';
+import { If } from './if';
+import { EmptyState } from './empty-state';
+import { LuShoppingCart } from 'react-icons/lu';
+import { AiOutlineStock } from 'react-icons/ai';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -234,41 +238,54 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
               </Table.Row>
             ))}
           </Table.Header>
-          <Table.Body>
-            {table.getRowModel().rows.map((row) => (
-              <Table.Row key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <Table.Cell key={cell.id} verticalAlign="top">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Table.Cell>
-                ))}
-              </Table.Row>
-            ))}
-          </Table.Body>
+          <If exp={table.getRowModel().rows.length > 0}>
+            <Table.Body>
+              {table.getRowModel().rows.map((row) => (
+                <Table.Row key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <Table.Cell key={cell.id} verticalAlign="top">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </Table.Cell>
+                  ))}
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </If>
         </Table.Root>
       </Table.ScrollArea>
-      <PaginationRoot
-        size="xs"
-        marginY={3}
-        count={table.getFilteredRowModel().rows.length}
-        pageSize={pagination.pageSize}
-        page={pagination.pageIndex + 1}
-        onPageChange={(detail) => setPagination({ ...pagination, pageIndex: detail.page - 1 })}>
-        <HStack justifyContent="end">
-          <PageSizeSelection
-            pageSize={pagination.pageSize}
-            onPageSizeChange={(pageSize) => setPagination({ ...pagination, pageSize })}
-          />
-          <PaginationPageText marginLeft={2} fontSize="smaller" format="long" />
+      <If exp={table.getRowModel().rows.length === 0}>
+        <EmptyState
+          width="100%"
+          marginTop={10}
+          icon={<AiOutlineStock />}
+          title="No results found"
+          description="Try adjusting filters"
+        />
+      </If>
+      <If exp={table.getRowModel().rows.length > 0}>
+        <PaginationRoot
+          size="xs"
+          marginY={3}
+          count={table.getFilteredRowModel().rows.length}
+          pageSize={pagination.pageSize}
+          page={pagination.pageIndex + 1}
+          onPageChange={(detail) => setPagination({ ...pagination, pageIndex: detail.page - 1 })}>
+          <HStack justifyContent="end">
+            <PageSizeSelection
+              pageSize={pagination.pageSize}
+              onPageSizeChange={(pageSize) => setPagination({ ...pagination, pageSize })}
+            />
+            <PaginationPageText marginLeft={2} fontSize="smaller" format="long" />
 
-          <Group attached>
-            <PaginationPrevTrigger />
-            <PaginationItems hideBelow="md" />
-            <PaginationPageText fontSize="smaller" format="short" hideFrom="md" />
-            <PaginationNextTrigger />
-          </Group>
-        </HStack>
-      </PaginationRoot>
+            <Group attached>
+              <PaginationPrevTrigger />
+              <PaginationItems hideBelow="md" />
+              <PaginationPageText fontSize="smaller" format="short" hideFrom="md" />
+              <PaginationNextTrigger />
+            </Group>
+          </HStack>
+        </PaginationRoot>
+      </If>
     </>
   );
 };

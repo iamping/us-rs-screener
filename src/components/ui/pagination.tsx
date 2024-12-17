@@ -143,7 +143,7 @@ export const PaginationNextTrigger = React.forwardRef<HTMLButtonElement, ChakraP
   }
 );
 
-export const PaginationItems = (props: React.HTMLAttributes<HTMLElement>) => {
+export const PaginationItems = (props: React.HTMLAttributes<HTMLElement> & PageTextProps) => {
   return (
     <ChakraPagination.Context>
       {({ pages }) =>
@@ -194,7 +194,7 @@ export const PageSizeSelection: React.FC<{ pageSize: number; onPageSizeChange: (
 }) => {
   // console.log('PageSizeSelection', pageSize);
   return (
-    <NativeSelectRoot size="sm" width="110px">
+    <NativeSelectRoot size="sm" width="110px" hideBelow="md">
       <NativeSelectField
         items={pageSizeList}
         value={pageSize}

@@ -1,8 +1,9 @@
 import { FC, useState } from 'react';
 import { Stock } from '../../models/Stock';
-import { Box, HStack, IconButton, Separator, Table, Text } from '@chakra-ui/react';
+import { Box, Group, HStack, IconButton, Separator, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
+  PaginationItems,
   PaginationNextTrigger,
   PaginationPageText,
   PaginationPrevTrigger,
@@ -247,9 +248,14 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
             pageSize={pagination.pageSize}
             onPageSizeChange={(pageSize) => setPagination({ ...pagination, pageSize })}
           />
-          <PaginationPageText fontSize="smaller" format="long" />
-          <PaginationPrevTrigger />
-          <PaginationNextTrigger />
+          <PaginationPageText marginLeft={2} fontSize="smaller" format="long" />
+
+          <Group attached>
+            <PaginationPrevTrigger />
+            <PaginationItems hideBelow="md" />
+            <PaginationPageText fontSize="smaller" format="short" hideFrom="md" />
+            <PaginationNextTrigger />
+          </Group>
         </HStack>
       </PaginationRoot>
     </>

@@ -19,3 +19,7 @@ body {
 .sort-icon:has(~ .filter-icon:hover) {
   color: grey;
 }
+
+.radio-wrapper:has(.radio:checked) {
+  background-color: #f5f5f5;
+}

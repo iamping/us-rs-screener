@@ -27,9 +27,7 @@ import { formatDecimal } from '../../utils/common.util';
 import { EllipsisText } from './ellipsis-text';
 import { FilterEmpty, Filter } from './filter';
 import { PiFunnelXBold } from 'react-icons/pi';
-
-const fallBackData: Stock[] = [];
-const noOtc = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
+import { amountFilterFn, avgDollarVolOptions, fallBackData, marketCapOptions, noOtc } from '../../utils/table.util';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -37,13 +35,13 @@ const columns = [
   columnHelper.accessor('ticker', {
     header: () => 'Ticker',
     cell: (cell) => cell.getValue(),
-    meta: { width: 100 },
+    meta: { width: 100, sticky: true },
     enableColumnFilter: false
   }),
   columnHelper.accessor('companyName', {
     header: () => '',
     cell: (cell) => (
-      <EllipsisText width={200} color="gray.500">
+      <EllipsisText width={200} color="gray.500" title={cell.getValue()}>
         {cell.getValue()}
       </EllipsisText>
     ),
@@ -54,14 +52,22 @@ const columns = [
   columnHelper.accessor('marketCap', {
     header: () => <Text textAlign="right">Market Cap (B)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000000)}</Text>,
-    meta: { width: 150 },
-    enableColumnFilter: false
+    meta: {
+      width: 150,
+      filterVariant: 'radio-select',
+      selectOptions: marketCapOptions
+    },
+    filterFn: amountFilterFn(marketCapOptions)
   }),
   columnHelper.accessor('avgDollarVolume', {
     header: () => <Text textAlign="right">Avg $ Vol (M)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000)}</Text>,
-    meta: { width: 150 },
-    enableColumnFilter: false
+    meta: {
+      width: 150,
+      filterVariant: 'radio-select',
+      selectOptions: avgDollarVolOptions
+    },
+    filterFn: amountFilterFn(avgDollarVolOptions)
   }),
   columnHelper.accessor('rsRating', {
     header: () => <Text textAlign="right">RS Rating</Text>,
@@ -102,8 +108,12 @@ const columns = [
   }),
   columnHelper.accessor('industry', {
     header: () => 'Industry',
-    cell: (cell) => cell.getValue(),
-    meta: { width: 300, filterVariant: 'select' },
+    cell: (cell) => (
+      <EllipsisText width={250} title={cell.getValue()}>
+        {cell.getValue()}
+      </EllipsisText>
+    ),
+    meta: { width: 250, filterVariant: 'select' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('sectorRank', {

@@ -1,4 +1,4 @@
-import { Button, Code, HStack, IconButton, Separator, Spacer, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Code, HStack, IconButton, Separator, Spacer, Text, VStack } from '@chakra-ui/react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from './popover';
 import { Slider } from './slider';
@@ -6,7 +6,7 @@ import { Column } from '@tanstack/react-table';
 import { PiFunnelBold } from 'react-icons/pi';
 import { If } from './if';
 
-export type FilterVariant = 'range' | 'select' | undefined;
+export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
 interface FilterProps<T> {
   id?: string;
   popupWidth: number | string;
@@ -33,6 +33,23 @@ interface SelectFilterProps {
   onChange: (val: string[]) => void;
 }
 
+interface RadioSelectFilterProps {
+  id?: string;
+  resetCount: number;
+  initialValue: string;
+  optionList: SelectOption[];
+  onChange: (val: string) => void;
+}
+
+export interface SelectOption {
+  value: string;
+  title: string;
+  description?: string;
+  operator?: '>=' | '<' | '<>' | '!==';
+  compareNumber1?: number;
+  compareNumber2?: number;
+}
+
 export const FilterEmpty = () => {
   return (
     <IconButton size="2xs" color="gray" variant="ghost" onClick={(e) => e.stopPropagation()}>
@@ -45,7 +62,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
   // console.log(`render filter [${id}]`);
   const [isReset, setIsReset] = useState(false);
   const [open, setOpen] = useState(false);
-  const [values, setValues] = useState<number[] | string[]>([]);
+  const [values, setValues] = useState<number[] | string[] | string>([]);
   const [resetCount, setResetCount] = useState(0);
 
   // variant range - handle filter current value
@@ -56,7 +73,11 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
   const valueList = filterVariant === 'select' ? [...column.getFacetedUniqueValues().keys()].sort() : [];
   const selectCurrentValue = (column.getFilterValue() ?? []) as string[];
 
-  const onChange = (values: number[] | string[]) => {
+  // radio select
+  const optionList = filterVariant === 'radio-select' ? (column.columnDef.meta?.selectOptions ?? []) : [];
+  const radioCurrentValue = (column.getFilterValue() ?? '') as string;
+
+  const onChange = (values: number[] | string[] | string) => {
     setIsReset(false);
     setValues(values);
     // console.log(`[${id}] onChange => `, values);
@@ -79,6 +100,9 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
       case 'range':
         setValues([min, max]);
         break;
+      case 'radio-select':
+        setValues('');
+        break;
       default:
         setValues([]);
         break;
@@ -88,6 +112,10 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
   useEffect(() => {
     setResetCount((val) => val + 1);
   }, [globalReset]);
+
+  if (!filterVariant) {
+    return null;
+  }
 
   return (
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-end' }}>
@@ -129,6 +157,15 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
                 onChange={onChange}
               />
             </If>
+            <If exp={filterVariant === 'radio-select'}>
+              <RadioSelectFilter
+                id={id}
+                initialValue={radioCurrentValue}
+                optionList={optionList}
+                onChange={onChange}
+                resetCount={resetCount}
+              />
+            </If>
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
               <Button size="xs" variant="ghost" onClick={onReset}>
@@ -161,7 +198,6 @@ const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, resetCo
       <Slider
         size="md"
         width="90%"
-        colorPalette="pink"
         value={value}
         min={min}
         max={max}
@@ -176,13 +212,14 @@ const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, resetCo
   );
 };
 
+// Chakra UI is too slow for this, just use HTML
 const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, resetCount, onChange }) => {
   // console.log('SelectFilter');
   const selectAll = 'Select All';
   const [values, setValues] = useState(initialValue ?? []);
   const selectList = [selectAll, ...valueList];
 
-  const onCheck = (event: ChangeEvent<HTMLInputElement>, value: string) => {
+  const onSelect = (event: ChangeEvent<HTMLInputElement>, value: string) => {
     let currentValues = [];
     if (event.target.checked) {
       currentValues = value === selectAll ? [...valueList, value] : [...values, value];
@@ -208,7 +245,7 @@ const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, rese
                 display: 'flex',
                 gap: '8px',
                 position: 'relative',
-                padding: '8px 0px',
+                padding: '4px 0px',
                 borderBottom: idx === 0 ? '1px solid #ddd' : ''
               }}>
               <input
@@ -216,7 +253,7 @@ const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, rese
                 type="checkbox"
                 name={value}
                 checked={values.includes(value)}
-                onChange={(event) => onCheck(event, value)}
+                onChange={(event) => onSelect(event, value)}
               />
               <label
                 title={value}
@@ -235,5 +272,56 @@ const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, rese
         })}
       </div>
     </>
+  );
+};
+
+const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optionList, resetCount, onChange }) => {
+  // console.log('radio select => ', id);
+  const [value, setValue] = useState(initialValue);
+  const onSelect = (value: string) => {
+    setValue(value);
+    onChange(value);
+  };
+
+  useEffect(() => {
+    setValue('');
+  }, [resetCount]);
+
+  return (
+    <VStack width="100%">
+      {optionList.map((e, idx) => {
+        return (
+          <VStack
+            as="label"
+            className="radio-wrapper"
+            key={idx}
+            width="100%"
+            alignItems="start"
+            gap={0}
+            padding="4px 8px"
+            borderRadius={4}>
+            <HStack alignItems="center">
+              <Box paddingTop={1}>
+                <input
+                  className="radio"
+                  type="radio"
+                  value={e.value}
+                  name={`${id}`}
+                  id={`${id}-${e.value}-${idx}`}
+                  checked={value === e.value}
+                  onChange={() => onSelect(e.value)}
+                />
+              </Box>
+              <Text fontWeight={500}>{e.title}</Text>
+            </HStack>
+            <If exp={!!e.description}>
+              <Text marginLeft={5} fontSize="sm" color="gray">
+                {e.description}
+              </Text>
+            </If>
+          </VStack>
+        );
+      })}
+    </VStack>
   );
 };

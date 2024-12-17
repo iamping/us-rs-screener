@@ -13,6 +13,7 @@ interface FilterProps<T> {
   filterVariant: FilterVariant;
   column: Column<T, unknown>;
   globalReset: number;
+  resetPageIndex?: () => void;
 }
 
 interface RangeFilterProps {
@@ -40,7 +41,7 @@ export const FilterEmpty = () => {
   );
 };
 
-export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset }: FilterProps<T>) => {
+export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset, resetPageIndex }: FilterProps<T>) => {
   // console.log(`render filter [${id}]`);
   const [isReset, setIsReset] = useState(false);
   const [open, setOpen] = useState(false);
@@ -68,6 +69,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset 
     if (isReset) {
       column.setFilterValue(undefined);
     }
+    resetPageIndex?.();
   };
 
   const onReset = () => {

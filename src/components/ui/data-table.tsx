@@ -1,7 +1,13 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useState } from 'react';
 import { Stock } from '../../models/Stock';
 import { Box, HStack, IconButton, Separator, Table, Text } from '@chakra-ui/react';
-import { PaginationNextTrigger, PaginationPageText, PaginationPrevTrigger, PaginationRoot } from './pagination';
+import {
+  PageSizeSelection,
+  PaginationNextTrigger,
+  PaginationPageText,
+  PaginationPrevTrigger,
+  PaginationRoot
+} from './pagination';
 import {
   ColumnFiltersState,
   createColumnHelper,
@@ -116,6 +122,10 @@ const columns = [
 export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
   // console.log('render table');
   const [globalReset, setGlobalReset] = useState(0);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0, //initial page index
+    pageSize: 20 //default page size
+  });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     {
       id: 'exchange',
@@ -129,7 +139,8 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
       columnFilters,
       columnVisibility: {
         exchange: false
-      }
+      },
+      pagination
     },
     // Core - the followings are like add-on features
     getCoreRowModel: getCoreRowModel(),
@@ -145,19 +156,17 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     // if set to true it'll make table render twice
-    autoResetPageIndex: false
+    autoResetPageIndex: false,
+    autoResetExpanded: false
   });
 
   // console.log(table.getState().columnFilters);
 
   const resetAllFilters = () => {
     table.resetColumnFilters(undefined);
+    table.setPageIndex(0);
     setGlobalReset((val) => val + 1);
   };
-
-  useEffect(() => {
-    table.setPageSize(20);
-  }, [table]);
 
   return (
     <>
@@ -203,6 +212,7 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
                             filterVariant={filterVariant}
                             column={header.column}
                             globalReset={globalReset}
+                            resetPageIndex={() => setPagination({ ...pagination, pageIndex: 0 })}
                           />
                         )}
                       </HStack>
@@ -226,14 +236,19 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
         </Table.Root>
       </Table.ScrollArea>
       <PaginationRoot
-        marginTop={2}
+        size="xs"
+        marginY={3}
         count={table.getFilteredRowModel().rows.length}
-        pageSize={table.getState().pagination.pageSize}
-        defaultPage={1}
-        onPageChange={(detail) => table.setPageIndex(detail.page - 1)}>
-        <HStack justifyContent="center">
+        pageSize={pagination.pageSize}
+        page={pagination.pageIndex + 1}
+        onPageChange={(detail) => setPagination({ ...pagination, pageIndex: detail.page - 1 })}>
+        <HStack justifyContent="end">
+          <PageSizeSelection
+            pageSize={pagination.pageSize}
+            onPageSizeChange={(pageSize) => setPagination({ ...pagination, pageSize })}
+          />
+          <PaginationPageText fontSize="smaller" format="long" />
           <PaginationPrevTrigger />
-          <PaginationPageText fontSize="smaller" />
           <PaginationNextTrigger />
         </HStack>
       </PaginationRoot>

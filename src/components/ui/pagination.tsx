@@ -12,6 +12,7 @@ import {
 import * as React from 'react';
 import { HiChevronLeft, HiChevronRight, HiMiniEllipsisHorizontal } from 'react-icons/hi2';
 import { LinkButton } from './link-button';
+import { NativeSelectField, NativeSelectRoot } from './native-select';
 
 interface ButtonVariantMap {
   current: ButtonProps['variant'];
@@ -173,9 +174,32 @@ export const PaginationPageText = React.forwardRef<HTMLParagraphElement, PageTex
     }, [format, page, totalPages, pageRange, count]);
 
     return (
-      <Text fontWeight="medium" ref={ref} {...rest}>
+      <Text ref={ref} {...rest}>
         {content}
       </Text>
     );
   }
 );
+
+const pageSizeList = [
+  { label: '10 / page', value: '10' },
+  { label: '20 / page', value: '20' },
+  { label: '50 / page', value: '50' },
+  { label: '100 / page', value: '100' }
+];
+
+export const PageSizeSelection: React.FC<{ pageSize: number; onPageSizeChange: (pageSize: number) => void }> = ({
+  pageSize,
+  onPageSizeChange
+}) => {
+  // console.log('PageSizeSelection', pageSize);
+  return (
+    <NativeSelectRoot size="sm" width="110px">
+      <NativeSelectField
+        items={pageSizeList}
+        value={pageSize}
+        onChange={(e) => onPageSizeChange(Number(e.currentTarget.value))}
+      />
+    </NativeSelectRoot>
+  );
+};

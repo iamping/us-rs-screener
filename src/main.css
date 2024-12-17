@@ -1,3 +1,25 @@
 body {
   padding: 0 10px;
 }
+
+.sort-icon {
+  color: grey;
+}
+
+.table-header:hover {
+  .sort-icon {
+    color: #09090B;
+  }
+}
+
+.filter-icon:hover {
+  color: #09090B;
+}
+
+.sort-icon:has(~ .filter-icon:hover) {
+  color: grey;
+}
+
+.radio-wrapper:has(.radio:checked) {
+  background-color: #f5f5f5;
+}

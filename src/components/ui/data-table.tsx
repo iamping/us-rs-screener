@@ -30,7 +30,6 @@ import { PiFunnelXBold } from 'react-icons/pi';
 import { amountFilterFn, avgDollarVolOptions, fallBackData, marketCapOptions, noOtc } from '../../utils/table.util';
 import { If } from './if';
 import { EmptyState } from './empty-state';
-import { LuShoppingCart } from 'react-icons/lu';
 import { AiOutlineStock } from 'react-icons/ai';
 
 // table columns

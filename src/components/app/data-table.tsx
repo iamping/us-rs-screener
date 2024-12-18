@@ -1,5 +1,5 @@
 import { FC, ReactNode, useState } from 'react';
-import { Stock } from '../../models/Stock';
+import { Stock } from '../../models/stock';
 import { Box, Group, HStack, IconButton, Separator, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
@@ -8,7 +8,7 @@ import {
   PaginationPageText,
   PaginationPrevTrigger,
   PaginationRoot
-} from './pagination';
+} from '../ui/pagination';
 import {
   ColumnFiltersState,
   createColumnHelper,
@@ -22,9 +22,9 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { SortIcon } from './sort-icon';
+import { SortIcon } from '../ui/sort-icon';
 import { formatDecimal } from '../../utils/common.util';
-import { EllipsisText } from './ellipsis-text';
+import { EllipsisText } from '../ui/ellipsis-text';
 import { FilterEmpty, Filter } from './filter';
 import { PiFunnelXBold } from 'react-icons/pi';
 import {
@@ -35,8 +35,8 @@ import {
   marketCapOptions,
   rsRatingOptions
 } from '../../utils/table.util';
-import { If } from './if';
-import { EmptyState } from './empty-state';
+import { If } from '../ui/if';
+import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
 
 // table columns
@@ -44,21 +44,28 @@ const columnHelper = createColumnHelper<Stock>();
 const columns = [
   columnHelper.accessor('ticker', {
     header: () => 'Ticker',
-    cell: (cell) => cell.getValue(),
-    meta: { width: 100, sticky: true },
-    enableColumnFilter: false
-  }),
-  columnHelper.accessor('companyName', {
-    header: () => 'Name',
     cell: (cell) => (
-      <EllipsisText width={200} color="gray.500" title={cell.getValue()}>
-        {cell.getValue()}
-      </EllipsisText>
+      <HStack>
+        <Text width={55}>{cell.getValue()}</Text>
+        <EllipsisText width={200} color="gray.500" title={cell.row.original.companyName}>
+          {cell.row.original.companyName}
+        </EllipsisText>
+      </HStack>
     ),
-    meta: { width: 200 },
-    enableSorting: false,
+    meta: { width: 300, sticky: true },
     enableColumnFilter: false
   }),
+  // columnHelper.accessor('companyName', {
+  //   header: () => 'Name',
+  //   cell: (cell) => (
+  //     <EllipsisText width={200} color="gray.500" title={cell.getValue()}>
+  //       {cell.getValue()}
+  //     </EllipsisText>
+  //   ),
+  //   meta: { width: 200 },
+  //   enableSorting: false,
+  //   enableColumnFilter: false
+  // }),
   columnHelper.accessor('marketCap', {
     header: () => <Text textAlign="right">Market Cap (B)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000000)}</Text>,

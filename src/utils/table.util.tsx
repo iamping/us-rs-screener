@@ -1,7 +1,7 @@
 import { Row } from '@tanstack/react-table';
-import { SelectOption } from '../components/ui/filter';
-import { Stock } from '../models/Stock';
-import { SettingsObject } from '../components/ui/settings';
+import { SelectOption } from '../components/app/filter';
+import { Stock } from '../models/stock';
+import { SettingsObject } from '../components/app/settings';
 import { excludeIndustry, includeExchanges } from './constants';
 
 export const fallBackData: Stock[] = [];

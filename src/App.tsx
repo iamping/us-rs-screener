@@ -1,9 +1,9 @@
 import { FC, useEffect, useState } from 'react';
 import { fetchStockRsList } from './services/us-rs-screener.service';
-import { Stock } from './models/Stock';
+import { Stock } from './models/stock';
 import { Box, Heading } from '@chakra-ui/react';
-import { DataTable } from './components/ui/data-table';
-import { Settings } from './components/ui/settings';
+import { DataTable } from './components/app/data-table';
+import { Settings } from './components/app/settings';
 import { defaultSettings } from './utils/constants';
 import { initialFilter } from './utils/table.util';
 

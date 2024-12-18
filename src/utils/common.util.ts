@@ -1,4 +1,4 @@
-import { Stock } from '../models/Stock';
+import { Stock } from '../models/stock';
 
 const decimalFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const numberFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 0, maximumFractionDigits: 0 });

@@ -1,10 +1,10 @@
 import { Box, Button, Code, HStack, IconButton, Separator, Spacer, Text, VStack } from '@chakra-ui/react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
-import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from './popover';
-import { Slider } from './slider';
+import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
+import { Slider } from '../ui/slider';
 import { Column } from '@tanstack/react-table';
 import { PiFunnelBold } from 'react-icons/pi';
-import { If } from './if';
+import { If } from '../ui/if';
 
 export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
 interface FilterProps<T> {

@@ -1,8 +1,8 @@
 import { Heading, IconButton, Separator, Text, VStack } from '@chakra-ui/react';
 import { FC, useState } from 'react';
 import { PiGearLight } from 'react-icons/pi';
-import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from './popover';
-import { Switch } from './switch';
+import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
+import { Switch } from '../ui/switch';
 
 export interface SettingsObject {
   includeOtc: boolean;

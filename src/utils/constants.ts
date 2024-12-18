@@ -1,4 +1,4 @@
-import { SettingsObject } from '../components/ui/settings';
+import { SettingsObject } from '../components/app/settings';
 
 export const defaultSettings: SettingsObject = {
   includeOtc: false,

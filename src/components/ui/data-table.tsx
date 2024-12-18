@@ -30,9 +30,9 @@ import { PiFunnelXBold } from 'react-icons/pi';
 import {
   amountFilterFn,
   avgDollarVolOptions,
+  defaultFilterState,
   fallBackData,
   marketCapOptions,
-  noOtc,
   rsRatingOptions
 } from '../../utils/table.util';
 import { If } from './if';
@@ -163,12 +163,7 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
     pageIndex: 0, //initial page index
     pageSize: 20 //default page size
   });
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
-    {
-      id: 'exchange',
-      value: noOtc
-    }
-  ]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
   const table = useReactTable({
     data: data ?? fallBackData,
     columns,
@@ -199,6 +194,7 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
 
   const resetAllFilters = () => {
     table.resetColumnFilters(undefined);
+    // table.setColumnFilters(defaultFilterState);
     table.setPageIndex(0);
     setGlobalReset((val) => val + 1);
   };

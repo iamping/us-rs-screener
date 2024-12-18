@@ -6,6 +6,14 @@ export const fallBackData: Stock[] = [];
 
 export const noOtc = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
 
+export const defaultFilterState = [];
+// export const defaultFilterState = [
+//   {
+//     id: 'exchange',
+//     value: noOtc
+//   }
+// ];
+
 export const marketCapOptions: SelectOption[] = [
   {
     value: 'titan',

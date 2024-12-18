@@ -3,6 +3,7 @@ import { fetchStockRsList } from './services/us-rs-screener.service';
 import { Stock } from './models/Stock';
 import { Box, Heading } from '@chakra-ui/react';
 import { DataTable } from './components/ui/data-table';
+import { noOtc } from './utils/table.util';
 
 const App: FC = () => {
   const [stockList, setStockList] = useState<Stock[]>([]);
@@ -13,7 +14,7 @@ const App: FC = () => {
     fetchStockRsList
       .then((response) => response.clone().json())
       .then((stocks: Stock[]) => {
-        setStockList(stocks.map((e, i) => ({ ...e, key: i + 1 })));
+        setStockList(stocks.filter((e) => noOtc.includes(e.exchange)).map((e, i) => ({ ...e, key: i + 1 })));
       })
       .catch((e) => {
         console.error(e);
@@ -27,7 +28,9 @@ const App: FC = () => {
 
   return (
     <Box>
-      <Heading size="3xl">US Stock Screener</Heading>
+      <Heading size="3xl" paddingY={2} paddingX={1}>
+        US Stock Screener
+      </Heading>
       <DataTable data={stockList}></DataTable>
     </Box>
   );

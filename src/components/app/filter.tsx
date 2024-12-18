@@ -125,7 +125,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
           title={`Filter ${id}`}
           size="2xs"
           color={column.getIsFiltered() ? 'teal.500' : 'gray'}
-          variant="ghost"
+          variant="plain"
           onClick={(e) => e.stopPropagation()}>
           <PiFunnelBold />
         </IconButton>

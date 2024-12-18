@@ -23,7 +23,7 @@ import {
   useReactTable
 } from '@tanstack/react-table';
 import { SortIcon } from '../ui/sort-icon';
-import { formatDecimal } from '../../utils/common.util';
+import { formatDecimal, formatNumber } from '../../utils/common.util';
 import { EllipsisText } from '../ui/ellipsis-text';
 import { FilterEmpty, Filter } from './filter';
 import { PiArrowCounterClockwiseBold, PiMagnifyingGlassBold } from 'react-icons/pi';
@@ -72,15 +72,42 @@ const columns = [
     enableSorting: false,
     enableColumnFilter: false
   }),
-  columnHelper.accessor('marketCap', {
-    header: () => <Text textAlign="right">Market Cap (B)</Text>,
-    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000000)}</Text>,
+  columnHelper.accessor('close', {
+    header: () => <Text textAlign="right">Close</Text>,
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
     meta: {
-      width: 170,
-      filterVariant: 'radio-select',
-      selectOptions: marketCapOptions
+      width: 85
     },
-    filterFn: amountFilterFn(marketCapOptions)
+    enableColumnFilter: false
+  }),
+  columnHelper.accessor('percentChange', {
+    header: () => <Text textAlign="right">Change %</Text>,
+    cell: (cell) => (
+      <Text textAlign="right" color={cell.getValue() > 0 ? 'teal.500' : 'red.500'}>
+        {formatDecimal(cell.getValue())} %
+      </Text>
+    ),
+    meta: {
+      width: 110
+    },
+    enableColumnFilter: false
+  }),
+  columnHelper.accessor('volume', {
+    header: () => <Text textAlign="right">Volume</Text>,
+    cell: (cell) => <Text textAlign="right">{formatNumber(cell.getValue())}</Text>,
+    meta: {
+      width: 100
+    },
+    enableColumnFilter: false
+  }),
+  columnHelper.accessor('relativeVolume', {
+    header: () => <Text textAlign="right">Rel. Volume</Text>,
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
+    meta: {
+      width: 150,
+      filterVariant: 'range'
+    },
+    filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('avgDollarVolume', {
     header: () => <Text textAlign="right">Avg $ Vol (M)</Text>,
@@ -91,6 +118,16 @@ const columns = [
       selectOptions: avgDollarVolOptions
     },
     filterFn: amountFilterFn(avgDollarVolOptions)
+  }),
+  columnHelper.accessor('marketCap', {
+    header: () => <Text textAlign="right">Market Cap (B)</Text>,
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000000)}</Text>,
+    meta: {
+      width: 170,
+      filterVariant: 'radio-select',
+      selectOptions: marketCapOptions
+    },
+    filterFn: amountFilterFn(marketCapOptions)
   }),
   columnHelper.accessor('rsRating', {
     header: () => <Text textAlign="right">RS Rating</Text>,
@@ -259,8 +296,9 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
                       verticalAlign="top"
                       _hover={{ background: canSort ? 'gray.50' : 'inherit' }}
                       cursor={canSort ? 'pointer' : 'inherit'}
+                      paddingRight={1}
                       onClick={header.column.getToggleSortingHandler()}>
-                      <HStack gap={1}>
+                      <HStack gap={0}>
                         <Box flexGrow={1} marginRight={1}>
                           {flexRender(header.column.columnDef.header, header.getContext())}
                         </Box>

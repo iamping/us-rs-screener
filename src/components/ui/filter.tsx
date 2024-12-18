@@ -288,7 +288,7 @@ const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optio
   }, [resetCount]);
 
   return (
-    <VStack width="100%">
+    <VStack width="100%" gap={0}>
       {optionList.map((e, idx) => {
         return (
           <VStack

@@ -42,7 +42,7 @@ const columns = [
     enableColumnFilter: false
   }),
   columnHelper.accessor('companyName', {
-    header: () => '',
+    header: () => 'Name',
     cell: (cell) => (
       <EllipsisText width={200} color="gray.500" title={cell.getValue()}>
         {cell.getValue()}
@@ -56,7 +56,7 @@ const columns = [
     header: () => <Text textAlign="right">Market Cap (B)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000000)}</Text>,
     meta: {
-      width: 150,
+      width: 170,
       filterVariant: 'radio-select',
       selectOptions: marketCapOptions
     },
@@ -66,7 +66,7 @@ const columns = [
     header: () => <Text textAlign="right">Avg $ Vol (M)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000)}</Text>,
     meta: {
-      width: 150,
+      width: 170,
       filterVariant: 'radio-select',
       selectOptions: avgDollarVolOptions
     },
@@ -103,6 +103,18 @@ const columns = [
     enableHiding: true,
     filterFn: 'arrIncludesSome'
   }),
+  columnHelper.accessor('sectorRank', {
+    header: () => <Text textAlign="right">Sector Rank</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: { width: 150, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
+  }),
+  columnHelper.accessor('industryRank', {
+    header: () => <Text textAlign="right">Industry Rank</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: { width: 160, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
+  }),
   columnHelper.accessor('sector', {
     header: () => 'Sector',
     cell: (cell) => cell.getValue(),
@@ -118,18 +130,6 @@ const columns = [
     ),
     meta: { width: 250, filterVariant: 'select' },
     filterFn: 'arrIncludesSome'
-  }),
-  columnHelper.accessor('sectorRank', {
-    header: () => <Text textAlign="right">Sector Rank</Text>,
-    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 150, filterVariant: 'range' },
-    filterFn: 'inNumberRange'
-  }),
-  columnHelper.accessor('industryRank', {
-    header: () => <Text textAlign="right">Industry Rank</Text>,
-    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 160, filterVariant: 'range' },
-    filterFn: 'inNumberRange'
   })
 ];
 

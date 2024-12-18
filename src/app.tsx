@@ -6,12 +6,19 @@ import { DataTable } from './components/app/data-table';
 import { Settings } from './components/app/settings';
 import { defaultSettings } from './utils/constants';
 import { initialFilter } from './utils/table.util';
+import { useEventListener } from 'usehooks-ts';
 
 const App: FC = () => {
   const [stockList, setStockList] = useState<Stock[]>([]);
   const [filteredStockList, setFilteredStockList] = useState<Stock[]>([]);
   const [settings, setSettings] = useState(defaultSettings);
   const [error, setError] = useState<null | string>(null);
+
+  useEventListener('keydown', (event) => {
+    if (/[A-Za-z- ]/.test(event.key)) {
+      console.log('gonna open dialog => ', event.key);
+    }
+  });
 
   useEffect(() => {
     setError(null);

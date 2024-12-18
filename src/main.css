@@ -7,7 +7,7 @@ body {
 }
 
 .table-header {
-  border-top: 1px solid var(--chakra-colors-gray-200);
+  border-top: 1.5px solid var(--chakra-colors-gray-200);
 }
 .table-header:hover {
   .sort-icon {

@@ -122,7 +122,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
       <PopoverTrigger asChild>
         <IconButton
           className="filter-icon"
-          title={`filter ${id}`}
+          title={`Filter ${id}`}
           size="2xs"
           color={column.getIsFiltered() ? 'teal.500' : 'gray'}
           variant="ghost"

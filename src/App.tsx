@@ -43,7 +43,9 @@ const App: FC = () => {
       </Heading>
       <DataTable
         data={filteredStockList}
-        settings={<Settings currentSettings={settings} saveSettings={setSettings} />}></DataTable>
+        settings={[
+          <Settings key={'app-settings'} currentSettings={settings} saveSettings={setSettings} />
+        ]}></DataTable>
     </Box>
   );
 };

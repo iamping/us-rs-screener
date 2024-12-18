@@ -1,6 +1,6 @@
 import { FC, ReactNode, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Group, HStack, IconButton, Table, Text } from '@chakra-ui/react';
+import { Box, Button, Group, HStack, IconButton, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
   PaginationItems,
@@ -26,7 +26,7 @@ import { SortIcon } from '../ui/sort-icon';
 import { formatDecimal } from '../../utils/common.util';
 import { EllipsisText } from '../ui/ellipsis-text';
 import { FilterEmpty, Filter } from './filter';
-import { PiFunnelXBold } from 'react-icons/pi';
+import { PiArrowCounterClockwiseBold, PiMagnifyingGlassBold } from 'react-icons/pi';
 import {
   amountFilterFn,
   avgDollarVolOptions,
@@ -169,7 +169,7 @@ const columns = [
   })
 ];
 
-export const DataTable: FC<{ data: Stock[]; settings?: ReactNode }> = ({ data, settings }) => {
+export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data, settings }) => {
   // console.log('render table');
   const [globalReset, setGlobalReset] = useState(0);
   const [pagination, setPagination] = useState({
@@ -214,16 +214,29 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode }> = ({ data, s
 
   return (
     <>
-      <HStack marginY={3} justifyContent="flex-end">
-        <IconButton
-          title="reset filters"
-          size="xs"
-          variant="outline"
-          onClick={resetAllFilters}
-          disabled={table.getState().columnFilters.length === 0}>
-          <PiFunnelXBold />
-        </IconButton>
-        {settings && settings}
+      <HStack marginY={3} justifyContent="space-between">
+        <HStack>
+          <Button size="xs" variant="outline">
+            <Text color="gray.500">
+              Preset:{' '}
+              <Text as="span" color="black">
+                Default
+              </Text>
+            </Text>
+          </Button>
+          <IconButton title="Search ticker" size="xs" variant="outline">
+            <PiMagnifyingGlassBold />
+          </IconButton>
+          <IconButton
+            title="Clear filters"
+            size="xs"
+            variant="outline"
+            onClick={resetAllFilters}
+            disabled={table.getState().columnFilters.length === 0}>
+            <PiArrowCounterClockwiseBold />
+          </IconButton>
+        </HStack>
+        <HStack>{settings && settings}</HStack>
       </HStack>
       <Table.ScrollArea>
         <Table.Root size="sm" tableLayout={'fixed'}>

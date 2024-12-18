@@ -1,6 +1,6 @@
 import { Heading, IconButton, Separator, Text, VStack } from '@chakra-ui/react';
 import { FC, useState } from 'react';
-import { PiGearLight } from 'react-icons/pi';
+import { PiGearBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Switch } from '../ui/switch';
 
@@ -27,12 +27,12 @@ export const Settings: FC<SettingsProps> = ({ currentSettings, saveSettings }) =
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-end' }}>
       <PopoverTrigger asChild>
         <IconButton
-          title="settings"
+          title="Settings"
           size="xs"
           variant="outline"
           // onClick={resetAllFilters}
         >
-          <PiGearLight />
+          <PiGearBold />
         </IconButton>
       </PopoverTrigger>
       <PopoverContent width={220} onClick={(e) => e.stopPropagation()}>

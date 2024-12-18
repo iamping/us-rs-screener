@@ -5,10 +5,10 @@ import { PiListBold, PiSortAscendingBold, PiSortDescendingBold } from 'react-ico
 export const SortIcon: FC<{ sortDirection: false | SortDirection }> = ({ sortDirection }) => {
   switch (sortDirection) {
     case 'asc':
-      return <PiSortDescendingBold color="#0d9488" title="sort asc" />;
+      return <PiSortDescendingBold color="#0d9488" title="Sort asc" />;
     case 'desc':
-      return <PiSortAscendingBold color="#0d9488" title="sort desc" />;
+      return <PiSortAscendingBold color="#0d9488" title="Sort desc" />;
     default:
-      return <PiListBold className="sort-icon" title="sort" />;
+      return <PiListBold className="sort-icon" title="Original order" />;
   }
 };

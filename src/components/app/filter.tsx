@@ -288,7 +288,7 @@ const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optio
   }, [resetCount]);
 
   return (
-    <VStack width="100%" gap={0}>
+    <VStack width="100%" gap={1}>
       {optionList.map((e, idx) => {
         return (
           <VStack
@@ -298,11 +298,13 @@ const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optio
             width="100%"
             alignItems="start"
             gap={0}
-            padding="4px 8px"
-            borderRadius={4}>
-            <HStack alignItems="center">
-              <Box paddingTop={1}>
+            padding="4px 4px 4px 8px"
+            borderRadius={5}>
+            <HStack justifyContent="space-between" width="100%">
+              <Text fontWeight={500}>{e.title}</Text>
+              <Box paddingTop={1} paddingRight={1}>
                 <input
+                  style={{ opacity: 0 }}
                   className="radio"
                   type="radio"
                   value={e.value}
@@ -312,10 +314,9 @@ const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optio
                   onChange={() => onSelect(e.value)}
                 />
               </Box>
-              <Text fontWeight={500}>{e.title}</Text>
             </HStack>
             <If exp={!!e.description}>
-              <Text marginLeft={5} fontSize="sm" color="gray">
+              <Text fontSize="sm" color="gray">
                 {e.description}
               </Text>
             </If>

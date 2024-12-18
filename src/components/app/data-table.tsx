@@ -1,6 +1,6 @@
 import { FC, ReactNode, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Group, HStack, IconButton, Separator, Table, Text } from '@chakra-ui/react';
+import { Box, Group, HStack, IconButton, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
   PaginationItems,
@@ -44,28 +44,34 @@ const columnHelper = createColumnHelper<Stock>();
 const columns = [
   columnHelper.accessor('ticker', {
     header: () => 'Ticker',
-    cell: (cell) => (
-      <HStack>
-        <Text width={55}>{cell.getValue()}</Text>
-        <EllipsisText width={200} color="gray.500" title={cell.row.original.companyName}>
-          {cell.row.original.companyName}
-        </EllipsisText>
-      </HStack>
-    ),
-    meta: { width: 300, sticky: true },
+    cell: (cell) => cell.getValue(),
+    meta: { width: 85, sticky: true },
     enableColumnFilter: false
   }),
-  // columnHelper.accessor('companyName', {
-  //   header: () => 'Name',
+  // columnHelper.accessor('ticker', {
+  //   header: () => 'Ticker',
   //   cell: (cell) => (
-  //     <EllipsisText width={200} color="gray.500" title={cell.getValue()}>
-  //       {cell.getValue()}
-  //     </EllipsisText>
+  //     <HStack>
+  //       <Text width={55}>{cell.getValue()}</Text>
+  //       <EllipsisText width={200} color="gray.500" title={cell.row.original.companyName}>
+  //         {cell.row.original.companyName}
+  //       </EllipsisText>
+  //     </HStack>
   //   ),
-  //   meta: { width: 200 },
-  //   enableSorting: false,
+  //   meta: { width: 300, sticky: true },
   //   enableColumnFilter: false
   // }),
+  columnHelper.accessor('companyName', {
+    header: () => 'Company Name',
+    cell: (cell) => (
+      <EllipsisText width={200} color="gray.500" title={cell.getValue()}>
+        {cell.getValue()}
+      </EllipsisText>
+    ),
+    meta: { width: 200 },
+    enableSorting: false,
+    enableColumnFilter: false
+  }),
   columnHelper.accessor('marketCap', {
     header: () => <Text textAlign="right">Market Cap (B)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000000)}</Text>,
@@ -219,7 +225,6 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode }> = ({ data, s
         </IconButton>
         {settings && settings}
       </HStack>
-      <Separator />
       <Table.ScrollArea>
         <Table.Root size="sm" tableLayout={'fixed'}>
           <Table.Header>

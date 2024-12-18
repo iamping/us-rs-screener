@@ -3,24 +3,32 @@ body {
 }
 
 .sort-icon {
-  color: grey;
+  color: var(--chakra-colors-gray-500);
 }
 
+.table-header {
+  border-top: 1px solid var(--chakra-colors-gray-200);
+}
 .table-header:hover {
   .sort-icon {
-    color: #09090B;
+    color: var(--chakra-colors-black);
   }
 }
 
 .filter-icon:hover {
-  color: #09090B;
+  color: var(--chakra-colors-black);
 }
 
 .sort-icon:has(~ .filter-icon:hover) {
-  color: grey;
+  color: var(--chakra-colors-gray-500);
+}
+
+.radio-wrapper {
+  border: 1px solid transparent;
 }
 
 .radio-wrapper:has(.radio:checked), .radio-wrapper:hover {
-  background-color: #f5f5f5;
+  background-color: var(--chakra-colors-gray-100);
+  border: 1px solid var(--chakra-colors-gray-500);
   cursor: pointer;
 }

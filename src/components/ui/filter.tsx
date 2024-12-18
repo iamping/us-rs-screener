@@ -45,7 +45,7 @@ export interface SelectOption {
   value: string;
   title: string;
   description?: string;
-  operator?: '>=' | '<' | '<>' | '!==';
+  operator?: '>=' | '<' | '<>' | '!==' | '<=';
   compareNumber1?: number;
   compareNumber2?: number;
 }

@@ -27,7 +27,14 @@ import { formatDecimal } from '../../utils/common.util';
 import { EllipsisText } from './ellipsis-text';
 import { FilterEmpty, Filter } from './filter';
 import { PiFunnelXBold } from 'react-icons/pi';
-import { amountFilterFn, avgDollarVolOptions, fallBackData, marketCapOptions, noOtc } from '../../utils/table.util';
+import {
+  amountFilterFn,
+  avgDollarVolOptions,
+  fallBackData,
+  marketCapOptions,
+  noOtc,
+  rsRatingOptions
+} from '../../utils/table.util';
 import { If } from './if';
 import { EmptyState } from './empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
@@ -75,26 +82,42 @@ const columns = [
   columnHelper.accessor('rsRating', {
     header: () => <Text textAlign="right">RS Rating</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 130, filterVariant: 'range' },
-    filterFn: 'inNumberRange'
+    meta: {
+      width: 130,
+      filterVariant: 'radio-select',
+      selectOptions: rsRatingOptions
+    },
+    filterFn: amountFilterFn(rsRatingOptions)
   }),
   columnHelper.accessor('rsRating3M', {
     header: () => <Text textAlign="right">RS 3M</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 110, filterVariant: 'range' },
-    filterFn: 'inNumberRange'
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: rsRatingOptions
+    },
+    filterFn: amountFilterFn(rsRatingOptions)
   }),
   columnHelper.accessor('rsRating6M', {
     header: () => <Text textAlign="right">RS 6M</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 110, filterVariant: 'range' },
-    filterFn: 'inNumberRange'
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: rsRatingOptions
+    },
+    filterFn: amountFilterFn(rsRatingOptions)
   }),
   columnHelper.accessor('rsRating1Y', {
     header: () => <Text textAlign="right">RS 1Y</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 110, filterVariant: 'range' },
-    filterFn: 'inNumberRange'
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: rsRatingOptions
+    },
+    filterFn: amountFilterFn(rsRatingOptions)
   }),
   columnHelper.accessor('exchange', {
     header: () => 'Exchange',

@@ -1,10 +1,10 @@
 import { Row } from '@tanstack/react-table';
 import { SelectOption } from '../components/ui/filter';
 import { Stock } from '../models/Stock';
+import { SettingsObject } from '../components/ui/settings';
+import { excludeIndustry, includeExchanges } from './constants';
 
 export const fallBackData: Stock[] = [];
-
-export const noOtc = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
 
 export const defaultFilterState = [];
 // export const defaultFilterState = [
@@ -105,3 +105,14 @@ export const amountFilterFn =
     }
     return true;
   };
+
+export const initialFilter = (stockList: Stock[], settings: SettingsObject) => {
+  return stockList
+    .filter((e) => {
+      return settings.includeOtc ? true : includeExchanges.includes(e.exchange);
+    })
+    .filter((e) => {
+      return settings.includeBiotechnology ? true : !excludeIndustry.includes(e.industry);
+    })
+    .map((e, i) => ({ ...e, key: i + 1 }));
+};

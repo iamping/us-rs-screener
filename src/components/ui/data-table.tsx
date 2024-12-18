@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import { Stock } from '../../models/Stock';
 import { Box, Group, HStack, IconButton, Separator, Table, Text } from '@chakra-ui/react';
 import {
@@ -156,7 +156,7 @@ const columns = [
   })
 ];
 
-export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
+export const DataTable: FC<{ data: Stock[]; settings?: ReactNode }> = ({ data, settings }) => {
   // console.log('render table');
   const [globalReset, setGlobalReset] = useState(0);
   const [pagination, setPagination] = useState({
@@ -203,12 +203,14 @@ export const DataTable: FC<{ data: Stock[] }> = ({ data }) => {
     <>
       <HStack marginY={3} justifyContent="flex-end">
         <IconButton
+          title="reset filters"
           size="xs"
           variant="outline"
           onClick={resetAllFilters}
           disabled={table.getState().columnFilters.length === 0}>
           <PiFunnelXBold />
         </IconButton>
+        {settings && settings}
       </HStack>
       <Separator />
       <Table.ScrollArea>

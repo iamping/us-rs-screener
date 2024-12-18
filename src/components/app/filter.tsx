@@ -52,7 +52,7 @@ export interface SelectOption {
 
 export const FilterEmpty = () => {
   return (
-    <IconButton size="2xs" color="gray" variant="ghost" onClick={(e) => e.stopPropagation()}>
+    <IconButton size="2xs" color="gray.300" variant="ghost" onClick={(e) => e.stopPropagation()}>
       <PiFunnelBold />
     </IconButton>
   );
@@ -124,7 +124,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
           className="filter-icon"
           title={`Filter ${id}`}
           size="2xs"
-          color={column.getIsFiltered() ? 'teal.500' : 'gray'}
+          color={column.getIsFiltered() ? 'black' : 'gray.300'}
           variant="plain"
           onClick={(e) => e.stopPropagation()}>
           <PiFunnelBold />

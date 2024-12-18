@@ -20,7 +20,7 @@ body {
 }
 
 .sort-icon:has(~ .filter-icon:hover) {
-  color: var(--chakra-colors-gray-500);
+  color: var(--chakra-colors-gray-300);
 }
 
 .radio-wrapper {

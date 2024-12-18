@@ -33,6 +33,7 @@ import {
   defaultFilterState,
   fallBackData,
   marketCapOptions,
+  percentChangeOptions,
   rsRatingOptions
 } from '../../utils/table.util';
 import { If } from '../ui/if';
@@ -88,9 +89,11 @@ const columns = [
       </Text>
     ),
     meta: {
-      width: 110
+      width: 130,
+      filterVariant: 'radio-select',
+      selectOptions: percentChangeOptions
     },
-    enableColumnFilter: false
+    filterFn: amountFilterFn(percentChangeOptions)
   }),
   columnHelper.accessor('volume', {
     header: () => <Text textAlign="right">Volume</Text>,

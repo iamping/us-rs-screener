@@ -90,11 +90,58 @@ export const rsRatingOptions: SelectOption[] = [
   }
 ];
 
+export const percentChangeOptions: SelectOption[] = [
+  {
+    value: '30up',
+    title: '30% and above',
+    description: 'To the moon',
+    operator: '>=',
+    compareNumber1: 30
+  },
+  {
+    value: '20up',
+    title: '20% and above',
+    description: 'A fistful of dollars',
+    operator: '>=',
+    compareNumber1: 20
+  },
+  {
+    value: '10up',
+    title: '10% and above',
+    description: 'Heading somewhere',
+    operator: '>=',
+    compareNumber1: 10
+  },
+  {
+    value: '0up',
+    title: '0% and above',
+    description: 'In the green',
+    operator: '>=',
+    compareNumber1: 0
+  },
+  {
+    value: '-5to5',
+    title: '-5% to 5%',
+    description: 'Probably nothing',
+    operator: '<>',
+    compareNumber1: -5,
+    compareNumber2: 5
+  },
+  {
+    value: 'under0',
+    title: '0% and below',
+    description: 'Falling down',
+    operator: '<',
+    compareNumber1: 0
+  }
+];
+
 export const amountFilterFn =
   (optionList: SelectOption[]) =>
   <T,>(row: Row<T>, columnId: string, filterValue: string) => {
     const option = optionList.find((e) => e.value === filterValue);
     const compareNumber1 = option?.compareNumber1 ?? 0;
+    const compareNumber2 = option?.compareNumber2 ?? 0;
     switch (option?.operator) {
       case '>=':
         return Number(row.getValue(columnId)) >= compareNumber1;
@@ -102,6 +149,8 @@ export const amountFilterFn =
         return Number(row.getValue(columnId)) <= compareNumber1;
       case '<':
         return Number(row.getValue(columnId)) < compareNumber1;
+      case '<>':
+        return Number(row.getValue(columnId)) >= compareNumber1 && Number(row.getValue(columnId)) <= compareNumber2;
     }
     return true;
   };

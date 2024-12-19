@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -14,5 +14,25 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
+  },
+  build: {
+    rollupOptions: {
+      // https://rollupjs.org/configuration-options/
+      output: {
+        manualChunks: function manualChunks(id) {
+          if (
+            id.includes('@chakra-ui/react') ||
+            id.includes('react-icons') ||
+            id.includes('@emotion/react') ||
+            id.includes('@tanstack/react-table')
+          ) {
+            return 'vendor-ui';
+          }
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        }
+      }
+    }
   }
-})
+});

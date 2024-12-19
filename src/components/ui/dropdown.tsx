@@ -47,7 +47,13 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters
       <PopoverContent width={200}>
         <PopoverBody padding={2}>
           <VStack>
-            <RadioSelectFilter resetCount={0} initialValue={value.value} optionList={optionList} onChange={onChange} />
+            <RadioSelectFilter
+              id={type}
+              resetCount={0}
+              initialValue={value.value}
+              optionList={optionList}
+              onChange={onChange}
+            />
           </VStack>
         </PopoverBody>
       </PopoverContent>

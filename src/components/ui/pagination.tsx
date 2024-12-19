@@ -170,7 +170,7 @@ export const PaginationPageText = React.forwardRef<HTMLParagraphElement, PageTex
     const content = React.useMemo(() => {
       if (format === 'short') return `${page} / ${totalPages}`;
       if (format === 'compact') return `${page} of ${totalPages}`;
-      return `${pageRange.start + 1} - ${pageRange.end} of ${count}`;
+      return `${pageRange.start + 1} - ${pageRange.end > count ? count : pageRange.end} of ${count}`;
     }, [format, page, totalPages, pageRange, count]);
 
     return (

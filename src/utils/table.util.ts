@@ -1,4 +1,4 @@
-import { Row } from '@tanstack/react-table';
+import { ColumnFiltersState, Row } from '@tanstack/react-table';
 import { SelectOption } from '../components/app/filter';
 import { Stock } from '../models/stock';
 import { SettingsObject } from '../components/app/settings';
@@ -6,13 +6,17 @@ import { excludeIndustry, includeExchanges } from './constants';
 
 export const fallBackData: Stock[] = [];
 
-export const defaultFilterState = [];
+export const defaultFilterState: ColumnFiltersState = [];
 // export const defaultFilterState = [
 //   {
 //     id: 'exchange',
 //     value: noOtc
 //   }
 // ];
+
+export type ColumnVisibility = { [P in keyof Stock]?: boolean };
+
+export const defaultColumnVisibility: ColumnVisibility = {};
 
 export const marketCapOptions: SelectOption[] = [
   {
@@ -212,5 +216,23 @@ export const presetOptions: SelectOption[] = [
         value: '20up'
       }
     ]
+  }
+];
+
+export const viewOptions: SelectOption[] = [
+  {
+    value: 'default',
+    title: 'Default',
+    description: 'All columns',
+    columnVisibility: {}
+  },
+  {
+    value: 'compact',
+    title: 'Compact',
+    description: 'Hide unimportant columns',
+    columnVisibility: {
+      sector: false,
+      sectorRank: false
+    }
   }
 ];

@@ -30,13 +30,15 @@ import { PiArrowCounterClockwiseBold, PiMagnifyingGlassBold } from 'react-icons/
 import {
   amountFilterFn,
   avgDollarVolOptions,
+  ColumnVisibility,
   defaultFilterState,
   fallBackData,
   marketCapOptions,
   percentChangeOptions,
   presetOptions,
   relativeVolOptions,
-  rsRatingOptions
+  rsRatingOptions,
+  viewOptions
 } from '../../utils/table.util';
 import { If } from '../ui/if';
 import { EmptyState } from '../ui/empty-state';
@@ -221,14 +223,13 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
     pageSize: 20 //default page size
   });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
+  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
   const table = useReactTable({
     data: data ?? fallBackData,
     columns,
     state: {
       columnFilters,
-      columnVisibility: {
-        exchange: false
-      },
+      columnVisibility,
       pagination
     },
     // Core - the followings are like add-on features
@@ -238,6 +239,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
     // filtering
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
     // sorting
     getSortedRowModel: getSortedRowModel(),
     // generate lists of values for a given column
@@ -261,6 +263,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
       <HStack marginY={3} justifyContent="space-between">
         <HStack>
           <Dropdown type="Preset" optionList={presetOptions} setColumnFilters={table.setColumnFilters} />
+          <Dropdown type="View" optionList={viewOptions} setColumnVisibility={table.setColumnVisibility} />
           <IconButton title="Search ticker" size="xs" variant="outline">
             <PiMagnifyingGlassBold />
           </IconButton>

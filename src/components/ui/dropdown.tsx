@@ -4,28 +4,33 @@ import { PiCaretDownBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from './popover';
 import { RadioSelectFilter, SelectOption } from '../app/filter';
 import { ColumnFiltersState } from '@tanstack/react-table';
+import { ColumnVisibility } from '../../utils/table.util';
 
 interface DropdownProps {
   optionList: SelectOption[];
   type: 'Preset' | 'View';
   setColumnFilters?: (filters: ColumnFiltersState) => void;
+  setColumnVisibility?: (visibility: ColumnVisibility) => void;
 }
 
-export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters }) => {
+export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters, setColumnVisibility }) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(optionList[0]);
 
   const onChange = (val: string) => {
+    const option = optionList.find((e) => e.value === val) ?? ({} as SelectOption);
     if (type === 'Preset') {
-      const option = optionList.find((e) => e.value === val) ?? ({} as SelectOption);
       setValue(option);
       setColumnFilters?.(option?.presetStates ?? []);
+    } else if (type === 'View') {
+      setValue(option);
+      setColumnVisibility?.(option?.columnVisibility ?? {});
     }
     setOpen(false);
   };
 
   return (
-    <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)}>
+    <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-start' }}>
       <PopoverTrigger asChild>
         <Button as={'div'} size="xs" variant="subtle" paddingRight={1}>
           <Text color="gray.500">

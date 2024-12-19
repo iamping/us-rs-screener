@@ -6,6 +6,7 @@ import { Column, ColumnFiltersState } from '@tanstack/react-table';
 import { PiFunnelBold } from 'react-icons/pi';
 import { If } from '../ui/if';
 import { useDebounceCallback } from 'usehooks-ts';
+import { ColumnVisibility } from '../../utils/table.util';
 
 export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
 interface FilterProps<T> {
@@ -50,6 +51,7 @@ export interface SelectOption {
   compareNumber1?: number;
   compareNumber2?: number;
   presetStates?: ColumnFiltersState;
+  columnVisibility?: ColumnVisibility;
 }
 
 export const FilterEmpty = () => {
@@ -174,7 +176,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
   );
 };
 
-const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, resetCount, min, max, onChange }) => {
+export const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, resetCount, min, max, onChange }) => {
   const [value, setValue] = useState(initialValue);
   const debouncedChange = useDebounceCallback(onChange, 500);
   const onValueChange = (values: number[]) => {
@@ -206,7 +208,7 @@ const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, resetCo
 };
 
 // Chakra UI is too slow for this, just use HTML
-const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, resetCount, onChange }) => {
+export const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, resetCount, onChange }) => {
   // console.log('SelectFilter');
   const selectAll = 'Select All';
   const [values, setValues] = useState(initialValue ?? []);

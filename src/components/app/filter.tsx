@@ -5,6 +5,7 @@ import { Slider } from '../ui/slider';
 import { Column } from '@tanstack/react-table';
 import { PiFunnelBold } from 'react-icons/pi';
 import { If } from '../ui/if';
+import { useDebounceCallback } from 'usehooks-ts';
 
 export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
 interface FilterProps<T> {
@@ -60,9 +61,7 @@ export const FilterEmpty = () => {
 
 export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset, resetPageIndex }: FilterProps<T>) => {
   // console.log(`render filter [${id}]`);
-  const [isReset, setIsReset] = useState(false);
   const [open, setOpen] = useState(false);
-  const [values, setValues] = useState<number[] | string[] | string>([]);
   const [resetCount, setResetCount] = useState(0);
 
   // variant range - handle filter current value
@@ -78,36 +77,25 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
   const radioCurrentValue = (column.getFilterValue() ?? '') as string;
 
   const onChange = (values: number[] | string[] | string) => {
-    setIsReset(false);
-    setValues(values);
-    // console.log(`[${id}] onChange => `, values);
-  };
-
-  const onApply = () => {
-    // console.log(`[${id}] onApply => `, values);
-    setOpen(false);
     column.setFilterValue(values);
-    if (isReset) {
-      column.setFilterValue(undefined);
-    }
-    resetPageIndex?.();
   };
 
   const onReset = () => {
-    setIsReset(true);
     setResetCount((val) => val + 1);
-    switch (filterVariant) {
-      case 'range':
-        setValues([min, max]);
-        break;
-      case 'radio-select':
-        setValues('');
-        break;
-      default:
-        setValues([]);
-        break;
-    }
+    column.setFilterValue(undefined);
+    resetPageIndex?.();
   };
+
+  // const getResetValue = () => {
+  //   switch (filterVariant) {
+  //     case 'range':
+  //       return [min, max];
+  //     case 'radio-select':
+  //       return '';
+  //     default:
+  //       return [];
+  //   }
+  // };
 
   useEffect(() => {
     setResetCount((val) => val + 1);
@@ -168,11 +156,11 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
             </If>
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
-              <Button size="xs" variant="ghost" onClick={onReset}>
+              <Button size="2xs" variant="ghost" onClick={onReset}>
                 Reset
               </Button>
-              <Button size="xs" onClick={onApply}>
-                Apply
+              <Button size="2xs" variant="subtle" onClick={() => setOpen(false)}>
+                Close
               </Button>
             </HStack>
           </VStack>
@@ -184,8 +172,9 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
 
 const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, resetCount, min, max, onChange }) => {
   const [value, setValue] = useState(initialValue);
+  const debouncedChange = useDebounceCallback(onChange, 500);
   const onValueChange = (values: number[]) => {
-    onChange(values);
+    debouncedChange(values);
     setValue(values);
   };
 

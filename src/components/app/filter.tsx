@@ -78,6 +78,9 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
 
   const onChange = (values: number[] | string[] | string) => {
     column.setFilterValue(values);
+    if (filterVariant === 'radio-select') {
+      setOpen(false);
+    }
   };
 
   const onReset = () => {
@@ -119,7 +122,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
         </IconButton>
       </PopoverTrigger>
       <PopoverContent minWidth={200} width={popupWidth} onClick={(e) => e.stopPropagation()}>
-        <PopoverBody padding={4}>
+        <PopoverBody padding={3}>
           <VStack>
             <If exp={!!column.columnDef.meta?.filterNote}>
               <Text textAlign="left" width="100%">

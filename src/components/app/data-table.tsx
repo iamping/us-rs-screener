@@ -34,11 +34,13 @@ import {
   fallBackData,
   marketCapOptions,
   percentChangeOptions,
+  relativeVolOptions,
   rsRatingOptions
 } from '../../utils/table.util';
 import { If } from '../ui/if';
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
+import { RiArrowDownSFill } from 'react-icons/ri';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -108,9 +110,10 @@ const columns = [
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
     meta: {
       width: 150,
-      filterVariant: 'range'
+      filterVariant: 'radio-select',
+      selectOptions: relativeVolOptions
     },
-    filterFn: 'inNumberRange'
+    filterFn: amountFilterFn(relativeVolOptions)
   }),
   columnHelper.accessor('avgDollarVolume', {
     header: () => <Text textAlign="right">Avg $ Vol (M)</Text>,
@@ -172,13 +175,13 @@ const columns = [
     },
     filterFn: amountFilterFn(rsRatingOptions)
   }),
-  columnHelper.accessor('exchange', {
-    header: () => 'Exchange',
-    cell: (cell) => cell.getValue(),
-    meta: { width: 100 },
-    enableHiding: true,
-    filterFn: 'arrIncludesSome'
-  }),
+  // columnHelper.accessor('exchange', {
+  //   header: () => 'Exchange',
+  //   cell: (cell) => cell.getValue(),
+  //   meta: { width: 100 },
+  //   enableHiding: true,
+  //   filterFn: 'arrIncludesSome'
+  // }),
   columnHelper.accessor('sectorRank', {
     header: () => <Text textAlign="right">Sector Rank</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
@@ -256,13 +259,27 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
     <>
       <HStack marginY={3} justifyContent="space-between">
         <HStack>
-          <Button size="xs" variant="outline">
+          <Button as={'div'} size="xs" variant="subtle" paddingRight={1}>
             <Text color="gray.500">
               Preset:{' '}
               <Text as="span" color="black">
                 Default
               </Text>
             </Text>
+            <IconButton size="2xs" variant="plain">
+              <RiArrowDownSFill />
+            </IconButton>
+          </Button>
+          <Button as={'div'} size="xs" variant="subtle" paddingRight={1}>
+            <Text color="gray.500">
+              View:{' '}
+              <Text as="span" color="black">
+                Default
+              </Text>
+            </Text>
+            <IconButton size="2xs" variant="plain">
+              <RiArrowDownSFill />
+            </IconButton>
           </Button>
           <IconButton title="Search ticker" size="xs" variant="outline">
             <PiMagnifyingGlassBold />

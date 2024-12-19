@@ -23,12 +23,12 @@ body {
   color: var(--chakra-colors-gray-300);
 }
 
-.radio-wrapper {
+/* .radio-wrapper {
   border: 1px solid transparent;
-}
+} */
 
 .radio-wrapper:has(.radio:checked), .radio-wrapper:hover {
   background-color: var(--chakra-colors-gray-100);
-  border: 1px solid var(--chakra-colors-gray-500);
+  /* border: 1px solid var(--chakra-colors-gray-500); */
   cursor: pointer;
 }

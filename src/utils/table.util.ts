@@ -52,7 +52,7 @@ export const avgDollarVolOptions: SelectOption[] = [
     compareNumber1: 10000000
   },
   {
-    value: '10down',
+    value: 'under10',
     title: 'Under 10M',
     operator: '<',
     compareNumber1: 10000000
@@ -82,7 +82,7 @@ export const rsRatingOptions: SelectOption[] = [
     compareNumber1: 70
   },
   {
-    value: '70down',
+    value: 'under70',
     title: 'Under 70',
     description: 'No expectation',
     operator: '<',
@@ -113,6 +113,14 @@ export const percentChangeOptions: SelectOption[] = [
     compareNumber1: 10
   },
   {
+    value: '0to10',
+    title: '0% to 10%',
+    description: 'Modest momentum',
+    operator: '<>',
+    compareNumber1: 0,
+    compareNumber2: 10
+  },
+  {
     value: '0up',
     title: '0% and above',
     description: 'In the green',
@@ -120,25 +128,38 @@ export const percentChangeOptions: SelectOption[] = [
     compareNumber1: 0
   },
   {
-    value: '-5to5',
-    title: '-5% to 5%',
-    description: 'Probably nothing',
-    operator: '<>',
-    compareNumber1: -5,
-    compareNumber2: 5
-  },
-  {
     value: 'under0',
-    title: '0% and below',
-    description: 'Falling down',
+    title: 'Under 0%',
+    description: 'In the red',
     operator: '<',
     compareNumber1: 0
   }
 ];
 
+export const relativeVolOptions: SelectOption[] = [
+  {
+    value: '2up',
+    title: '2.0 and above',
+    operator: '>=',
+    compareNumber1: 2
+  },
+  {
+    value: '1up',
+    title: '1.0 and above',
+    operator: '>=',
+    compareNumber1: 1
+  },
+  {
+    value: 'under1',
+    title: 'Under 1.0',
+    operator: '<',
+    compareNumber1: 1
+  }
+];
+
 export const amountFilterFn =
   (optionList: SelectOption[]) =>
-  <T,>(row: Row<T>, columnId: string, filterValue: string) => {
+  <T>(row: Row<T>, columnId: string, filterValue: string) => {
     const option = optionList.find((e) => e.value === filterValue);
     const compareNumber1 = option?.compareNumber1 ?? 0;
     const compareNumber2 = option?.compareNumber2 ?? 0;

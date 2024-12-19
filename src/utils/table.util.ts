@@ -186,3 +186,31 @@ export const initialFilter = (stockList: Stock[], settings: SettingsObject) => {
     })
     .map((e, i) => ({ ...e, key: i + 1 }));
 };
+
+export const presetOptions: SelectOption[] = [
+  {
+    value: 'default',
+    title: 'Default',
+    description: 'No filters',
+    presetStates: defaultFilterState
+  },
+  {
+    value: 'strength',
+    title: 'Market Leader',
+    description: 'Strength + Volume',
+    presetStates: [
+      {
+        id: 'rsRating',
+        value: '90up'
+      },
+      {
+        id: 'rsRating3M',
+        value: '80up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '20up'
+      }
+    ]
+  }
+];

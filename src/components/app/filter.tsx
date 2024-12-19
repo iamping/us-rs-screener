@@ -2,7 +2,7 @@ import { Box, Button, Code, HStack, IconButton, Separator, Spacer, Text, VStack 
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
-import { Column } from '@tanstack/react-table';
+import { Column, ColumnFiltersState } from '@tanstack/react-table';
 import { PiFunnelBold } from 'react-icons/pi';
 import { If } from '../ui/if';
 import { useDebounceCallback } from 'usehooks-ts';
@@ -46,9 +46,10 @@ export interface SelectOption {
   value: string;
   title: string;
   description?: string;
-  operator?: '>=' | '<' | '<>' | '!==' | '<=';
+  operator?: '>=' | '<' | '<>' | '!==' | '<=' | '=';
   compareNumber1?: number;
   compareNumber2?: number;
+  presetStates?: ColumnFiltersState;
 }
 
 export const FilterEmpty = () => {
@@ -237,8 +238,9 @@ const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, rese
                 display: 'flex',
                 gap: '8px',
                 position: 'relative',
-                padding: '4px 0px',
-                borderBottom: idx === 0 ? '1px solid #ddd' : ''
+                padding: '4px',
+                borderBottom: idx === 0 ? '1px solid #ddd' : '',
+                alignItems: 'center'
               }}>
               <input
                 id={`${id}-${value}`}
@@ -267,8 +269,14 @@ const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, rese
   );
 };
 
-const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optionList, resetCount, onChange }) => {
-  // console.log('radio select => ', id);
+export const RadioSelectFilter: FC<RadioSelectFilterProps> = ({
+  id,
+  initialValue,
+  optionList,
+  resetCount,
+  onChange
+}) => {
+  // console.log('radio select => ', id, initialValue);
   const [value, setValue] = useState(initialValue);
   const onSelect = (value: string) => {
     setValue(value);
@@ -280,7 +288,7 @@ const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optio
   }, [resetCount]);
 
   return (
-    <VStack width="100%" gap={1}>
+    <VStack width="100%" gap={2}>
       {optionList.map((e, idx) => {
         return (
           <VStack
@@ -291,7 +299,8 @@ const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optio
             alignItems="start"
             gap={0}
             padding="4px 4px 4px 8px"
-            borderRadius={5}>
+            borderRadius={5}
+            onClick={() => onSelect(e.value)}>
             <HStack justifyContent="space-between" width="100%">
               <Text fontWeight={500}>{e.title}</Text>
               <Box paddingTop={1} paddingRight={1}>
@@ -299,11 +308,11 @@ const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optio
                   style={{ opacity: 0 }}
                   className="radio"
                   type="radio"
-                  value={e.value}
+                  // value={e.value}
                   name={`${id}`}
                   id={`${id}-${e.value}-${idx}`}
-                  checked={value === e.value}
-                  onChange={() => onSelect(e.value)}
+                  defaultChecked={value === e.value}
+                  // onChange={() => onSelect(e.value)}
                 />
               </Box>
             </HStack>

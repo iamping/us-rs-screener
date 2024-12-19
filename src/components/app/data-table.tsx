@@ -1,6 +1,6 @@
 import { FC, ReactNode, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Button, Group, HStack, IconButton, Table, Text } from '@chakra-ui/react';
+import { Box, Group, HStack, IconButton, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
   PaginationItems,
@@ -34,13 +34,14 @@ import {
   fallBackData,
   marketCapOptions,
   percentChangeOptions,
+  presetOptions,
   relativeVolOptions,
   rsRatingOptions
 } from '../../utils/table.util';
 import { If } from '../ui/if';
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
-import { RiArrowDownSFill } from 'react-icons/ri';
+import { Dropdown } from '../ui/dropdown';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -259,28 +260,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
     <>
       <HStack marginY={3} justifyContent="space-between">
         <HStack>
-          <Button as={'div'} size="xs" variant="subtle" paddingRight={1}>
-            <Text color="gray.500">
-              Preset:{' '}
-              <Text as="span" color="black">
-                Default
-              </Text>
-            </Text>
-            <IconButton size="2xs" variant="plain">
-              <RiArrowDownSFill />
-            </IconButton>
-          </Button>
-          <Button as={'div'} size="xs" variant="subtle" paddingRight={1}>
-            <Text color="gray.500">
-              View:{' '}
-              <Text as="span" color="black">
-                Default
-              </Text>
-            </Text>
-            <IconButton size="2xs" variant="plain">
-              <RiArrowDownSFill />
-            </IconButton>
-          </Button>
+          <Dropdown type="Preset" optionList={presetOptions} setColumnFilters={table.setColumnFilters} />
           <IconButton title="Search ticker" size="xs" variant="outline">
             <PiMagnifyingGlassBold />
           </IconButton>

@@ -1,6 +1,6 @@
 import { Dispatch, FC, ReactNode, useCallback, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Group, HStack, IconButton, Table, Text } from '@chakra-ui/react';
+import { Box, Group, HStack, IconButton, Spacer, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
   PaginationItems,
@@ -263,28 +263,27 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
 
   return (
     <>
-      <HStack marginY={3} justifyContent="space-between">
-        <HStack>
-          <Dropdown
-            type="Preset"
-            manualCount={manualCount}
-            optionList={presetOptions}
-            setColumnFilters={table.setColumnFilters}
-          />
-          <Dropdown type="View" optionList={viewOptions} setColumnVisibility={table.setColumnVisibility} />
-          <IconButton title="Search ticker" size="xs" variant="outline">
-            <PiMagnifyingGlassBold />
-          </IconButton>
-          <IconButton
-            title="Clear filters"
-            size="xs"
-            variant="outline"
-            onClick={resetAllFilters}
-            disabled={table.getState().columnFilters.length === 0}>
-            <PiArrowCounterClockwiseBold />
-          </IconButton>
-        </HStack>
-        <HStack>{settings && settings}</HStack>
+      <HStack marginY={3} flexWrap="wrap">
+        <Dropdown
+          type="Preset"
+          manualCount={manualCount}
+          optionList={presetOptions}
+          setColumnFilters={table.setColumnFilters}
+        />
+        <Dropdown type="View" optionList={viewOptions} setColumnVisibility={table.setColumnVisibility} />
+        <IconButton title="Search ticker" size="xs" variant="outline">
+          <PiMagnifyingGlassBold />
+        </IconButton>
+        <IconButton
+          title="Clear filters"
+          size="xs"
+          variant="outline"
+          onClick={resetAllFilters}
+          disabled={table.getState().columnFilters.length === 0}>
+          <PiArrowCounterClockwiseBold />
+        </IconButton>
+        <Spacer display={{ base: 'none', md: 'inherit' }} />
+        {settings && settings}
       </HStack>
       <Table.ScrollArea>
         <Table.Root size="sm" tableLayout={'fixed'}>

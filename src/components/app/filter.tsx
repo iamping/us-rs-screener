@@ -1,5 +1,5 @@
 import { Box, Button, Code, HStack, IconButton, Separator, Spacer, Text, VStack } from '@chakra-ui/react';
-import { ChangeEvent, FC, useEffect, useState } from 'react';
+import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
 import { Column, ColumnFiltersState } from '@tanstack/react-table';
@@ -37,7 +37,6 @@ interface SelectFilterProps {
 
 interface RadioSelectFilterProps {
   id?: string;
-  resetCount: number;
   initialValue: string;
   optionList: SelectOption[];
   onChange: (val: string) => void;
@@ -79,29 +78,34 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
   const optionList = filterVariant === 'radio-select' ? (column.columnDef.meta?.selectOptions ?? []) : [];
   const radioCurrentValue = (column.getFilterValue() ?? '') as string;
 
-  const onChange = (values: number[] | string[] | string) => {
-    column.setFilterValue(values);
-    if (filterVariant === 'radio-select') {
-      setOpen(false);
-    }
-  };
+  // const temp = (column.getFilterValue() ?? '') as string;
+  // const radioCurrentValue = useMemo(() => {
+  //   return temp;
+  // }, [temp]);
+
+  const onChange = useCallback(
+    (values: number[] | string[] | string) => {
+      column.setFilterValue(values);
+      resetPageIndex?.();
+      if (filterVariant === 'radio-select') {
+        setOpen(false);
+      }
+    },
+    [column, filterVariant, resetPageIndex]
+  );
+
+  // const onChange = (values: number[] | string[] | string) => {
+  //   column.setFilterValue(values);
+  //   if (filterVariant === 'radio-select') {
+  //     setOpen(false);
+  //   }
+  // };
 
   const onReset = () => {
     setResetCount((val) => val + 1);
     column.setFilterValue(undefined);
     resetPageIndex?.();
   };
-
-  // const getResetValue = () => {
-  //   switch (filterVariant) {
-  //     case 'range':
-  //       return [min, max];
-  //     case 'radio-select':
-  //       return '';
-  //     default:
-  //       return [];
-  //   }
-  // };
 
   useEffect(() => {
     setResetCount((val) => val + 1);
@@ -152,13 +156,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
               />
             </If>
             <If exp={filterVariant === 'radio-select'}>
-              <RadioSelectFilter
-                id={id}
-                initialValue={radioCurrentValue}
-                optionList={optionList}
-                onChange={onChange}
-                resetCount={resetCount}
-              />
+              <RadioSelectFilter id={id} initialValue={radioCurrentValue} optionList={optionList} onChange={onChange} />
             </If>
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
@@ -271,23 +269,18 @@ export const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValu
   );
 };
 
-export const RadioSelectFilter: FC<RadioSelectFilterProps> = ({
-  id,
-  initialValue,
-  optionList,
-  resetCount,
-  onChange
-}) => {
+export const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optionList, onChange }) => {
   // console.log('radio select => ', id, initialValue);
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState('');
   const onSelect = (value: string) => {
     setValue(value);
     onChange(value);
   };
+  const debouncedOnSelect = useDebounceCallback(onSelect, 0);
 
   useEffect(() => {
-    setValue('');
-  }, [resetCount]);
+    setValue(initialValue);
+  }, [initialValue]);
 
   return (
     <VStack width="100%" gap={2}>
@@ -302,7 +295,7 @@ export const RadioSelectFilter: FC<RadioSelectFilterProps> = ({
             gap={0}
             padding="4px 4px 4px 8px"
             borderRadius={5}
-            onClick={() => onSelect(e.value)}>
+            onClick={() => debouncedOnSelect(e.value)}>
             <HStack justifyContent="space-between" width="100%">
               <Text fontWeight={500}>{e.title}</Text>
               <Box paddingTop={1} paddingRight={1}>
@@ -310,11 +303,11 @@ export const RadioSelectFilter: FC<RadioSelectFilterProps> = ({
                   style={{ opacity: 0 }}
                   className="radio"
                   type="radio"
-                  // value={e.value}
+                  value={e.value}
                   name={`${id}`}
                   id={`${id}-${e.value}-${idx}`}
-                  defaultChecked={value === e.value}
-                  // onChange={() => onSelect(e.value)}
+                  checked={value === e.value}
+                  onChange={() => debouncedOnSelect(e.value)}
                 />
               </Box>
             </HStack>

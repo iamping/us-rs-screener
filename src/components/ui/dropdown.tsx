@@ -1,5 +1,5 @@
 import { Button, IconButton, Text, VStack } from '@chakra-ui/react';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { PiCaretDownBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from './popover';
 import { RadioSelectFilter, SelectOption } from '../app/filter';
@@ -15,7 +15,7 @@ interface DropdownProps {
 
 export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters, setColumnVisibility }) => {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(optionList[0]);
+  const [value, setValue] = useState({ title: '', value: '' });
 
   const onChange = (val: string) => {
     const option = optionList.find((e) => e.value === val) ?? ({} as SelectOption);
@@ -28,6 +28,10 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters
     }
     setOpen(false);
   };
+
+  useEffect(() => {
+    setValue(optionList[0]);
+  }, [optionList]);
 
   return (
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-start' }}>
@@ -47,13 +51,7 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters
       <PopoverContent width={200}>
         <PopoverBody padding={2}>
           <VStack>
-            <RadioSelectFilter
-              id={type}
-              resetCount={0}
-              initialValue={value.value}
-              optionList={optionList}
-              onChange={onChange}
-            />
+            <RadioSelectFilter id={type} initialValue={value.value} optionList={optionList} onChange={onChange} />
           </VStack>
         </PopoverBody>
       </PopoverContent>

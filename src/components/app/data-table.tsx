@@ -1,4 +1,4 @@
-import { FC, ReactNode, useState } from 'react';
+import { FC, ReactNode, useCallback, useState } from 'react';
 import { Stock } from '../../models/stock';
 import { Box, Group, HStack, IconButton, Table, Text } from '@chakra-ui/react';
 import {
@@ -20,6 +20,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  Header,
   useReactTable
 } from '@tanstack/react-table';
 import { SortIcon } from '../ui/sort-icon';
@@ -258,6 +259,10 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
     setGlobalReset((val) => val + 1);
   };
 
+  const resetPageIndex = useCallback(() => {
+    setPagination((pagination) => ({ ...pagination, pageIndex: 0 }));
+  }, []);
+
   return (
     <>
       <HStack marginY={3} justifyContent="space-between">
@@ -284,41 +289,13 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
             {table.getHeaderGroups().map((headerGroup) => (
               <Table.Row key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const canSort = header.column.getCanSort();
-                  const isFilterNotReady =
-                    header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length === 0;
-                  const isFilterReady =
-                    header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;
-                  const width = header.column.columnDef.meta?.width ?? 'auto';
-                  const filterVariant = header.column.columnDef.meta?.filterVariant;
                   return (
-                    <Table.ColumnHeader
-                      className="table-header"
+                    <ColumnHeader
                       key={header.id}
-                      width={width}
-                      verticalAlign="top"
-                      _hover={{ background: canSort ? 'gray.50' : 'inherit' }}
-                      cursor={canSort ? 'pointer' : 'inherit'}
-                      paddingRight={1}
-                      onClick={header.column.getToggleSortingHandler()}>
-                      <HStack gap={0}>
-                        <Box flexGrow={1} marginRight={1}>
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                        </Box>
-                        {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
-                        {isFilterNotReady && <FilterEmpty />}
-                        {isFilterReady && (
-                          <Filter
-                            id={header.id}
-                            popupWidth={width}
-                            filterVariant={filterVariant}
-                            column={header.column}
-                            globalReset={globalReset}
-                            resetPageIndex={() => setPagination({ ...pagination, pageIndex: 0 })}
-                          />
-                        )}
-                      </HStack>
-                    </Table.ColumnHeader>
+                      header={header}
+                      globalReset={globalReset}
+                      resetPageIndex={resetPageIndex}
+                    />
                   );
                 })}
               </Table.Row>
@@ -373,5 +350,46 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
         </PaginationRoot>
       </If>
     </>
+  );
+};
+
+interface ColumnHeader<T> {
+  globalReset: number;
+  resetPageIndex: () => void;
+  header: Header<T, unknown>;
+}
+
+const ColumnHeader = <T,>({ header, globalReset, resetPageIndex }: ColumnHeader<T>) => {
+  const canSort = header.column.getCanSort();
+  const isFilterNotReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length === 0;
+  const isFilterReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;
+  const width = header.column.columnDef.meta?.width ?? 'auto';
+  const filterVariant = header.column.columnDef.meta?.filterVariant;
+
+  return (
+    <Table.ColumnHeader
+      key={header.id}
+      className={`table-header ${canSort ? 'sort' : ''}`}
+      width={width}
+      paddingRight={1}
+      onClick={header.column.getToggleSortingHandler()}>
+      <HStack gap={0}>
+        <Box flexGrow={1} marginRight={1}>
+          {flexRender(header.column.columnDef.header, header.getContext())}
+        </Box>
+        {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
+        {isFilterNotReady && <FilterEmpty />}
+        {isFilterReady && (
+          <Filter
+            id={header.id}
+            popupWidth={width}
+            filterVariant={filterVariant}
+            column={header.column}
+            globalReset={globalReset}
+            resetPageIndex={resetPageIndex}
+          />
+        )}
+      </HStack>
+    </Table.ColumnHeader>
   );
 };

@@ -9,6 +9,12 @@ body {
 .table-header {
   border-top: 1.5px solid var(--chakra-colors-gray-200);
 }
+.table-header.sort {
+  cursor: pointer;
+}
+.table-header.sort:hover {
+  background-color: var(--chakra-colors-gray-50);
+}
 .table-header:hover {
   .sort-icon {
     color: var(--chakra-colors-black);

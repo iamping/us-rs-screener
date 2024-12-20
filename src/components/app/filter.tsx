@@ -20,8 +20,7 @@ interface FilterProps<T> {
 
 interface RangeFilterProps {
   id?: string;
-  resetCount: number;
-  initialValue: number[] | undefined;
+  initialValue: number[];
   min: number;
   max: number;
   onChange: (val: number[]) => void;
@@ -30,7 +29,7 @@ interface RangeFilterProps {
 interface SelectFilterProps {
   id?: string;
   resetCount: number;
-  initialValue: string[] | undefined;
+  initialValue: string[];
   valueList: string[];
   onChange: (val: string[]) => void;
 }
@@ -78,11 +77,6 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
   const optionList = filterVariant === 'radio-select' ? (column.columnDef.meta?.selectOptions ?? []) : [];
   const radioCurrentValue = (column.getFilterValue() ?? '') as string;
 
-  // const temp = (column.getFilterValue() ?? '') as string;
-  // const radioCurrentValue = useMemo(() => {
-  //   return temp;
-  // }, [temp]);
-
   const onChange = useCallback(
     (values: number[] | string[] | string) => {
       column.setFilterValue(values);
@@ -93,13 +87,6 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
     },
     [column, filterVariant, resetPageIndex]
   );
-
-  // const onChange = (values: number[] | string[] | string) => {
-  //   column.setFilterValue(values);
-  //   if (filterVariant === 'radio-select') {
-  //     setOpen(false);
-  //   }
-  // };
 
   const onReset = () => {
     setResetCount((val) => val + 1);
@@ -137,14 +124,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
               </Text>
             </If>
             <If exp={filterVariant === 'range'}>
-              <RangeFilter
-                id={id}
-                initialValue={rangeCurrentValue}
-                min={min!}
-                max={max!}
-                resetCount={resetCount}
-                onChange={onChange}
-              />
+              <RangeFilter id={id} initialValue={rangeCurrentValue} min={min!} max={max!} onChange={onChange} />
             </If>
             <If exp={filterVariant === 'select'}>
               <SelectFilter
@@ -174,8 +154,8 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
   );
 };
 
-export const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, resetCount, min, max, onChange }) => {
-  const [value, setValue] = useState(initialValue);
+export const RangeFilter: FC<RangeFilterProps> = ({ initialValue, min, max, onChange }) => {
+  const [value, setValue] = useState([min, max]);
   const debouncedChange = useDebounceCallback(onChange, 500);
   const onValueChange = (values: number[]) => {
     debouncedChange(values);
@@ -183,8 +163,8 @@ export const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, 
   };
 
   useEffect(() => {
-    setValue([min, max]);
-  }, [resetCount, min, max]);
+    setValue(initialValue);
+  }, [initialValue]);
 
   return (
     <>
@@ -206,10 +186,10 @@ export const RangeFilter: FC<RangeFilterProps> = ({ initialValue: initialValue, 
 };
 
 // Chakra UI is too slow for this, just use HTML
-export const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, resetCount, onChange }) => {
+export const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, onChange }) => {
   // console.log('SelectFilter');
   const selectAll = 'Select All';
-  const [values, setValues] = useState(initialValue ?? []);
+  const [values, setValues] = useState<string[]>([]);
   const selectList = [selectAll, ...valueList];
 
   const onSelect = (event: ChangeEvent<HTMLInputElement>, value: string) => {
@@ -224,8 +204,8 @@ export const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValu
   };
 
   useEffect(() => {
-    setValues([]);
-  }, [resetCount]);
+    setValues(initialValue);
+  }, [initialValue]);
 
   return (
     <>

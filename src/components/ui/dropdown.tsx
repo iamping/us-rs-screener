@@ -11,9 +11,16 @@ interface DropdownProps {
   type: 'Preset' | 'View';
   setColumnFilters?: (filters: ColumnFiltersState) => void;
   setColumnVisibility?: (visibility: ColumnVisibility) => void;
+  manualCount?: number;
 }
 
-export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters, setColumnVisibility }) => {
+export const Dropdown: FC<DropdownProps> = ({
+  optionList,
+  type,
+  manualCount,
+  setColumnFilters,
+  setColumnVisibility
+}) => {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState({ title: '', value: '' });
 
@@ -32,6 +39,12 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters
   useEffect(() => {
     setValue(optionList[0]);
   }, [optionList]);
+
+  useEffect(() => {
+    if (manualCount && manualCount > 0) {
+      setValue({ title: 'Manual', value: '-' });
+    }
+  }, [manualCount]);
 
   return (
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-start' }}>

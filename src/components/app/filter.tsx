@@ -1,5 +1,5 @@
 import { Box, Button, Code, HStack, IconButton, Separator, Spacer, Text, VStack } from '@chakra-ui/react';
-import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, Dispatch, FC, useCallback, useEffect, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
 import { Column, ColumnFiltersState } from '@tanstack/react-table';
@@ -9,13 +9,14 @@ import { useDebounceCallback } from 'usehooks-ts';
 import { ColumnVisibility } from '../../utils/table.util';
 
 export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
+
 interface FilterProps<T> {
   id?: string;
   popupWidth: number | string;
   filterVariant: FilterVariant;
   column: Column<T, unknown>;
-  globalReset: number;
   resetPageIndex?: () => void;
+  setManualCount?: Dispatch<React.SetStateAction<number>>;
 }
 
 interface RangeFilterProps {
@@ -28,7 +29,6 @@ interface RangeFilterProps {
 
 interface SelectFilterProps {
   id?: string;
-  resetCount: number;
   initialValue: string[];
   valueList: string[];
   onChange: (val: string[]) => void;
@@ -60,10 +60,16 @@ export const FilterEmpty = () => {
   );
 };
 
-export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset, resetPageIndex }: FilterProps<T>) => {
+export const Filter = <T,>({
+  id,
+  popupWidth,
+  filterVariant,
+  column,
+  resetPageIndex,
+  setManualCount
+}: FilterProps<T>) => {
   // console.log(`render filter [${id}]`);
   const [open, setOpen] = useState(false);
-  const [resetCount, setResetCount] = useState(0);
 
   // variant range - handle filter current value
   const [min, max] = column.getFacetedMinMaxValues() ?? [0, 100];
@@ -79,24 +85,21 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
 
   const onChange = useCallback(
     (values: number[] | string[] | string) => {
+      console.log('on change from filter ja');
       column.setFilterValue(values);
       resetPageIndex?.();
+      setManualCount?.((val) => val + 1);
       if (filterVariant === 'radio-select') {
         setOpen(false);
       }
     },
-    [column, filterVariant, resetPageIndex]
+    [column, filterVariant, resetPageIndex, setManualCount]
   );
 
   const onReset = () => {
-    setResetCount((val) => val + 1);
     column.setFilterValue(undefined);
     resetPageIndex?.();
   };
-
-  useEffect(() => {
-    setResetCount((val) => val + 1);
-  }, [globalReset]);
 
   if (!filterVariant) {
     return null;
@@ -127,13 +130,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, globalReset,
               <RangeFilter id={id} initialValue={rangeCurrentValue} min={min!} max={max!} onChange={onChange} />
             </If>
             <If exp={filterVariant === 'select'}>
-              <SelectFilter
-                id={id}
-                initialValue={selectCurrentValue}
-                valueList={valueList}
-                resetCount={resetCount}
-                onChange={onChange}
-              />
+              <SelectFilter id={id} initialValue={selectCurrentValue} valueList={valueList} onChange={onChange} />
             </If>
             <If exp={filterVariant === 'radio-select'}>
               <RadioSelectFilter id={id} initialValue={radioCurrentValue} optionList={optionList} onChange={onChange} />

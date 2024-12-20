@@ -1,4 +1,4 @@
-import { FC, ReactNode, useCallback, useState } from 'react';
+import { Dispatch, FC, ReactNode, useCallback, useState } from 'react';
 import { Stock } from '../../models/stock';
 import { Box, Group, HStack, IconButton, Table, Text } from '@chakra-ui/react';
 import {
@@ -218,7 +218,7 @@ const columns = [
 
 export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data, settings }) => {
   // console.log('render table');
-  const [globalReset, setGlobalReset] = useState(0);
+  const [manualCount, setManualCount] = useState(0);
   const [pagination, setPagination] = useState({
     pageIndex: 0, //initial page index
     pageSize: 20 //default page size
@@ -254,9 +254,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
 
   const resetAllFilters = () => {
     table.resetColumnFilters(undefined);
-    // table.setColumnFilters(defaultFilterState);
     table.setPageIndex(0);
-    setGlobalReset((val) => val + 1);
   };
 
   const resetPageIndex = useCallback(() => {
@@ -267,7 +265,12 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
     <>
       <HStack marginY={3} justifyContent="space-between">
         <HStack>
-          <Dropdown type="Preset" optionList={presetOptions} setColumnFilters={table.setColumnFilters} />
+          <Dropdown
+            type="Preset"
+            manualCount={manualCount}
+            optionList={presetOptions}
+            setColumnFilters={table.setColumnFilters}
+          />
           <Dropdown type="View" optionList={viewOptions} setColumnVisibility={table.setColumnVisibility} />
           <IconButton title="Search ticker" size="xs" variant="outline">
             <PiMagnifyingGlassBold />
@@ -293,8 +296,8 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
                     <ColumnHeader
                       key={header.id}
                       header={header}
-                      globalReset={globalReset}
                       resetPageIndex={resetPageIndex}
+                      setManualCount={setManualCount}
                     />
                   );
                 })}
@@ -354,12 +357,12 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
 };
 
 interface ColumnHeader<T> {
-  globalReset: number;
-  resetPageIndex: () => void;
   header: Header<T, unknown>;
+  resetPageIndex: () => void;
+  setManualCount?: Dispatch<React.SetStateAction<number>>;
 }
 
-const ColumnHeader = <T,>({ header, globalReset, resetPageIndex }: ColumnHeader<T>) => {
+const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHeader<T>) => {
   const canSort = header.column.getCanSort();
   const isFilterNotReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length === 0;
   const isFilterReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;
@@ -385,8 +388,8 @@ const ColumnHeader = <T,>({ header, globalReset, resetPageIndex }: ColumnHeader<
             popupWidth={width}
             filterVariant={filterVariant}
             column={header.column}
-            globalReset={globalReset}
             resetPageIndex={resetPageIndex}
+            setManualCount={setManualCount}
           />
         )}
       </HStack>

@@ -30,7 +30,6 @@ import { PiArrowCounterClockwiseBold, PiMagnifyingGlassBold } from 'react-icons/
 import {
   amountFilterFn,
   avgDollarVolOptions,
-  ColumnVisibility,
   defaultFilterState,
   fallBackData,
   marketCapOptions,
@@ -43,7 +42,7 @@ import {
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
 import { Dropdown } from './dropdown';
-import { ColumnHeaderProps } from '../../models/common';
+import { ColumnHeaderProps, ColumnVisibility } from '../../models/common';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();

@@ -1,22 +1,21 @@
 import { ColumnFiltersState, Row } from '@tanstack/react-table';
-import { SelectOption } from '../components/app/filter';
 import { Stock } from '../models/stock';
-import { SettingsObject } from '../components/app/settings';
-import { excludeIndustry, includeExchanges } from './constants';
+import { ColumnVisibility, SelectOption, Settings } from '../models/common';
 
 export const fallBackData: Stock[] = [];
 
 export const defaultFilterState: ColumnFiltersState = [];
-// export const defaultFilterState = [
-//   {
-//     id: 'exchange',
-//     value: noOtc
-//   }
-// ];
-
-export type ColumnVisibility = { [P in keyof Stock]?: boolean };
 
 export const defaultColumnVisibility: ColumnVisibility = {};
+
+export const defaultSettings: Settings = {
+  includeOtc: false,
+  includeBiotechnology: false
+};
+
+export const includeExchanges = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
+
+export const excludeIndustry = ['Biotechnology'];
 
 export const marketCapOptions: SelectOption[] = [
   {
@@ -180,7 +179,7 @@ export const amountFilterFn =
     return true;
   };
 
-export const initialFilter = (stockList: Stock[], settings: SettingsObject) => {
+export const initialFilter = (stockList: Stock[], settings: Settings) => {
   return stockList
     .filter((e) => {
       return settings.includeOtc ? true : includeExchanges.includes(e.exchange);

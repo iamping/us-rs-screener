@@ -2,7 +2,7 @@ import { Button, IconButton, Text, VStack } from '@chakra-ui/react';
 import { FC, useEffect, useState } from 'react';
 import { PiCaretDownBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
-import { RadioSelectFilter } from './filter';
+import { RadioFilter } from './filter';
 import { DropdownProps, SelectOption } from '../../models/common';
 
 export const Dropdown: FC<DropdownProps> = ({
@@ -55,7 +55,7 @@ export const Dropdown: FC<DropdownProps> = ({
       <PopoverContent width={200}>
         <PopoverBody padding={2}>
           <VStack>
-            <RadioSelectFilter id={type} initialValue={value.value} optionList={optionList} onChange={onChange} />
+            <RadioFilter id={type} initialValue={value.value} optionList={optionList} onChange={onChange} />
           </VStack>
         </PopoverBody>
       </PopoverContent>

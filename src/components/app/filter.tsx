@@ -4,7 +4,7 @@ import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/
 import { Slider } from '../ui/slider';
 import { PiFunnelBold } from 'react-icons/pi';
 import { useDebounceCallback } from 'usehooks-ts';
-import { FilterProps, RadioSelectFilterProps, RangeFilterProps, SelectFilterProps } from '../../models/common';
+import { FilterProps, RadioFilterProps, RangeFilterProps, CheckboxFilterProps } from '../../models/common';
 
 export const FilterEmpty = () => {
   return (
@@ -84,10 +84,10 @@ export const Filter = <T,>({
               <RangeFilter id={id} initialValue={rangeCurrentValue} min={min!} max={max!} onChange={onChange} />
             </Show>
             <Show when={filterVariant === 'select'}>
-              <SelectFilter id={id} initialValue={selectCurrentValue} valueList={valueList} onChange={onChange} />
+              <CheckboxFilter id={id} initialValue={selectCurrentValue} valueList={valueList} onChange={onChange} />
             </Show>
             <Show when={filterVariant === 'radio-select'}>
-              <RadioSelectFilter id={id} initialValue={radioCurrentValue} optionList={optionList} onChange={onChange} />
+              <RadioFilter id={id} initialValue={radioCurrentValue} optionList={optionList} onChange={onChange} />
             </Show>
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
@@ -137,8 +137,7 @@ export const RangeFilter: FC<RangeFilterProps> = ({ initialValue, min, max, onCh
 };
 
 // Chakra UI is too slow for this, just use HTML
-export const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValue, onChange }) => {
-  // console.log('SelectFilter');
+export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initialValue, onChange }) => {
   const selectAll = 'Select All';
   const [values, setValues] = useState<string[]>([]);
   const selectList = [selectAll, ...valueList];
@@ -200,7 +199,7 @@ export const SelectFilter: FC<SelectFilterProps> = ({ id, valueList, initialValu
   );
 };
 
-export const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue, optionList, onChange }) => {
+export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList, onChange }) => {
   // console.log('radio select => ', id, initialValue);
   const [value, setValue] = useState('');
   const onSelect = (value: string) => {

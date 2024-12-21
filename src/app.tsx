@@ -4,8 +4,7 @@ import { Stock } from './models/stock';
 import { Box, Heading, Show, Skeleton } from '@chakra-ui/react';
 import { DataTable } from './components/app/data-table';
 import { Settings } from './components/app/settings';
-import { defaultSettings } from './utils/constants';
-import { initialFilter } from './utils/table.util';
+import { defaultSettings, initialFilter } from './utils/table.util';
 import { useEventListener } from 'usehooks-ts';
 
 const App: FC = () => {

@@ -1,6 +1,6 @@
 import { Column, ColumnFiltersState, Header } from '@tanstack/react-table';
 import { Dispatch } from 'react';
-import { ColumnVisibility } from '../utils/table.util';
+import { Stock } from './stock';
 
 // Table Header
 export interface ColumnHeaderProps<T> {
@@ -8,6 +8,8 @@ export interface ColumnHeaderProps<T> {
   resetPageIndex: () => void;
   setManualCount?: Dispatch<React.SetStateAction<number>>;
 }
+
+export type ColumnVisibility = { [P in keyof Stock]?: boolean };
 
 // Filter
 export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
@@ -29,14 +31,14 @@ export interface RangeFilterProps {
   onChange: (val: number[]) => void;
 }
 
-export interface SelectFilterProps {
+export interface CheckboxFilterProps {
   id?: string;
   initialValue: string[];
   valueList: string[];
   onChange: (val: string[]) => void;
 }
 
-export interface RadioSelectFilterProps {
+export interface RadioFilterProps {
   id?: string;
   initialValue: string;
   optionList: SelectOption[];
@@ -54,9 +56,14 @@ export interface SelectOption {
   columnVisibility?: ColumnVisibility;
 }
 
+export interface DropdownOption extends SelectOption {
+  presetStates?: ColumnFiltersState;
+  columnVisibility?: ColumnVisibility;
+}
+
 // Dropdown
 export interface DropdownProps {
-  optionList: SelectOption[];
+  optionList: DropdownOption[];
   type: 'Preset' | 'View';
   setColumnFilters?: (filters: ColumnFiltersState) => void;
   setColumnVisibility?: (visibility: ColumnVisibility) => void;

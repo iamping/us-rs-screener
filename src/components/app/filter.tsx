@@ -1,55 +1,10 @@
 import { Box, Button, Code, HStack, IconButton, Separator, Show, Spacer, Text, VStack } from '@chakra-ui/react';
-import { ChangeEvent, Dispatch, FC, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
-import { Column, ColumnFiltersState } from '@tanstack/react-table';
 import { PiFunnelBold } from 'react-icons/pi';
 import { useDebounceCallback } from 'usehooks-ts';
-import { ColumnVisibility } from '../../utils/table.util';
-
-export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
-
-interface FilterProps<T> {
-  id?: string;
-  popupWidth: number | string;
-  filterVariant: FilterVariant;
-  column: Column<T, unknown>;
-  resetPageIndex?: () => void;
-  setManualCount?: Dispatch<React.SetStateAction<number>>;
-}
-
-interface RangeFilterProps {
-  id?: string;
-  initialValue: number[];
-  min: number;
-  max: number;
-  onChange: (val: number[]) => void;
-}
-
-interface SelectFilterProps {
-  id?: string;
-  initialValue: string[];
-  valueList: string[];
-  onChange: (val: string[]) => void;
-}
-
-interface RadioSelectFilterProps {
-  id?: string;
-  initialValue: string;
-  optionList: SelectOption[];
-  onChange: (val: string) => void;
-}
-
-export interface SelectOption {
-  value: string;
-  title: string;
-  description?: string;
-  operator?: '>=' | '<' | '<>' | '!==' | '<=' | '=';
-  compareNumber1?: number;
-  compareNumber2?: number;
-  presetStates?: ColumnFiltersState;
-  columnVisibility?: ColumnVisibility;
-}
+import { FilterProps, RadioSelectFilterProps, RangeFilterProps, SelectFilterProps } from '../../models/common';
 
 export const FilterEmpty = () => {
   return (

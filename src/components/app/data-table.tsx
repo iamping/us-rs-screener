@@ -1,4 +1,4 @@
-import { Dispatch, FC, ReactNode, useCallback, useState } from 'react';
+import { FC, ReactNode, useCallback, useState } from 'react';
 import { Stock } from '../../models/stock';
 import { Box, Group, HStack, IconButton, Show, Spacer, Table, Text } from '@chakra-ui/react';
 import {
@@ -20,7 +20,6 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  Header,
   useReactTable
 } from '@tanstack/react-table';
 import { SortIcon } from '../ui/sort-icon';
@@ -43,7 +42,8 @@ import {
 } from '../../utils/table.util';
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
-import { Dropdown } from '../ui/dropdown';
+import { Dropdown } from './dropdown';
+import { ColumnHeaderProps } from '../../models/common';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -354,13 +354,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
   );
 };
 
-interface ColumnHeader<T> {
-  header: Header<T, unknown>;
-  resetPageIndex: () => void;
-  setManualCount?: Dispatch<React.SetStateAction<number>>;
-}
-
-const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHeader<T>) => {
+const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHeaderProps<T>) => {
   const canSort = header.column.getCanSort();
   const isFilterNotReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length === 0;
   const isFilterReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;

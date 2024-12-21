@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from 'react';
-import { fetchStockRsList } from './services/us-rs-screener.service';
+import { fetchStockRsList } from './services/data.service';
 import { Stock } from './models/stock';
 import { Box, Heading, Show, Skeleton } from '@chakra-ui/react';
 import { DataTable } from './components/app/data-table';

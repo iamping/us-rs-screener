@@ -1,18 +1,9 @@
 import { Button, IconButton, Text, VStack } from '@chakra-ui/react';
 import { FC, useEffect, useState } from 'react';
 import { PiCaretDownBold } from 'react-icons/pi';
-import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from './popover';
-import { RadioSelectFilter, SelectOption } from '../app/filter';
-import { ColumnFiltersState } from '@tanstack/react-table';
-import { ColumnVisibility } from '../../utils/table.util';
-
-interface DropdownProps {
-  optionList: SelectOption[];
-  type: 'Preset' | 'View';
-  setColumnFilters?: (filters: ColumnFiltersState) => void;
-  setColumnVisibility?: (visibility: ColumnVisibility) => void;
-  manualCount?: number;
-}
+import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
+import { RadioSelectFilter } from './filter';
+import { DropdownProps, SelectOption } from '../../models/common';
 
 export const Dropdown: FC<DropdownProps> = ({
   optionList,

@@ -3,23 +3,12 @@ import { FC, useState } from 'react';
 import { PiGearBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Switch } from '../ui/switch';
-
-export interface SettingsObject {
-  includeOtc: boolean;
-  includeBiotechnology: boolean;
-}
-
-type settingsKeys = keyof SettingsObject;
-
-interface SettingsProps {
-  currentSettings: SettingsObject;
-  saveSettings: (settings: SettingsObject) => void;
-}
+import { SettingsKey, SettingsProps } from '../../models/common';
 
 export const Settings: FC<SettingsProps> = ({ currentSettings, saveSettings }) => {
   const [open, setOpen] = useState(false);
 
-  const onSave = (key: settingsKeys, value: boolean) => {
+  const onSave = (key: SettingsKey, value: boolean) => {
     saveSettings({ ...currentSettings, [key]: value });
   };
 

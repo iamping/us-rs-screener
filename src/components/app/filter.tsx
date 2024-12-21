@@ -1,10 +1,9 @@
-import { Box, Button, Code, HStack, IconButton, Separator, Spacer, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Code, HStack, IconButton, Separator, Show, Spacer, Text, VStack } from '@chakra-ui/react';
 import { ChangeEvent, Dispatch, FC, useCallback, useEffect, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
 import { Column, ColumnFiltersState } from '@tanstack/react-table';
 import { PiFunnelBold } from 'react-icons/pi';
-import { If } from '../ui/if';
 import { useDebounceCallback } from 'usehooks-ts';
 import { ColumnVisibility } from '../../utils/table.util';
 
@@ -121,20 +120,20 @@ export const Filter = <T,>({
       <PopoverContent minWidth={200} width={popupWidth} onClick={(e) => e.stopPropagation()}>
         <PopoverBody padding={3}>
           <VStack>
-            <If exp={!!column.columnDef.meta?.filterNote}>
+            <Show when={!!column.columnDef.meta?.filterNote}>
               <Text textAlign="left" width="100%">
                 {column.columnDef.meta?.filterNote}
               </Text>
-            </If>
-            <If exp={filterVariant === 'range'}>
+            </Show>
+            <Show when={filterVariant === 'range'}>
               <RangeFilter id={id} initialValue={rangeCurrentValue} min={min!} max={max!} onChange={onChange} />
-            </If>
-            <If exp={filterVariant === 'select'}>
+            </Show>
+            <Show when={filterVariant === 'select'}>
               <SelectFilter id={id} initialValue={selectCurrentValue} valueList={valueList} onChange={onChange} />
-            </If>
-            <If exp={filterVariant === 'radio-select'}>
+            </Show>
+            <Show when={filterVariant === 'radio-select'}>
               <RadioSelectFilter id={id} initialValue={radioCurrentValue} optionList={optionList} onChange={onChange} />
-            </If>
+            </Show>
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
               <Button size="2xs" variant="ghost" onClick={onReset}>
@@ -288,11 +287,11 @@ export const RadioSelectFilter: FC<RadioSelectFilterProps> = ({ id, initialValue
                 />
               </Box>
             </HStack>
-            <If exp={!!e.description}>
+            <Show when={!!e.description}>
               <Text fontSize="sm" color="gray">
                 {e.description}
               </Text>
-            </If>
+            </Show>
           </VStack>
         );
       })}

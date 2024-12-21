@@ -3,11 +3,7 @@ import { SortDirection } from '@tanstack/react-table';
 import { PiListBold, PiSortAscendingBold, PiSortDescendingBold } from 'react-icons/pi';
 import { IconButton } from '@chakra-ui/react';
 
-interface SortIconProps {
-  sortDirection: false | SortDirection;
-}
-
-export const SortIcon: FC<SortIconProps> = (props) => {
+export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) => {
   let icon = null;
   let color = null;
   const sortDirection = props.sortDirection || '';

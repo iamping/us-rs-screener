@@ -1,6 +1,6 @@
 import { Dispatch, FC, ReactNode, useCallback, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Group, HStack, IconButton, Spacer, Table, Text } from '@chakra-ui/react';
+import { Box, Group, HStack, IconButton, Show, Spacer, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
   PaginationItems,
@@ -41,7 +41,6 @@ import {
   rsRatingOptions,
   viewOptions
 } from '../../utils/table.util';
-import { If } from '../ui/if';
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
 import { Dropdown } from '../ui/dropdown';
@@ -303,7 +302,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
               </Table.Row>
             ))}
           </Table.Header>
-          <If exp={table.getRowModel().rows.length > 0}>
+          <Show when={table.getRowModel().rows.length > 0}>
             <Table.Body>
               {table.getRowModel().rows.map((row) => (
                 <Table.Row key={row.id}>
@@ -315,10 +314,10 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
                 </Table.Row>
               ))}
             </Table.Body>
-          </If>
+          </Show>
         </Table.Root>
       </Table.ScrollArea>
-      <If exp={table.getRowModel().rows.length === 0}>
+      <Show when={table.getRowModel().rows.length === 0}>
         <EmptyState
           width="100%"
           marginTop={10}
@@ -326,8 +325,8 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
           title="No results found"
           description="Try adjusting filters"
         />
-      </If>
-      <If exp={table.getRowModel().rows.length > 0}>
+      </Show>
+      <Show when={table.getRowModel().rows.length > 0}>
         <PaginationRoot
           size="xs"
           marginY={3}
@@ -350,7 +349,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
             </Group>
           </HStack>
         </PaginationRoot>
-      </If>
+      </Show>
     </>
   );
 };

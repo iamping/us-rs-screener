@@ -9,15 +9,34 @@ body {
 .table-header {
   border-top: 1.5px solid var(--chakra-colors-gray-200);
 }
+
 .table-header.sort {
   cursor: pointer;
 }
+
 .table-header.sort:hover {
   background-color: var(--chakra-colors-gray-50);
 }
+
 .table-header:hover {
   .sort-icon {
     color: var(--chakra-colors-black);
+  }
+}
+
+.table-row {
+  border-left: 2px solid transparent;
+}
+
+.table-row:hover, .table-row.active {
+  cursor: pointer;
+  background-color: var(--chakra-colors-gray-50);
+  border-left: 2px solid var(--chakra-colors-black);
+}
+
+.table-row.active {
+  & > td:first-child {
+    font-weight: 500;
   }
 }
 

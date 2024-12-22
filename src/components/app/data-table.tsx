@@ -312,9 +312,12 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
             <Show when={table.getRowModel().rows.length > 0}>
               <Table.Body>
                 {table.getRowModel().rows.map((row) => (
-                  <Table.Row key={row.id}>
+                  <Table.Row
+                    className={`table-row ${row.original.ticker === ticker ? 'active' : ''}`}
+                    key={row.id}
+                    onClick={() => setTicker(row.original.ticker)}>
                     {row.getVisibleCells().map((cell) => (
-                      <Table.Cell key={cell.id} verticalAlign="top" onClick={() => setTicker(cell.row.original.ticker)}>
+                      <Table.Cell key={cell.id} verticalAlign="top">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </Table.Cell>
                     ))}

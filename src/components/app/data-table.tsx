@@ -11,6 +11,7 @@ import {
 } from '../ui/pagination';
 import {
   ColumnFiltersState,
+  ColumnPinningState,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
@@ -31,6 +32,7 @@ import {
   amountFilterFn,
   avgDollarVolOptions,
   defaultFilterState,
+  defaultPinnedColumns,
   fallBackData,
   marketCapOptions,
   percentChangeOptions,
@@ -42,7 +44,7 @@ import {
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
 import { Dropdown } from './dropdown';
-import { ColumnHeaderProps, ColumnVisibility } from '../../models/common';
+import { CellProps, ColumnHeaderProps, ColumnVisibility } from '../../models/common';
 import { TradingViewWidget } from './trading-view';
 
 // table columns
@@ -225,12 +227,17 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
   });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
+  const [columnPinning] = useState<ColumnPinningState>({
+    left: defaultPinnedColumns,
+    right: []
+  });
   const table = useReactTable({
     data: data ?? fallBackData,
     columns,
     state: {
       columnFilters,
       columnVisibility,
+      columnPinning,
       pagination
     },
     // Core - the followings are like add-on features
@@ -287,13 +294,13 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
       </HStack>
       <HStack alignItems="stretch">
         <Show when={ticker.length > 0}>
-          <Box minWidth="60%" maxHeight="calc(100vh - 150px)">
+          <Box minWidth="60%" maxHeight="calc(100vh - 166px)">
             <TradingViewWidget ticker={ticker} />
           </Box>
         </Show>
-        <Table.ScrollArea>
-          <Table.Root size="sm" tableLayout={'fixed'}>
-            <Table.Header>
+        <Table.ScrollArea maxHeight="calc(100vh - 166px)" position="relative">
+          <Table.Root size="sm" tableLayout={'fixed'} borderSpacing={0} borderCollapse={'separate'}>
+            <Table.Header position="sticky" top={0} zIndex={2}>
               {table.getHeaderGroups().map((headerGroup) => (
                 <Table.Row key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
@@ -317,9 +324,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
                     key={row.id}
                     onClick={() => setTicker(row.original.ticker)}>
                     {row.getVisibleCells().map((cell) => (
-                      <Table.Cell key={cell.id} verticalAlign="top">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </Table.Cell>
+                      <Cell key={cell.id} cell={cell} />
                     ))}
                   </Table.Row>
                 ))}
@@ -371,6 +376,7 @@ const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHead
   const isFilterReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;
   const width = header.column.columnDef.meta?.width ?? 'auto';
   const filterVariant = header.column.columnDef.meta?.filterVariant;
+  const isPinned = header.column.getIsPinned();
 
   return (
     <Table.ColumnHeader
@@ -378,7 +384,11 @@ const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHead
       className={`table-header ${canSort ? 'sort' : ''}`}
       width={width}
       paddingRight={1}
-      onClick={header.column.getToggleSortingHandler()}>
+      onClick={header.column.getToggleSortingHandler()}
+      position={isPinned ? 'sticky' : 'inherit'}
+      borderRight={isPinned ? '1px solid var(--chakra-colors-gray-200)' : undefined}
+      left={isPinned ? 0 : undefined}
+      zIndex={3}>
       <HStack gap={0}>
         <Box flexGrow={1} marginRight={1}>
           {flexRender(header.column.columnDef.header, header.getContext())}
@@ -397,5 +407,20 @@ const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHead
         )}
       </HStack>
     </Table.ColumnHeader>
+  );
+};
+
+const Cell = <T,>({ cell }: CellProps<T>) => {
+  const isPinned = cell.column.getIsPinned();
+  return (
+    <Table.Cell
+      key={cell.id}
+      verticalAlign="top"
+      position={isPinned ? 'sticky' : 'inherit'}
+      borderRight={isPinned ? '1px solid var(--chakra-colors-gray-200)' : undefined}
+      left={isPinned ? 0 : undefined}
+      zIndex={isPinned ? 1 : undefined}>
+      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+    </Table.Cell>
   );
 };

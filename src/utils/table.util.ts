@@ -13,6 +13,8 @@ export const defaultSettings: Settings = {
   includeBiotechnology: false
 };
 
+export const defaultPinnedColumns = ['ticker'];
+
 export const includeExchanges = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
 
 export const excludeIndustry = ['Biotechnology'];

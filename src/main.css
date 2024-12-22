@@ -7,7 +7,9 @@ body {
 }
 
 .table-header {
-  border-top: 1.5px solid var(--chakra-colors-gray-200);
+  border-top: 1px solid var(--chakra-colors-gray-200);
+  border-bottom: 1px solid var(--chakra-colors-gray-200);
+  background: var(--chakra-colors-white);
 }
 
 .table-header.sort {
@@ -24,19 +26,26 @@ body {
   }
 }
 
-.table-row {
-  border-left: 2px solid transparent;
+.table-row > td:first-child {
+    border-left: 2px solid transparent;
+    background-color: var(--chakra-colors-white);
 }
 
 .table-row:hover, .table-row.active {
   cursor: pointer;
   background-color: var(--chakra-colors-gray-50);
-  border-left: 2px solid var(--chakra-colors-black);
+  & > td:first-child {
+    font-weight: 500;
+    border-left: 2px solid var(--chakra-colors-black);
+    background-color: var(--chakra-colors-gray-50);
+  }
+  
 }
 
 .table-row.active {
   & > td:first-child {
     font-weight: 500;
+    border-left: 2px solid var(--chakra-colors-black);
   }
 }
 

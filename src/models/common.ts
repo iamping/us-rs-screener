@@ -1,4 +1,4 @@
-import { Column, ColumnFiltersState, Header } from '@tanstack/react-table';
+import { Cell, Column, ColumnFiltersState, Header } from '@tanstack/react-table';
 import { Dispatch } from 'react';
 import { Stock } from './stock';
 
@@ -7,6 +7,11 @@ export interface ColumnHeaderProps<T> {
   header: Header<T, unknown>;
   resetPageIndex: () => void;
   setManualCount?: Dispatch<React.SetStateAction<number>>;
+}
+
+// Table Cell
+export interface CellProps<T> {
+  cell: Cell<T, unknown>;
 }
 
 export type ColumnVisibility = { [P in keyof Stock]?: boolean };

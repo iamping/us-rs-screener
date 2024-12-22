@@ -12,7 +12,7 @@ export const TradingViewWidget: FC<{ ticker: string }> = ({ ticker }) => {
       timezone: 'Etc/UTC',
       theme: 'dark',
       style: '0',
-      range: '12M',
+      range: '10M',
       locale: 'en',
       save_image: false,
       allow_symbol_change: false,

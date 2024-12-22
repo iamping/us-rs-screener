@@ -43,6 +43,7 @@ import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
 import { Dropdown } from './dropdown';
 import { ColumnHeaderProps, ColumnVisibility } from '../../models/common';
+import { TradingViewWidget } from './trading-view';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -217,6 +218,7 @@ const columns = [
 export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data, settings }) => {
   // console.log('render table');
   const [manualCount, setManualCount] = useState(0);
+  const [ticker, setTicker] = useState('');
   const [pagination, setPagination] = useState({
     pageIndex: 0, //initial page index
     pageSize: 20 //default page size
@@ -283,39 +285,46 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
         <Spacer display={{ base: 'none', md: 'inherit' }} />
         {settings && settings}
       </HStack>
-      <Table.ScrollArea>
-        <Table.Root size="sm" tableLayout={'fixed'}>
-          <Table.Header>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <Table.Row key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <ColumnHeader
-                      key={header.id}
-                      header={header}
-                      resetPageIndex={resetPageIndex}
-                      setManualCount={setManualCount}
-                    />
-                  );
-                })}
-              </Table.Row>
-            ))}
-          </Table.Header>
-          <Show when={table.getRowModel().rows.length > 0}>
-            <Table.Body>
-              {table.getRowModel().rows.map((row) => (
-                <Table.Row key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <Table.Cell key={cell.id} verticalAlign="top">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </Table.Cell>
-                  ))}
+      <HStack alignItems="stretch">
+        <Show when={ticker.length > 0}>
+          <Box minWidth="60%" maxHeight="calc(100vh - 150px)">
+            <TradingViewWidget ticker={ticker} />
+          </Box>
+        </Show>
+        <Table.ScrollArea>
+          <Table.Root size="sm" tableLayout={'fixed'}>
+            <Table.Header>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <Table.Row key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <ColumnHeader
+                        key={header.id}
+                        header={header}
+                        resetPageIndex={resetPageIndex}
+                        setManualCount={setManualCount}
+                      />
+                    );
+                  })}
                 </Table.Row>
               ))}
-            </Table.Body>
-          </Show>
-        </Table.Root>
-      </Table.ScrollArea>
+            </Table.Header>
+            <Show when={table.getRowModel().rows.length > 0}>
+              <Table.Body>
+                {table.getRowModel().rows.map((row) => (
+                  <Table.Row key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <Table.Cell key={cell.id} verticalAlign="top" onClick={() => setTicker(cell.row.original.ticker)}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </Table.Cell>
+                    ))}
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Show>
+          </Table.Root>
+        </Table.ScrollArea>
+      </HStack>
       <Show when={table.getRowModel().rows.length === 0}>
         <EmptyState
           width="100%"

@@ -1,6 +1,6 @@
 import { FC, ReactNode, useCallback, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Group, HStack, IconButton, Show, Spacer, Table, Text } from '@chakra-ui/react';
+import { Box, Button, Group, HStack, IconButton, Show, Spacer, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
   PaginationItems,
@@ -294,7 +294,18 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
       </HStack>
       <HStack alignItems="stretch">
         <Show when={ticker.length > 0}>
-          <Box minWidth="60%" maxHeight="calc(100vh - 166px)">
+          <Box minWidth="60%" maxHeight="calc(100vh - 166px)" position="relative">
+            <Button
+              size="sm"
+              variant="plain"
+              color="white"
+              position="absolute"
+              top={0}
+              right={0}
+              zIndex={1}
+              onClick={() => setTicker('')}>
+              Close
+            </Button>
             <TradingViewWidget ticker={ticker} />
           </Box>
         </Show>

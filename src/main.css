@@ -1,9 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Borel&display=swap');
+
 :root {
   --content-max-height: calc(100svh - 48px);
 }
 
 body {
   padding: 0 10px;
+}
+
+.borel-regular {
+  font-family: 'Borel', serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .sort-icon {

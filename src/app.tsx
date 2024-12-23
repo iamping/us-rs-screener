@@ -1,13 +1,14 @@
 import { FC, useEffect, useState } from 'react';
 import { fetchStockRsList } from './services/data.service';
 import { Stock } from './models/stock';
-import { Box, Heading, HStack, Separator, Show, Skeleton, Spacer } from '@chakra-ui/react';
+import { Box, HStack, Separator, Show, Skeleton, Spacer } from '@chakra-ui/react';
 import { DataTable } from './components/app/data-table';
 import { Settings } from './components/app/settings';
 import { defaultSettings, initialFilter, presetOptions, viewOptions } from './utils/table.util';
 import { Dropdown } from './components/app/dropdown';
 import { Table } from '@tanstack/react-table';
 import { DataTableState } from './models/common';
+import { AppName } from './components/app/app-name';
 // import { useEventListener } from 'usehooks-ts';
 
 const App: FC = () => {
@@ -60,19 +61,9 @@ const App: FC = () => {
   return (
     <Box>
       <HStack gap={1} paddingY={2}>
-        <Heading paddingX={1} title="US Stock Screener" hideBelow="md">
-          US Stock Screener
-        </Heading>
-        <Heading paddingX={1} title="US Stock Screener" hideFrom="md">
-          PING
-        </Heading>
+        <AppName />
         <Separator orientation="vertical" height={5} />
-        <Dropdown
-          type="Preset"
-          manualCount={0}
-          optionList={presetOptions}
-          setColumnFilters={tableState?.table.setColumnFilters}
-        />
+        <Dropdown type="Preset" optionList={presetOptions} setColumnFilters={tableState?.table.setColumnFilters} />
         <Separator orientation="vertical" height={5} />
         <Dropdown type="View" optionList={viewOptions} setColumnVisibility={tableState?.table.setColumnVisibility} />
         <Separator orientation="vertical" height={5} />

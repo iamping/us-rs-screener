@@ -35,6 +35,8 @@ import { CellProps, ColumnHeaderProps, ColumnVisibility, DataTableProps } from '
 import { TradingViewWidget } from './trading-view';
 import { CloseButton } from '../ui/close-button';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
+import { useSetAtom } from 'jotai';
+import { rowCount } from '../../state/atom';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -188,6 +190,7 @@ const columns = [
 
 export const DataTable: FC<DataTableProps> = ({ data, onInit }) => {
   console.log('render table');
+  const setRowCount = useSetAtom(rowCount);
   const [ticker, setTicker] = useState('');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
@@ -229,6 +232,10 @@ export const DataTable: FC<DataTableProps> = ({ data, onInit }) => {
   useEffect(() => {
     onInit?.(table);
   }, [onInit, table]);
+
+  useEffect(() => {
+    setRowCount(table.getRowModel().rows.length);
+  }, [columnFilters, table, setRowCount]);
 
   // viewport list
   const parentRef = useRef<HTMLDivElement>(null);

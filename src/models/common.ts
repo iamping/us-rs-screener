@@ -82,7 +82,6 @@ export interface DropdownProps {
   type: 'Preset' | 'View';
   setColumnFilters?: (filters: ColumnFiltersState) => void;
   setColumnVisibility?: (visibility: ColumnVisibility) => void;
-  manualCount?: number;
 }
 
 // App Settings

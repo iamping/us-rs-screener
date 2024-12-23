@@ -27,7 +27,6 @@ body {
 }
 
 .table-row > td:first-child {
-    border-left: 2px solid transparent;
     background-color: var(--chakra-colors-white);
 }
 
@@ -36,17 +35,13 @@ body {
   background-color: var(--chakra-colors-gray-50);
   & > td:first-child {
     font-weight: 500;
-    border-left: 2px solid var(--chakra-colors-black);
     background-color: var(--chakra-colors-gray-50);
   }
-  
 }
 
-.table-row.active {
-  & > td:first-child {
-    font-weight: 500;
-    border-left: 2px solid var(--chakra-colors-black);
-  }
+.table-row.active > td:first-child {
+    background-color: var(--chakra-colors-gray-600);
+    color: var(--chakra-colors-white);
 }
 
 .filter-icon:hover {

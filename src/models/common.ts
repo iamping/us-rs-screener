@@ -6,7 +6,6 @@ import { ViewportListRef } from 'react-viewport-list';
 // Data Table
 export interface DataTableProps {
   data: Stock[];
-  onInit?: (table: Table<Stock>) => void;
 }
 
 export interface DataTableState {
@@ -80,8 +79,6 @@ export interface DropdownOption extends SelectOption {
 export interface DropdownProps {
   optionList: DropdownOption[];
   type: 'Preset' | 'View';
-  setColumnFilters?: (filters: ColumnFiltersState) => void;
-  setColumnVisibility?: (visibility: ColumnVisibility) => void;
 }
 
 // App Settings

@@ -36,7 +36,7 @@ import { TradingViewWidget } from './trading-view';
 import { CloseButton } from '../ui/close-button';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
 import { useSetAtom } from 'jotai';
-import { rowCount } from '../../state/atom';
+import { dropdownFnAtom, rowCountAtom } from '../../state/atom';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -188,10 +188,15 @@ const columns = [
   })
 ];
 
-export const DataTable: FC<DataTableProps> = ({ data, onInit }) => {
+export const DataTable: FC<DataTableProps> = ({ data }) => {
   console.log('render table');
-  const setRowCount = useSetAtom(rowCount);
+
+  // app state
+  const setRowCount = useSetAtom(rowCountAtom);
+  const setDropdownFn = useSetAtom(dropdownFnAtom);
   const [ticker, setTicker] = useState('');
+
+  // table state
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
   const [columnPinning] = useState<ColumnPinningState>({
@@ -230,8 +235,8 @@ export const DataTable: FC<DataTableProps> = ({ data, onInit }) => {
   }, []);
 
   useEffect(() => {
-    onInit?.(table);
-  }, [onInit, table]);
+    setDropdownFn({ setColumnFilters, setColumnVisibility });
+  }, [setDropdownFn]);
 
   useEffect(() => {
     setRowCount(table.getRowModel().rows.length);

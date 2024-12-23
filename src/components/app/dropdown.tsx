@@ -4,8 +4,13 @@ import { PiCaretDownBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { RadioFilter } from './filter';
 import { DropdownProps, SelectOption } from '../../models/common';
+import { useAtomValue } from 'jotai';
+import { dropdownFnAtom, manualFilterAtom } from '../../state/atom';
 
-export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters, setColumnVisibility }) => {
+export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
+  const filterChanged = useAtomValue(manualFilterAtom);
+  const dropdownFn = useAtomValue(dropdownFnAtom);
+
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState({ title: '', value: '' });
 
@@ -13,10 +18,10 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters
     const option = optionList.find((e) => e.value === val) ?? ({} as SelectOption);
     if (type === 'Preset') {
       setValue(option);
-      setColumnFilters?.(option?.presetStates ?? []);
+      dropdownFn.setColumnFilters?.(option?.presetStates ?? []);
     } else if (type === 'View') {
       setValue(option);
-      setColumnVisibility?.(option?.columnVisibility ?? {});
+      dropdownFn.setColumnVisibility?.(option?.columnVisibility ?? {});
     }
     setOpen(false);
   };
@@ -25,12 +30,11 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type, setColumnFilters
     setValue(optionList[0]);
   }, [optionList]);
 
-  // useEffect(() => {
-  //   console.log(manualCount);
-  //   if (manualCount && manualCount > 0) {
-  //     setValue({ title: 'Manual', value: '-' });
-  //   }
-  // }, [manualCount]);
+  useEffect(() => {
+    if (filterChanged > 0 && type === 'Preset') {
+      setValue({ title: 'Manual', value: '-' });
+    }
+  }, [filterChanged, type]);
 
   return (
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-start' }}>

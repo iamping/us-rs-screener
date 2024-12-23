@@ -1,9 +1,9 @@
 import { Heading } from '@chakra-ui/react';
 import { useAtomValue } from 'jotai';
-import { rowCount } from '../../state/atom';
+import { rowCountAtom } from '../../state/atom';
 
 export const AppName = () => {
-  const readRowCount = useAtomValue(rowCount);
+  const rowCount = useAtomValue(rowCountAtom);
 
   return (
     <>
@@ -14,7 +14,7 @@ export const AppName = () => {
         className="borel-regular"
         lineHeight="10px"
         paddingTop="12px">
-        {`${readRowCount > 0 ? `Total - ${readRowCount}` : 'Loading...'}`}
+        {`${rowCount >= 0 ? `Total - ${rowCount}` : 'Loading...'}`}
       </Heading>
       <Heading
         paddingX={1}
@@ -23,7 +23,7 @@ export const AppName = () => {
         lineHeight="10px"
         paddingTop="12px"
         className="borel-regular">
-        {`${readRowCount > 0 ? `(${readRowCount})` : 'Loading...'}`}
+        {`${rowCount >= 0 ? `(${rowCount})` : 'Loading...'}`}
       </Heading>
     </>
   );

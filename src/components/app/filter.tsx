@@ -5,6 +5,8 @@ import { Slider } from '../ui/slider';
 import { PiFunnelBold } from 'react-icons/pi';
 import { useDebounceCallback } from 'usehooks-ts';
 import { FilterProps, RadioFilterProps, RangeFilterProps, CheckboxFilterProps } from '../../models/common';
+import { useSetAtom } from 'jotai';
+import { manualFilterAtom } from '../../state/atom';
 
 export const FilterEmpty = () => {
   return (
@@ -16,6 +18,7 @@ export const FilterEmpty = () => {
 
 export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageIndex }: FilterProps<T>) => {
   // console.log(`render filter [${id}]`);
+  const setFilterChanged = useSetAtom(manualFilterAtom);
   const [open, setOpen] = useState(false);
 
   // variant range - handle filter current value
@@ -34,11 +37,12 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
     (values: number[] | string[] | string) => {
       column.setFilterValue(values);
       resetPageIndex?.();
+      setFilterChanged((val) => val + 1);
       if (filterVariant === 'radio-select') {
         setOpen(false);
       }
     },
-    [column, filterVariant, resetPageIndex]
+    [column, filterVariant, resetPageIndex, setFilterChanged]
   );
 
   const onReset = () => {

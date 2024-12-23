@@ -6,8 +6,6 @@ import { DataTable } from './components/app/data-table';
 import { Settings } from './components/app/settings';
 import { defaultSettings, initialFilter, presetOptions, viewOptions } from './utils/table.util';
 import { Dropdown } from './components/app/dropdown';
-import { Table } from '@tanstack/react-table';
-import { DataTableState } from './models/common';
 import { AppName } from './components/app/app-name';
 // import { useEventListener } from 'usehooks-ts';
 
@@ -16,7 +14,6 @@ const App: FC = () => {
   const [filteredStockList, setFilteredStockList] = useState<Stock[]>([]);
   const [settings, setSettings] = useState(defaultSettings);
   const [error, setError] = useState<null | string>(null);
-  const [tableState, setTableState] = useState<DataTableState | null>(null);
 
   // useEventListener('keydown', (event) => {
   //   if (/[A-Za-z- ]/.test(event.key)) {
@@ -46,14 +43,6 @@ const App: FC = () => {
     }
   }, [settings, stockList]);
 
-  const onDataTableInit = (tableInstance: Table<Stock>) => {
-    if (!tableState) {
-      setTableState({
-        table: tableInstance
-      });
-    }
-  };
-
   if (error) {
     return error;
   }
@@ -63,15 +52,15 @@ const App: FC = () => {
       <HStack gap={1} paddingY={2}>
         <AppName />
         <Separator orientation="vertical" height={5} />
-        <Dropdown type="Preset" optionList={presetOptions} setColumnFilters={tableState?.table.setColumnFilters} />
+        <Dropdown type="Preset" optionList={presetOptions} />
         <Separator orientation="vertical" height={5} />
-        <Dropdown type="View" optionList={viewOptions} setColumnVisibility={tableState?.table.setColumnVisibility} />
+        <Dropdown type="View" optionList={viewOptions} />
         <Separator orientation="vertical" height={5} />
         <Spacer />
         <Settings key={'app-settings'} currentSettings={settings} saveSettings={setSettings} />
       </HStack>
       <Show when={filteredStockList.length > 0}>
-        <DataTable data={filteredStockList} onInit={onDataTableInit}></DataTable>
+        <DataTable data={filteredStockList}></DataTable>
       </Show>
       <Show when={filteredStockList.length === 0}>
         <Skeleton flex="1" height="4" variant="pulse" marginY={4} />

@@ -234,7 +234,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
 
   useEffect(() => {
     setDropdownFn({ setColumnFilters, setColumnVisibility, resetPageIndex });
-  }, [setDropdownFn, resetPageIndex]);
+  }, [setDropdownFn, resetPageIndex, setColumnFilters, setColumnVisibility]);
 
   useEffect(() => {
     setRowCount(table.getRowModel().rows.length);

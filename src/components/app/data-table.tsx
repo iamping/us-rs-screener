@@ -240,7 +240,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
 
   useEffect(() => {
     setRowCount(table.getRowModel().rows.length);
-  }, [columnFilters, table, setRowCount]);
+  }, [columnFilters, table, setRowCount, data]);
 
   // viewport list
   const parentRef = useRef<HTMLDivElement>(null);

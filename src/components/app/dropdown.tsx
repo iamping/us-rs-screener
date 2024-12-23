@@ -19,6 +19,7 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
     if (type === 'Preset') {
       setValue(option);
       dropdownFn.setColumnFilters?.(option?.presetStates ?? []);
+      dropdownFn.resetPageIndex?.();
     } else if (type === 'View') {
       setValue(option);
       dropdownFn.setColumnVisibility?.(option?.columnVisibility ?? {});

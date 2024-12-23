@@ -9,4 +9,5 @@ export const manualFilterAtom = atom(0);
 export const dropdownFnAtom = atom<{
   setColumnFilters?: (filters: ColumnFiltersState) => void;
   setColumnVisibility?: (visibility: ColumnVisibility) => void;
-}>({ setColumnFilters: undefined, setColumnVisibility: undefined });
+  resetPageIndex?: () => void;
+}>({ setColumnFilters: undefined, setColumnVisibility: undefined, resetPageIndex: undefined });

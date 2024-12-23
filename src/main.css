@@ -6,6 +6,11 @@ body {
   color: var(--chakra-colors-gray-500);
 }
 
+.table-area {
+  max-height: calc(100vh - 166px);
+  position: relative;
+}
+
 .table-header {
   border-top: 1px solid var(--chakra-colors-gray-200);
   border-bottom: 1px solid var(--chakra-colors-gray-200);
@@ -27,10 +32,11 @@ body {
 }
 
 .table-row > td:first-child {
-    background-color: var(--chakra-colors-white);
+  background-color: var(--chakra-colors-white);
 }
 
-.table-row:hover, .table-row.active {
+.table-row:hover,
+.table-row.active {
   cursor: pointer;
   background-color: var(--chakra-colors-gray-50);
   & > td:first-child {
@@ -40,8 +46,8 @@ body {
 }
 
 .table-row.active > td:first-child {
-    background-color: var(--chakra-colors-gray-600);
-    color: var(--chakra-colors-white);
+  background-color: var(--chakra-colors-gray-600);
+  color: var(--chakra-colors-white);
 }
 
 .filter-icon:hover {
@@ -56,8 +62,15 @@ body {
   border: 1px solid transparent;
 } */
 
-.radio-wrapper:has(.radio:checked), .radio-wrapper:hover {
+.radio-wrapper:has(.radio:checked),
+.radio-wrapper:hover {
   background-color: var(--chakra-colors-gray-100);
   /* border: 1px solid var(--chakra-colors-gray-500); */
   cursor: pointer;
+}
+
+@media only screen and (max-device-width: 812px) and (orientation: portrait) {
+  .table-area {
+    max-height: calc(100vh - 250px);
+  }
 }

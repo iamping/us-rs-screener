@@ -1,6 +1,6 @@
 import { FC, ReactNode, useCallback, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Button, Group, HStack, IconButton, Show, Spacer, Table, Text } from '@chakra-ui/react';
+import { Box, Group, HStack, IconButton, Show, Spacer, Table, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
   PaginationItems,
@@ -47,6 +47,7 @@ import { AiOutlineStock } from 'react-icons/ai';
 import { Dropdown } from './dropdown';
 import { CellProps, ColumnHeaderProps, ColumnVisibility } from '../../models/common';
 import { TradingViewWidget } from './trading-view';
+import { CloseButton } from '../ui/close-button';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -293,21 +294,20 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
       <HStack alignItems="stretch">
         <Show when={ticker.length > 0}>
           <Box minWidth="50%" maxHeight="calc(100vh - 166px)" position="relative">
-            <Button
-              size="sm"
-              variant="plain"
-              color="white"
+            <CloseButton
+              size="2xs"
+              variant="subtle"
               position="absolute"
-              top={0}
-              right={0}
+              borderRadius={0}
+              top={2}
+              right={2}
               zIndex={1}
-              onClick={() => setTicker('')}>
-              Close
-            </Button>
+              onClick={() => setTicker('')}
+            />
             <TradingViewWidget ticker={ticker} />
           </Box>
         </Show>
-        <Table.ScrollArea maxHeight="calc(100vh - 166px)" position="relative">
+        <Table.ScrollArea className="table-area">
           <Table.Root size="sm" tableLayout={'fixed'} borderSpacing={0} borderCollapse={'separate'}>
             <Table.Header position="sticky" top={0} zIndex={2}>
               {table.getHeaderGroups().map((headerGroup) => (

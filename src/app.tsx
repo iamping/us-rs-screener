@@ -4,15 +4,17 @@ import { Stock } from './models/stock';
 import { Box, HStack, Separator, Show, Skeleton, Spacer } from '@chakra-ui/react';
 import { DataTable } from './components/app/data-table';
 import { Settings } from './components/app/settings';
-import { defaultSettings, initialFilter, presetOptions, viewOptions } from './utils/table.util';
+import { initialFilter, presetOptions, viewOptions } from './utils/table.util';
 import { Dropdown } from './components/app/dropdown';
 import { AppName } from './components/app/app-name';
+import { useAtom } from 'jotai';
+import { appSettingsAtom } from './state/atom';
 // import { useEventListener } from 'usehooks-ts';
 
 const App: FC = () => {
+  const [settings, setSettings] = useAtom(appSettingsAtom);
   const [stockList, setStockList] = useState<Stock[]>([]);
   const [filteredStockList, setFilteredStockList] = useState<Stock[]>([]);
-  const [settings, setSettings] = useState(defaultSettings);
   const [error, setError] = useState<null | string>(null);
 
   // useEventListener('keydown', (event) => {
@@ -21,7 +23,7 @@ const App: FC = () => {
   //   }
   // });
 
-  console.log('render app');
+  // console.log('render app');
 
   useEffect(() => {
     setError(null);

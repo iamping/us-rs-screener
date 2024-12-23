@@ -2,7 +2,6 @@ import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Stock } from '../../models/stock';
 import { Box, HStack, Show, Text } from '@chakra-ui/react';
 import {
-  ColumnFiltersState,
   ColumnPinningState,
   createColumnHelper,
   flexRender,
@@ -21,7 +20,6 @@ import { FilterEmpty, Filter } from './filter';
 import {
   amountFilterFn,
   avgDollarVolOptions,
-  defaultFilterState,
   defaultPinnedColumns,
   fallBackData,
   marketCapOptions,
@@ -35,8 +33,8 @@ import { CellProps, ColumnHeaderProps, ColumnVisibility, DataTableProps } from '
 import { TradingViewWidget } from './trading-view';
 import { CloseButton } from '../ui/close-button';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
-import { useSetAtom } from 'jotai';
-import { dropdownFnAtom, rowCountAtom } from '../../state/atom';
+import { useAtom, useSetAtom } from 'jotai';
+import { dropdownFnAtom, filterStateAtom, rowCountAtom } from '../../state/atom';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -189,7 +187,7 @@ const columns = [
 ];
 
 export const DataTable: FC<DataTableProps> = ({ data }) => {
-  console.log('render table');
+  // console.log('render table');
 
   // app state
   const setRowCount = useSetAtom(rowCountAtom);
@@ -197,7 +195,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
   const [ticker, setTicker] = useState('');
 
   // table state
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
+  const [columnFilters, setColumnFilters] = useAtom(filterStateAtom);
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
   const [columnPinning] = useState<ColumnPinningState>({
     left: defaultPinnedColumns,

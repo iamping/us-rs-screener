@@ -32,6 +32,7 @@ import {
   amountFilterFn,
   avgDollarVolOptions,
   defaultFilterState,
+  defaultPagination,
   defaultPinnedColumns,
   fallBackData,
   marketCapOptions,
@@ -221,10 +222,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
   // console.log('render table');
   const [manualCount, setManualCount] = useState(0);
   const [ticker, setTicker] = useState('');
-  const [pagination, setPagination] = useState({
-    pageIndex: 0, //initial page index
-    pageSize: 20 //default page size
-  });
+  const [pagination, setPagination] = useState(defaultPagination);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
   const [columnPinning] = useState<ColumnPinningState>({
@@ -294,7 +292,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
       </HStack>
       <HStack alignItems="stretch">
         <Show when={ticker.length > 0}>
-          <Box minWidth="60%" maxHeight="calc(100vh - 166px)" position="relative">
+          <Box minWidth="50%" maxHeight="calc(100vh - 166px)" position="relative">
             <Button
               size="sm"
               variant="plain"

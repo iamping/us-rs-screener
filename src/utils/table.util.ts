@@ -4,6 +4,11 @@ import { ColumnVisibility, SelectOption, Settings } from '../models/common';
 
 export const fallBackData: Stock[] = [];
 
+export const defaultPagination = {
+  pageIndex: 0, //initial page index
+  pageSize: 50 //default page size
+};
+
 export const defaultFilterState: ColumnFiltersState = [];
 
 export const defaultColumnVisibility: ColumnVisibility = {};

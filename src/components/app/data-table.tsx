@@ -1,14 +1,6 @@
-import { FC, ReactNode, useCallback, useState } from 'react';
+import { FC, ReactNode, useCallback, useRef, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Group, HStack, IconButton, Show, Spacer, Text } from '@chakra-ui/react';
-import {
-  PageSizeSelection,
-  PaginationItems,
-  PaginationNextTrigger,
-  PaginationPageText,
-  PaginationPrevTrigger,
-  PaginationRoot
-} from '../ui/pagination';
+import { Box, HStack, IconButton, Show, Spacer, Text } from '@chakra-ui/react';
 import {
   ColumnFiltersState,
   ColumnPinningState,
@@ -19,7 +11,6 @@ import {
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table';
@@ -32,7 +23,6 @@ import {
   amountFilterFn,
   avgDollarVolOptions,
   defaultFilterState,
-  defaultPagination,
   defaultPinnedColumns,
   fallBackData,
   marketCapOptions,
@@ -48,6 +38,7 @@ import { Dropdown } from './dropdown';
 import { CellProps, ColumnHeaderProps, ColumnVisibility } from '../../models/common';
 import { TradingViewWidget } from './trading-view';
 import { CloseButton } from '../ui/close-button';
+import { ViewportList, ViewportListRef } from 'react-viewport-list';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -58,19 +49,6 @@ const columns = [
     meta: { width: 85, sticky: true },
     enableColumnFilter: false
   }),
-  // columnHelper.accessor('ticker', {
-  //   header: () => 'Ticker',
-  //   cell: (cell) => (
-  //     <HStack>
-  //       <Text width={55}>{cell.getValue()}</Text>
-  //       <EllipsisText width={200} color="gray.500" title={cell.row.original.companyName}>
-  //         {cell.row.original.companyName}
-  //       </EllipsisText>
-  //     </HStack>
-  //   ),
-  //   meta: { width: 300, sticky: true },
-  //   enableColumnFilter: false
-  // }),
   columnHelper.accessor('companyName', {
     header: () => 'Company Name',
     cell: (cell) => (
@@ -182,13 +160,6 @@ const columns = [
     },
     filterFn: amountFilterFn(rsRatingOptions)
   }),
-  // columnHelper.accessor('exchange', {
-  //   header: () => 'Exchange',
-  //   cell: (cell) => cell.getValue(),
-  //   meta: { width: 100 },
-  //   enableHiding: true,
-  //   filterFn: 'arrIncludesSome'
-  // }),
   columnHelper.accessor('sectorRank', {
     header: () => <Text textAlign="right">Sector Rank</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
@@ -223,7 +194,6 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
   // console.log('render table');
   const [manualCount, setManualCount] = useState(0);
   const [ticker, setTicker] = useState('');
-  const [pagination, setPagination] = useState(defaultPagination);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
   const [columnPinning] = useState<ColumnPinningState>({
@@ -236,13 +206,10 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
     state: {
       columnFilters,
       columnVisibility,
-      columnPinning,
-      pagination
+      columnPinning
     },
     // Core - the followings are like add-on features
     getCoreRowModel: getCoreRowModel(),
-    // pagination
-    getPaginationRowModel: getPaginationRowModel(),
     // filtering
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -260,12 +227,20 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
 
   const resetAllFilters = () => {
     table.resetColumnFilters(undefined);
-    table.setPageIndex(0);
+    listRef.current?.scrollToIndex({
+      index: 0
+    });
   };
 
   const resetPageIndex = useCallback(() => {
-    setPagination((pagination) => ({ ...pagination, pageIndex: 0 }));
+    listRef.current?.scrollToIndex({
+      index: 0
+    });
   }, []);
+
+  // viewport list
+  const parentRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<ViewportListRef>(null);
 
   return (
     <>
@@ -293,7 +268,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
       </HStack>
       <HStack alignItems="stretch">
         <Show when={ticker.length > 0}>
-          <Box minWidth="50%" maxHeight="calc(100vh - 166px)" position="relative">
+          <Box minWidth="50%" maxHeight="var(--content-max-height)" position="relative">
             <CloseButton
               size="2xs"
               variant="subtle"
@@ -307,7 +282,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
             <TradingViewWidget ticker={ticker} />
           </Box>
         </Show>
-        <div className="table-area">
+        <div className="table-area" ref={parentRef}>
           <table className="table">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -327,16 +302,18 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
             </thead>
             <Show when={table.getRowModel().rows.length > 0}>
               <tbody>
-                {table.getRowModel().rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={`table-row ${row.original.ticker === ticker ? 'active' : ''}`}
-                    onClick={() => setTicker(row.original.ticker)}>
-                    {row.getVisibleCells().map((cell) => (
-                      <Cell key={cell.id} cell={cell} />
-                    ))}
-                  </tr>
-                ))}
+                <ViewportList ref={listRef} viewportRef={parentRef} items={table.getRowModel().rows}>
+                  {(row) => (
+                    <tr
+                      key={row.id}
+                      className={`table-row ${row.original.ticker === ticker ? 'active' : ''}`}
+                      onClick={() => setTicker(row.original.ticker)}>
+                      {row.getVisibleCells().map((cell) => (
+                        <Cell key={cell.id} cell={cell} />
+                      ))}
+                    </tr>
+                  )}
+                </ViewportList>
               </tbody>
             </Show>
           </table>
@@ -350,30 +327,6 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
           title="No results found"
           description="Try adjusting filters"
         />
-      </Show>
-      <Show when={table.getRowModel().rows.length > 0}>
-        <PaginationRoot
-          size="xs"
-          marginY={3}
-          count={table.getFilteredRowModel().rows.length}
-          pageSize={pagination.pageSize}
-          page={pagination.pageIndex + 1}
-          onPageChange={(detail) => setPagination({ ...pagination, pageIndex: detail.page - 1 })}>
-          <HStack justifyContent="end">
-            <PageSizeSelection
-              pageSize={pagination.pageSize}
-              onPageSizeChange={(pageSize) => setPagination({ ...pagination, pageSize })}
-            />
-            <PaginationPageText marginLeft={2} fontSize="smaller" format="long" />
-
-            <Group attached>
-              <PaginationPrevTrigger />
-              <PaginationItems hideBelow="md" />
-              <PaginationPageText fontSize="smaller" format="short" hideFrom="md" />
-              <PaginationNextTrigger />
-            </Group>
-          </HStack>
-        </PaginationRoot>
       </Show>
     </>
   );

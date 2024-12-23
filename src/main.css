@@ -1,3 +1,7 @@
+:root {
+  --content-max-height: calc(100vh - 110px);
+}
+
 body {
   padding: 0 10px;
 }
@@ -8,10 +12,11 @@ body {
 
 .table-area {
   max-width: 100%;
-  max-height: calc(100vh - 166px);
+  max-height: var(--content-max-height);
   overflow: auto;
   white-space: nowrap;
   position: relative;
+  will-change: transform;
 }
 
 .table {
@@ -109,7 +114,7 @@ body {
 }
 
 @media only screen and (max-device-width: 812px) and (orientation: portrait) {
-  .table-area {
+  /* .table-area {
     max-height: calc(100vh - 250px);
-  }
+  } */
 }

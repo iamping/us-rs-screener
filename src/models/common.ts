@@ -1,12 +1,23 @@
-import { Cell, Column, ColumnFiltersState, Header } from '@tanstack/react-table';
-import { Dispatch } from 'react';
+import { Cell, Column, ColumnFiltersState, Header, Table } from '@tanstack/react-table';
+import { RefObject } from 'react';
 import { Stock } from './stock';
+import { ViewportListRef } from 'react-viewport-list';
+
+// Data Table
+export interface DataTableProps {
+  data: Stock[];
+  onInit?: (table: Table<Stock>) => void;
+}
+
+export interface DataTableState {
+  table: Table<Stock>;
+  listRef?: RefObject<ViewportListRef>;
+}
 
 // Table Header
 export interface ColumnHeaderProps<T> {
   header: Header<T, unknown>;
   resetPageIndex: () => void;
-  setManualCount?: Dispatch<React.SetStateAction<number>>;
 }
 
 // Table Cell
@@ -25,7 +36,6 @@ export interface FilterProps<T> {
   filterVariant: FilterVariant;
   column: Column<T, unknown>;
   resetPageIndex?: () => void;
-  setManualCount?: Dispatch<React.SetStateAction<number>>;
 }
 
 export interface RangeFilterProps {

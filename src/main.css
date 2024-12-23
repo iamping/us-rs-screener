@@ -1,5 +1,5 @@
 :root {
-  --content-max-height: calc(100vh - 110px);
+  --content-max-height: calc(100svh - 48px);
 }
 
 body {
@@ -113,8 +113,14 @@ body {
   cursor: pointer;
 }
 
-@media only screen and (max-device-width: 812px) and (orientation: portrait) {
-  /* .table-area {
-    max-height: calc(100vh - 250px);
-  } */
+/* @media only screen and (max-device-width: 812px) and (orientation: portrait) {
+  .table-area {
+    max-height: calc(100vh - 100px);
+  }
 }
+
+@media only screen and (max-device-width: 812px) and (orientation: landscape) {
+  .table-area {
+    max-height: calc(100vh - 100px);
+  }
+} */

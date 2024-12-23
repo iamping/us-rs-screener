@@ -1,6 +1,6 @@
-import { FC, ReactNode, useCallback, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, HStack, IconButton, Show, Spacer, Text } from '@chakra-ui/react';
+import { Box, HStack, Show, Text } from '@chakra-ui/react';
 import {
   ColumnFiltersState,
   ColumnPinningState,
@@ -18,7 +18,6 @@ import { SortIcon } from '../ui/sort-icon';
 import { formatDecimal, formatNumber } from '../../utils/common.util';
 import { EllipsisText } from '../ui/ellipsis-text';
 import { FilterEmpty, Filter } from './filter';
-import { PiArrowCounterClockwiseBold, PiMagnifyingGlassBold } from 'react-icons/pi';
 import {
   amountFilterFn,
   avgDollarVolOptions,
@@ -27,15 +26,12 @@ import {
   fallBackData,
   marketCapOptions,
   percentChangeOptions,
-  presetOptions,
   relativeVolOptions,
-  rsRatingOptions,
-  viewOptions
+  rsRatingOptions
 } from '../../utils/table.util';
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
-import { Dropdown } from './dropdown';
-import { CellProps, ColumnHeaderProps, ColumnVisibility } from '../../models/common';
+import { CellProps, ColumnHeaderProps, ColumnVisibility, DataTableProps } from '../../models/common';
 import { TradingViewWidget } from './trading-view';
 import { CloseButton } from '../ui/close-button';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
@@ -190,9 +186,8 @@ const columns = [
   })
 ];
 
-export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data, settings }) => {
-  // console.log('render table');
-  const [manualCount, setManualCount] = useState(0);
+export const DataTable: FC<DataTableProps> = ({ data, onInit }) => {
+  console.log('render table');
   const [ticker, setTicker] = useState('');
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultFilterState);
   const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
@@ -225,18 +220,15 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
     autoResetExpanded: false
   });
 
-  const resetAllFilters = () => {
-    table.resetColumnFilters(undefined);
-    listRef.current?.scrollToIndex({
-      index: 0
-    });
-  };
-
   const resetPageIndex = useCallback(() => {
     listRef.current?.scrollToIndex({
       index: 0
     });
   }, []);
+
+  useEffect(() => {
+    onInit?.(table);
+  }, [onInit, table]);
 
   // viewport list
   const parentRef = useRef<HTMLDivElement>(null);
@@ -244,28 +236,6 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
 
   return (
     <>
-      <HStack marginY={3} flexWrap="wrap">
-        <Dropdown
-          type="Preset"
-          manualCount={manualCount}
-          optionList={presetOptions}
-          setColumnFilters={table.setColumnFilters}
-        />
-        <Dropdown type="View" optionList={viewOptions} setColumnVisibility={table.setColumnVisibility} />
-        <IconButton title="Search ticker" size="xs" variant="outline">
-          <PiMagnifyingGlassBold />
-        </IconButton>
-        <IconButton
-          title="Clear filters"
-          size="xs"
-          variant="outline"
-          onClick={resetAllFilters}
-          disabled={table.getState().columnFilters.length === 0}>
-          <PiArrowCounterClockwiseBold />
-        </IconButton>
-        <Spacer display={{ base: 'none', md: 'inherit' }} />
-        {settings && settings}
-      </HStack>
       <HStack alignItems="stretch">
         <Show when={ticker.length > 0}>
           <Box minWidth="50%" maxHeight="var(--content-max-height)" position="relative">
@@ -288,14 +258,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
-                    return (
-                      <ColumnHeader
-                        key={header.id}
-                        header={header}
-                        resetPageIndex={resetPageIndex}
-                        setManualCount={setManualCount}
-                      />
-                    );
+                    return <ColumnHeader key={header.id} header={header} resetPageIndex={resetPageIndex} />;
                   })}
                 </tr>
               ))}
@@ -332,7 +295,7 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
   );
 };
 
-const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHeaderProps<T>) => {
+const ColumnHeader = <T,>({ header, resetPageIndex }: ColumnHeaderProps<T>) => {
   const canSort = header.column.getCanSort();
   const isFilterNotReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length === 0;
   const isFilterReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;
@@ -345,7 +308,7 @@ const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHead
       key={header.id}
       className={`table-header ${canSort ? 'sort' : ''} ${isPinned ? 'pinned' : ''}`}
       style={{
-        width: `${width}px`
+        minWidth: `${width}px`
       }}
       onClick={header.column.getToggleSortingHandler()}>
       <div style={{ display: 'flex', gap: 0 }}>
@@ -361,7 +324,6 @@ const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHead
             filterVariant={filterVariant}
             column={header.column}
             resetPageIndex={resetPageIndex}
-            setManualCount={setManualCount}
           />
         )}
       </div>

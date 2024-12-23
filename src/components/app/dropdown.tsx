@@ -32,6 +32,7 @@ export const Dropdown: FC<DropdownProps> = ({
   }, [optionList]);
 
   useEffect(() => {
+    console.log(manualCount);
     if (manualCount && manualCount > 0) {
       setValue({ title: 'Manual', value: '-' });
     }
@@ -40,7 +41,7 @@ export const Dropdown: FC<DropdownProps> = ({
   return (
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-start' }}>
       <PopoverTrigger asChild>
-        <Button as={'div'} size="xs" variant="subtle" paddingRight={1}>
+        <Button as={'div'} size="xs" variant="outline" border={0} paddingRight={1}>
           <Text color="gray.500">
             {type}:{' '}
             <Text as="span" color="black">

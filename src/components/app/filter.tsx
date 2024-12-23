@@ -14,14 +14,7 @@ export const FilterEmpty = () => {
   );
 };
 
-export const Filter = <T,>({
-  id,
-  popupWidth,
-  filterVariant,
-  column,
-  resetPageIndex,
-  setManualCount
-}: FilterProps<T>) => {
+export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageIndex }: FilterProps<T>) => {
   // console.log(`render filter [${id}]`);
   const [open, setOpen] = useState(false);
 
@@ -39,15 +32,13 @@ export const Filter = <T,>({
 
   const onChange = useCallback(
     (values: number[] | string[] | string) => {
-      console.log('on change from filter ja');
       column.setFilterValue(values);
       resetPageIndex?.();
-      setManualCount?.((val) => val + 1);
       if (filterVariant === 'radio-select') {
         setOpen(false);
       }
     },
-    [column, filterVariant, resetPageIndex, setManualCount]
+    [column, filterVariant, resetPageIndex]
   );
 
   const onReset = () => {

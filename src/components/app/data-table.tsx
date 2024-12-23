@@ -1,6 +1,6 @@
 import { FC, ReactNode, useCallback, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, Group, HStack, IconButton, Show, Spacer, Table, Text } from '@chakra-ui/react';
+import { Box, Group, HStack, IconButton, Show, Spacer, Text } from '@chakra-ui/react';
 import {
   PageSizeSelection,
   PaginationItems,
@@ -307,11 +307,11 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
             <TradingViewWidget ticker={ticker} />
           </Box>
         </Show>
-        <Table.ScrollArea className="table-area">
-          <Table.Root size="sm" tableLayout={'fixed'} borderSpacing={0} borderCollapse={'separate'}>
-            <Table.Header position="sticky" top={0} zIndex={2}>
+        <div className="table-area">
+          <table className="table">
+            <thead>
               {table.getHeaderGroups().map((headerGroup) => (
-                <Table.Row key={headerGroup.id}>
+                <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
                       <ColumnHeader
@@ -322,25 +322,25 @@ export const DataTable: FC<{ data: Stock[]; settings?: ReactNode[] }> = ({ data,
                       />
                     );
                   })}
-                </Table.Row>
+                </tr>
               ))}
-            </Table.Header>
+            </thead>
             <Show when={table.getRowModel().rows.length > 0}>
-              <Table.Body>
+              <tbody>
                 {table.getRowModel().rows.map((row) => (
-                  <Table.Row
-                    className={`table-row ${row.original.ticker === ticker ? 'active' : ''}`}
+                  <tr
                     key={row.id}
+                    className={`table-row ${row.original.ticker === ticker ? 'active' : ''}`}
                     onClick={() => setTicker(row.original.ticker)}>
                     {row.getVisibleCells().map((cell) => (
                       <Cell key={cell.id} cell={cell} />
                     ))}
-                  </Table.Row>
+                  </tr>
                 ))}
-              </Table.Body>
+              </tbody>
             </Show>
-          </Table.Root>
-        </Table.ScrollArea>
+          </table>
+        </div>
       </HStack>
       <Show when={table.getRowModel().rows.length === 0}>
         <EmptyState
@@ -388,20 +388,17 @@ const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHead
   const isPinned = header.column.getIsPinned();
 
   return (
-    <Table.ColumnHeader
+    <th
       key={header.id}
-      className={`table-header ${canSort ? 'sort' : ''}`}
-      width={width}
-      paddingRight={1}
-      onClick={header.column.getToggleSortingHandler()}
-      position={isPinned ? 'sticky' : 'inherit'}
-      borderRight={isPinned ? '1px solid var(--chakra-colors-gray-200)' : undefined}
-      left={isPinned ? 0 : undefined}
-      zIndex={3}>
-      <HStack gap={0}>
-        <Box flexGrow={1} marginRight={1}>
+      className={`table-header ${canSort ? 'sort' : ''} ${isPinned ? 'pinned' : ''}`}
+      style={{
+        width: `${width}px`
+      }}
+      onClick={header.column.getToggleSortingHandler()}>
+      <div style={{ display: 'flex', gap: 0 }}>
+        <div style={{ flexGrow: 1, marginRight: '4px' }}>
           {flexRender(header.column.columnDef.header, header.getContext())}
-        </Box>
+        </div>
         {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
         {isFilterNotReady && <FilterEmpty />}
         {isFilterReady && (
@@ -414,22 +411,16 @@ const ColumnHeader = <T,>({ header, resetPageIndex, setManualCount }: ColumnHead
             setManualCount={setManualCount}
           />
         )}
-      </HStack>
-    </Table.ColumnHeader>
+      </div>
+    </th>
   );
 };
 
 const Cell = <T,>({ cell }: CellProps<T>) => {
   const isPinned = cell.column.getIsPinned();
   return (
-    <Table.Cell
-      key={cell.id}
-      verticalAlign="top"
-      position={isPinned ? 'sticky' : 'inherit'}
-      borderRight={isPinned ? '1px solid var(--chakra-colors-gray-200)' : undefined}
-      left={isPinned ? 0 : undefined}
-      zIndex={isPinned ? 1 : undefined}>
+    <td key={cell.id} className={`${isPinned ? 'pinned' : ''}`}>
       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-    </Table.Cell>
+    </td>
   );
 };

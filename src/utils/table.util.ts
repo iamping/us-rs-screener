@@ -6,7 +6,7 @@ export const fallBackData: Stock[] = [];
 
 export const defaultPagination = {
   pageIndex: 0, //initial page index
-  pageSize: 50 //default page size
+  pageSize: 500 //default page size
 };
 
 export const defaultFilterState: ColumnFiltersState = [];

@@ -7,18 +7,45 @@ body {
 }
 
 .table-area {
+  max-width: 100%;
   max-height: calc(100vh - 166px);
+  overflow: auto;
+  white-space: nowrap;
   position: relative;
+}
+
+.table {
+  font-size: 14px;
+  table-layout: fixed;
+  border-spacing: 0;
+  border-collapse: separate;
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+  }
 }
 
 .table-header {
   border-top: 1px solid var(--chakra-colors-gray-200);
   border-bottom: 1px solid var(--chakra-colors-gray-200);
   background: var(--chakra-colors-white);
+  font-weight: 500;
+  height: 40px;
+  text-align: left;
+  padding-left: 8px;
+  padding-right: 4px;
 }
 
 .table-header.sort {
   cursor: pointer;
+}
+
+.table-header.pinned {
+  position: sticky;
+  border-right: 1px solid var(--chakra-colors-gray-200);
+  left: 0;
+  z-index: 3;
 }
 
 .table-header.sort:hover {
@@ -28,6 +55,18 @@ body {
 .table-header:hover {
   .sort-icon {
     color: var(--chakra-colors-black);
+  }
+}
+
+.table-row td {
+  vertical-align: top;
+  padding: 8px;
+  border-bottom: 1px solid var(--chakra-colors-gray-200);
+  &.pinned {
+    position: sticky;
+    border-right: 1px solid var(--chakra-colors-gray-200);
+    left: 0;
+    z-index: 1;
   }
 }
 

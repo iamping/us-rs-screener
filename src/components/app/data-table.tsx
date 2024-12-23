@@ -29,12 +29,12 @@ import {
 } from '../../utils/table.util';
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
-import { CellProps, ColumnHeaderProps, ColumnVisibility, DataTableProps } from '../../models/common';
+import { CellProps, ColumnHeaderProps, DataTableProps } from '../../models/common';
 import { TradingViewWidget } from './trading-view';
 import { CloseButton } from '../ui/close-button';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
 import { useAtom, useSetAtom } from 'jotai';
-import { dropdownFnAtom, filterStateAtom, rowCountAtom } from '../../state/atom';
+import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom } from '../../state/atom';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -196,7 +196,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
 
   // table state
   const [columnFilters, setColumnFilters] = useAtom(filterStateAtom);
-  const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
+  const [columnVisibility, setColumnVisibility] = useAtom(columnStateAtom);
   const [columnPinning] = useState<ColumnPinningState>({
     left: defaultPinnedColumns,
     right: []

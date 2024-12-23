@@ -4,38 +4,50 @@ import { PiCaretDownBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { RadioFilter } from './filter';
 import { DropdownProps, SelectOption } from '../../models/common';
-import { useAtomValue } from 'jotai';
-import { dropdownFnAtom, manualFilterAtom } from '../../state/atom';
+import { useAtom, useAtomValue } from 'jotai';
+import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '../../state/atom';
 
 export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
   const filterChanged = useAtomValue(manualFilterAtom);
   const dropdownFn = useAtomValue(dropdownFnAtom);
+  const [dropdownState, setDropdownState] = useAtom(appDropdownAtom);
 
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState({ title: '', value: '' });
+  const [value, setValue] = useState({ value: '', title: '' });
 
   const onChange = (val: string) => {
     const option = optionList.find((e) => e.value === val) ?? ({} as SelectOption);
     if (type === 'Preset') {
       setValue(option);
+      setDropdownState((val) => ({ ...val, preset: option }));
       dropdownFn.setColumnFilters?.(option?.presetStates ?? []);
       dropdownFn.resetPageIndex?.();
     } else if (type === 'View') {
       setValue(option);
+      setDropdownState((val) => ({ ...val, view: option }));
       dropdownFn.setColumnVisibility?.(option?.columnVisibility ?? {});
     }
     setOpen(false);
   };
 
   useEffect(() => {
-    setValue(optionList[0]);
-  }, [optionList]);
+    if (type === 'Preset') {
+      setValue(dropdownState.preset);
+    } else if (type === 'View') {
+      setValue(dropdownState.view);
+    }
+  }, [dropdownState, type]);
+
+  // useEffect(() => {
+  //   setValue(optionList[0]);
+  // }, [optionList]);
 
   useEffect(() => {
     if (filterChanged > 0 && type === 'Preset') {
       setValue({ title: 'Manual', value: '-' });
+      setDropdownState((val) => ({ ...val, preset: { title: 'Manual', value: '-' } }));
     }
-  }, [filterChanged, type]);
+  }, [filterChanged, type, setDropdownState]);
 
   return (
     <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-start' }}>

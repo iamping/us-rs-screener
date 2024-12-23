@@ -20,6 +20,10 @@ export const defaultSettings: Settings = {
 
 export const defaultPinnedColumns = ['ticker'];
 
+export const defaultPreset = { value: 'default', title: 'Default' };
+
+export const defaultView = { value: 'default', title: 'Default' };
+
 export const includeExchanges = ['NMS', 'NYQ', 'NGM', 'PCX', 'ASE', 'BTS', 'NCM'];
 
 export const excludeIndustry = ['Biotechnology'];

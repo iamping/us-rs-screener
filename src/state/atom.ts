@@ -2,7 +2,13 @@ import { atom } from 'jotai';
 import { ColumnFiltersState } from '@tanstack/react-table';
 import { ColumnVisibility } from '../models/common';
 import { atomWithStorage } from 'jotai/utils';
-import { defaultFilterState, defaultSettings } from '../utils/table.util';
+import {
+  defaultColumnVisibility,
+  defaultFilterState,
+  defaultPreset,
+  defaultSettings,
+  defaultView
+} from '../utils/table.util';
 
 export const rowCountAtom = atom(-1);
 
@@ -17,4 +23,8 @@ export const dropdownFnAtom = atom<{
 // atom with localstorage
 export const appSettingsAtom = atomWithStorage('appSettings', defaultSettings);
 
+export const appDropdownAtom = atomWithStorage('appDropdown', { preset: defaultPreset, view: defaultView });
+
 export const filterStateAtom = atomWithStorage('appFilterState', defaultFilterState);
+
+export const columnStateAtom = atomWithStorage('appColumnState', defaultColumnVisibility);

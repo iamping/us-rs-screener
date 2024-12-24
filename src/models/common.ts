@@ -90,6 +90,6 @@ export interface Settings {
 export type SettingsKey = keyof Settings;
 
 export interface SettingsProps {
-  currentSettings: Settings;
-  saveSettings: (settings: Settings) => void;
+  currentSettings?: Settings;
+  saveSettings?: (settings: Settings) => void;
 }

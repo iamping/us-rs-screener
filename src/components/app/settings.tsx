@@ -4,8 +4,11 @@ import { PiGearBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Switch } from '../ui/switch';
 import { SettingsKey, SettingsProps } from '../../models/common';
+import { useAtom } from 'jotai';
+import { appSettingsAtom } from '../../state/atom';
 
-export const Settings: FC<SettingsProps> = ({ currentSettings, saveSettings }) => {
+export const Settings: FC<SettingsProps> = () => {
+  const [currentSettings, saveSettings] = useAtom(appSettingsAtom);
   const [open, setOpen] = useState(false);
 
   const onSave = (key: SettingsKey, value: boolean) => {

@@ -1,18 +1,16 @@
 import { FC, useEffect, useState } from 'react';
 import { fetchStockRsList } from './services/data.service';
 import { Stock } from './models/stock';
-import { Box, HStack, Separator, Show, Skeleton, Spacer } from '@chakra-ui/react';
+import { Box, Show, Skeleton } from '@chakra-ui/react';
 import { DataTable } from './components/app/data-table';
-import { Settings } from './components/app/settings';
-import { initialFilter, presetOptions, viewOptions } from './utils/table.util';
-import { Dropdown } from './components/app/dropdown';
-import { AppName } from './components/app/app-name';
-import { useAtom } from 'jotai';
+import { initialFilter } from './utils/table.util';
+import { Topbar } from './components/app/topbar';
+import { useAtomValue } from 'jotai';
 import { appSettingsAtom } from './state/atom';
 // import { useEventListener } from 'usehooks-ts';
 
 const App: FC = () => {
-  const [settings, setSettings] = useAtom(appSettingsAtom);
+  const settings = useAtomValue(appSettingsAtom);
   const [stockList, setStockList] = useState<Stock[]>([]);
   const [filteredStockList, setFilteredStockList] = useState<Stock[]>([]);
   const [error, setError] = useState<null | string>(null);
@@ -23,7 +21,7 @@ const App: FC = () => {
   //   }
   // });
 
-  // console.log('render app');
+  console.log('render app');
 
   useEffect(() => {
     setError(null);
@@ -51,16 +49,7 @@ const App: FC = () => {
 
   return (
     <Box>
-      <HStack gap={1} paddingY={2}>
-        <AppName />
-        <Separator orientation="vertical" height={5} />
-        <Dropdown type="Preset" optionList={presetOptions} />
-        <Separator orientation="vertical" height={5} />
-        <Dropdown type="View" optionList={viewOptions} />
-        <Separator orientation="vertical" height={5} />
-        <Spacer />
-        <Settings key={'app-settings'} currentSettings={settings} saveSettings={setSettings} />
-      </HStack>
+      <Topbar />
       <Show when={filteredStockList.length > 0}>
         <DataTable data={filteredStockList}></DataTable>
       </Show>

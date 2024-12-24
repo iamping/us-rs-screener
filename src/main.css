@@ -92,7 +92,7 @@ body {
 
 .table-row td {
   vertical-align: top;
-  padding: 8px;
+  padding: 4px 8px;
   border-bottom: 1px solid var(--chakra-colors-gray-200);
   &.pinned {
     position: sticky;

@@ -278,7 +278,11 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
               </thead>
               <Show when={table.getRowModel().rows.length > 0}>
                 <tbody>
-                  <ViewportList ref={listRef} viewportRef={parentRef} items={table.getRowModel().rows}>
+                  <ViewportList
+                    initialPrerender={50}
+                    ref={listRef}
+                    viewportRef={parentRef}
+                    items={table.getRowModel().rows}>
                     {(row) => (
                       <tr
                         key={row.id}

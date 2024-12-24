@@ -21,7 +21,7 @@ const App: FC = () => {
   //   }
   // });
 
-  console.log('render app');
+  // console.log('render app');
 
   useEffect(() => {
     setError(null);

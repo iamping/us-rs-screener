@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Box, HStack, Show, Text } from '@chakra-ui/react';
+import { Show, Text } from '@chakra-ui/react';
 import {
   ColumnPinningState,
   createColumnHelper,
@@ -35,6 +35,7 @@ import { CloseButton } from '../ui/close-button';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
 import { useAtom, useSetAtom } from 'jotai';
 import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom } from '../../state/atom';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -246,9 +247,9 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
 
   return (
     <>
-      <HStack alignItems="stretch">
+      <PanelGroup autoSaveId="panel-group" direction="horizontal">
         <Show when={ticker.length > 0}>
-          <Box minWidth="50%" maxHeight="var(--content-max-height)" position="relative">
+          <Panel id="panel-chart" minSize={40} order={1} className="chart-max-height">
             <CloseButton
               size="2xs"
               variant="subtle"
@@ -260,38 +261,41 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
               onClick={() => setTicker('')}
             />
             <TradingViewWidget ticker={ticker} />
-          </Box>
+          </Panel>
+          <PanelResizeHandle className="resize-handle"></PanelResizeHandle>
         </Show>
-        <div className="table-area" ref={parentRef}>
-          <table className="table">
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return <ColumnHeader key={header.id} header={header} resetPageIndex={resetPageIndex} />;
-                  })}
-                </tr>
-              ))}
-            </thead>
-            <Show when={table.getRowModel().rows.length > 0}>
-              <tbody>
-                <ViewportList ref={listRef} viewportRef={parentRef} items={table.getRowModel().rows}>
-                  {(row) => (
-                    <tr
-                      key={row.id}
-                      className={`table-row ${row.original.ticker === ticker ? 'active' : ''}`}
-                      onClick={() => setTicker(row.original.ticker)}>
-                      {row.getVisibleCells().map((cell) => (
-                        <Cell key={cell.id} cell={cell} />
-                      ))}
-                    </tr>
-                  )}
-                </ViewportList>
-              </tbody>
-            </Show>
-          </table>
-        </div>
-      </HStack>
+        <Panel id="panel-stock" minSize={30} order={2}>
+          <div className="table-area" ref={parentRef}>
+            <table className="table">
+              <thead>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return <ColumnHeader key={header.id} header={header} resetPageIndex={resetPageIndex} />;
+                    })}
+                  </tr>
+                ))}
+              </thead>
+              <Show when={table.getRowModel().rows.length > 0}>
+                <tbody>
+                  <ViewportList ref={listRef} viewportRef={parentRef} items={table.getRowModel().rows}>
+                    {(row) => (
+                      <tr
+                        key={row.id}
+                        className={`table-row ${row.original.ticker === ticker ? 'active' : ''}`}
+                        onClick={() => setTicker(row.original.ticker)}>
+                        {row.getVisibleCells().map((cell) => (
+                          <Cell key={cell.id} cell={cell} />
+                        ))}
+                      </tr>
+                    )}
+                  </ViewportList>
+                </tbody>
+              </Show>
+            </table>
+          </div>
+        </Panel>
+      </PanelGroup>
       <Show when={table.getRowModel().rows.length === 0}>
         <EmptyState
           width="100%"

@@ -14,6 +14,25 @@ body {
   font-style: normal;
 }
 
+.chart-max-height {
+  max-height: var(--content-max-height);
+  position: relative;
+}
+
+.resize-handle {
+  display: flex;
+  align-items: center;
+  width: 4px;
+}
+
+.resize-handle[data-resize-handle-state='hover'] {
+  background-color: var(--chakra-colors-gray-200);
+}
+
+.resize-handle[data-resize-handle-state='drag'] {
+  background-color: var(--chakra-colors-gray-500);
+}
+
 .sort-icon {
   color: var(--chakra-colors-gray-500);
 }

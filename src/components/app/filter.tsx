@@ -1,12 +1,14 @@
-import { Box, Button, Code, HStack, IconButton, Separator, Show, Spacer, Text, VStack } from '@chakra-ui/react';
-import { ChangeEvent, FC, useCallback, useEffect, useState } from 'react';
+import { Box, Button, Code, HStack, IconButton, Input, Separator, Show, Spacer, Text, VStack } from '@chakra-ui/react';
+import { ChangeEvent, FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
-import { PiFunnelBold } from 'react-icons/pi';
+import { PiFunnelBold, PiMagnifyingGlass, PiXDuotone } from 'react-icons/pi';
 import { useDebounceCallback } from 'usehooks-ts';
 import { FilterProps, RadioFilterProps, RangeFilterProps, CheckboxFilterProps } from '../../models/common';
 import { useSetAtom } from 'jotai';
 import { manualFilterAtom } from '../../state/atom';
+import { InputGroup } from '../ui/input-group';
+import fuzzysort from 'fuzzysort';
 
 export const FilterEmpty = () => {
   return (
@@ -20,6 +22,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   // console.log(`render filter [${id}]`);
   const setFilterChanged = useSetAtom(manualFilterAtom);
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLButtonElement>(null);
 
   // variant range - handle filter current value
   const [min, max] = column.getFacetedMinMaxValues() ?? [0, 100];
@@ -79,14 +82,20 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
               <RangeFilter id={id} initialValue={rangeCurrentValue} min={min!} max={max!} onChange={onChange} />
             </Show>
             <Show when={filterVariant === 'select'}>
-              <CheckboxFilter id={id} initialValue={selectCurrentValue} valueList={valueList} onChange={onChange} />
+              <CheckboxFilter
+                id={id}
+                initialValue={selectCurrentValue}
+                valueList={valueList}
+                enableSearch={true}
+                onChange={onChange}
+              />
             </Show>
             <Show when={filterVariant === 'radio-select'}>
               <RadioFilter id={id} initialValue={radioCurrentValue} optionList={optionList} onChange={onChange} />
             </Show>
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
-              <Button size="2xs" variant="ghost" onClick={onReset}>
+              <Button size="2xs" variant="ghost" onClick={onReset} ref={ref}>
                 Reset
               </Button>
               <Button size="2xs" variant="subtle" onClick={() => setOpen(false)}>
@@ -132,10 +141,20 @@ export const RangeFilter: FC<RangeFilterProps> = ({ initialValue, min, max, onCh
 };
 
 // Chakra UI is too slow for this, just use HTML
-export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initialValue, onChange }) => {
+export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initialValue, enableSearch, onChange }) => {
   const selectAll = 'Select All';
   const [values, setValues] = useState<string[]>([]);
-  const selectList = [selectAll, ...valueList];
+  const [keyword, setKeyword] = useState('');
+  const [highlight, setHighlight] = useState<Record<string, ReactNode>>({});
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selectList = useMemo(() => {
+    if (Object.keys(highlight).length === 0) {
+      return [selectAll, ...valueList];
+    } else {
+      return [selectAll, ...valueList.filter((e) => highlight[e])];
+    }
+  }, [valueList, highlight]);
 
   const onSelect = (event: ChangeEvent<HTMLInputElement>, value: string) => {
     let currentValues = [];
@@ -148,13 +167,63 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
     onChange(currentValues);
   };
 
+  const onInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setKeyword(event.target.value);
+    debouncedSearch(event.target.value);
+  };
+
+  const onClear = () => {
+    setKeyword('');
+    debouncedSearch('');
+    inputRef.current?.focus();
+  };
+
+  const onSearch = useCallback(
+    (keyword: string) => {
+      const results = fuzzysort.go(keyword, valueList);
+      setHighlight(
+        results.reduce(
+          (acc, current) => ({
+            ...acc,
+            [current.target]: current.highlight((m, i) => (
+              <span className="highlight" key={i}>
+                {m}
+              </span>
+            ))
+          }),
+          {}
+        )
+      );
+    },
+    [valueList]
+  );
+
+  const debouncedSearch = useDebounceCallback(onSearch, 200);
+
   useEffect(() => {
     setValues(initialValue);
-  }, [initialValue]);
+  }, [initialValue, debouncedSearch]);
 
   return (
     <>
       <div style={{ height: '200px', overflowY: 'auto', width: '100%', paddingRight: '8px' }}>
+        <Show when={enableSearch}>
+          <InputGroup
+            flex="1"
+            endElement={keyword.length === 0 ? <PiMagnifyingGlass /> : <PiXDuotone color="black" onClick={onClear} />}
+            width="100%"
+            marginBottom={1}>
+            <Input
+              ref={inputRef}
+              _focus={{ borderColor: 'gray.300' }}
+              placeholder="Search items"
+              value={keyword}
+              size="xs"
+              focusRing="none"
+              onChange={onInputChange}
+            />
+          </InputGroup>
+        </Show>
         {selectList.map((value, idx) => {
           return (
             <div
@@ -164,7 +233,7 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
                 gap: '8px',
                 position: 'relative',
                 padding: '4px',
-                borderBottom: idx === 0 ? '1px solid #ddd' : '',
+                borderBottom: idx === 0 ? '1px solid var(--chakra-colors-gray-200)' : '',
                 alignItems: 'center'
               }}>
               <input
@@ -184,7 +253,7 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
                   whiteSpace: 'nowrap',
                   fontWeight: idx === 0 ? 500 : ''
                 }}>
-                {value}
+                {highlight[value] ?? value}
               </label>
             </div>
           );

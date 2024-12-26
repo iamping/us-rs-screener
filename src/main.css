@@ -140,6 +140,11 @@ body {
   cursor: pointer;
 }
 
+.highlight {
+  color: var(--chakra-colors-red-500);
+  font-weight: 500;
+}
+
 /* @media only screen and (max-device-width: 812px) and (orientation: portrait) {
   .table-area {
     max-height: calc(100vh - 100px);

@@ -50,6 +50,7 @@ export interface CheckboxFilterProps {
   initialValue: string[];
   valueList: string[];
   onChange: (val: string[]) => void;
+  enableSearch?: boolean;
 }
 
 export interface RadioFilterProps {

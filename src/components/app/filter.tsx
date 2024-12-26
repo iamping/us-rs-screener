@@ -8,6 +8,7 @@ import { FilterProps, RadioFilterProps, RangeFilterProps, CheckboxFilterProps } 
 import { useSetAtom } from 'jotai';
 import { manualFilterAtom } from '../../state/atom';
 import { InputGroup } from '../ui/input-group';
+import { EmptyState } from '../ui/empty-state';
 import fuzzysort from 'fuzzysort';
 
 export const FilterEmpty = () => {
@@ -149,12 +150,14 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectList = useMemo(() => {
-    if (Object.keys(highlight).length === 0) {
+    if (Object.keys(highlight).length === 0 && keyword.length > 0) {
+      return [];
+    } else if (Object.keys(highlight).length === 0) {
       return [selectAll, ...valueList];
     } else {
       return [selectAll, ...valueList.filter((e) => highlight[e])];
     }
-  }, [valueList, highlight]);
+  }, [valueList, highlight, keyword]);
 
   const onSelect = (event: ChangeEvent<HTMLInputElement>, value: string) => {
     let currentValues = [];
@@ -169,12 +172,12 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
 
   const onInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setKeyword(event.target.value);
-    debouncedSearch(event.target.value);
+    onSearch(event.target.value);
   };
 
   const onClear = () => {
     setKeyword('');
-    debouncedSearch('');
+    onSearch('');
     inputRef.current?.focus();
   };
 
@@ -198,66 +201,71 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
     [valueList]
   );
 
-  const debouncedSearch = useDebounceCallback(onSearch, 200);
-
   useEffect(() => {
     setValues(initialValue);
-  }, [initialValue, debouncedSearch]);
+  }, [initialValue]);
 
   return (
     <>
-      <div style={{ height: '200px', overflowY: 'auto', width: '100%', paddingRight: '8px' }}>
-        <Show when={enableSearch}>
-          <InputGroup
-            flex="1"
-            endElement={keyword.length === 0 ? <PiMagnifyingGlass /> : <PiXDuotone color="black" onClick={onClear} />}
-            width="100%"
-            marginBottom={1}>
-            <Input
-              ref={inputRef}
-              _focus={{ borderColor: 'gray.300' }}
-              placeholder="Search items"
-              value={keyword}
-              size="xs"
-              focusRing="none"
-              onChange={onInputChange}
-            />
-          </InputGroup>
-        </Show>
-        {selectList.map((value, idx) => {
-          return (
-            <div
-              key={idx}
-              style={{
-                display: 'flex',
-                gap: '8px',
-                position: 'relative',
-                padding: '4px',
-                borderBottom: idx === 0 ? '1px solid var(--chakra-colors-gray-200)' : '',
-                alignItems: 'center'
-              }}>
-              <input
-                id={`${id}-${value}`}
-                type="checkbox"
-                name={value}
-                checked={values.includes(value)}
-                onChange={(event) => onSelect(event, value)}
-              />
-              <label
-                title={value}
-                htmlFor={`${id}-${value}`}
+      <Show when={enableSearch}>
+        <InputGroup
+          flex="1"
+          endElement={keyword.length === 0 ? <PiMagnifyingGlass /> : <PiXDuotone color="black" onClick={onClear} />}
+          width="100%">
+          <Input
+            ref={inputRef}
+            _focus={{ borderColor: 'gray.300' }}
+            placeholder="Search items"
+            value={keyword}
+            size="xs"
+            focusRing="none"
+            onChange={onInputChange}
+          />
+        </InputGroup>
+      </Show>
+      <div style={{ height: '200px', overflowY: 'auto', width: '100%' }}>
+        <Show when={selectList.length > 0}>
+          {selectList.map((value, idx) => {
+            return (
+              <div
+                key={idx}
+                className="filter-selection-item"
                 style={{
-                  width: '85%',
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  fontWeight: idx === 0 ? 500 : ''
+                  display: 'flex',
+                  gap: '8px',
+                  position: 'relative',
+                  padding: '4px',
+                  paddingLeft: '6px',
+                  background: idx === 0 ? 'var(--chakra-colors-gray-100)' : '',
+                  borderRadius: 4,
+                  alignItems: 'center'
                 }}>
-                {highlight[value] ?? value}
-              </label>
-            </div>
-          );
-        })}
+                <input
+                  id={`${id}-${value}`}
+                  type="checkbox"
+                  name={value}
+                  checked={values.includes(value)}
+                  onChange={(event) => onSelect(event, value)}
+                />
+                <label
+                  title={value}
+                  htmlFor={`${id}-${value}`}
+                  style={{
+                    width: '85%',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    fontWeight: idx === 0 ? 500 : ''
+                  }}>
+                  {highlight[value] ?? value}
+                </label>
+              </div>
+            );
+          })}
+        </Show>
+        <Show when={selectList.length === 0}>
+          <EmptyState width="100%" marginTop={4} title="No results found" description="Try adjusting keyword" />
+        </Show>
       </div>
     </>
   );

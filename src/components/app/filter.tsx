@@ -59,7 +59,11 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   }
 
   return (
-    <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-end' }}>
+    <PopoverRoot
+      modal={true}
+      open={open}
+      onOpenChange={(e) => setOpen(e.open)}
+      positioning={{ placement: 'bottom-end' }}>
       <PopoverTrigger asChild>
         <IconButton
           className="filter-icon"

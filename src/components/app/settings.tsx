@@ -16,7 +16,11 @@ export const Settings: FC<SettingsProps> = () => {
   };
 
   return (
-    <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-end' }}>
+    <PopoverRoot
+      modal={true}
+      open={open}
+      onOpenChange={(e) => setOpen(e.open)}
+      positioning={{ placement: 'bottom-end' }}>
       <PopoverTrigger asChild>
         <IconButton title="Settings" size="xs" variant="outline" border={0}>
           <PiGearBold />

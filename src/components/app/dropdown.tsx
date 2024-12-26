@@ -6,6 +6,7 @@ import { RadioFilter } from './filter';
 import { DropdownProps, SelectOption } from '../../models/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '../../state/atom';
+import { useMediaQuery } from 'usehooks-ts';
 
 export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
   const filterChanged = useAtomValue(manualFilterAtom);
@@ -30,6 +31,8 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
     setOpen(false);
   };
 
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
   useEffect(() => {
     if (type === 'Preset') {
       setValue(dropdownState.preset);
@@ -50,11 +53,15 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
   }, [filterChanged, type, setDropdownState]);
 
   return (
-    <PopoverRoot open={open} onOpenChange={(e) => setOpen(e.open)} positioning={{ placement: 'bottom-start' }}>
+    <PopoverRoot
+      modal={true}
+      open={open}
+      onOpenChange={(e) => setOpen(e.open)}
+      positioning={{ placement: 'bottom-start' }}>
       <PopoverTrigger asChild>
         <Button as={'div'} size="xs" variant="outline" border={0} paddingRight={1}>
           <Text color="gray.500">
-            {type}:{' '}
+            {isMobile && type === 'View' ? `` : `${type}: `}
             <Text as="span" color="black">
               {value.title}
             </Text>

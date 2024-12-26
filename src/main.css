@@ -67,6 +67,9 @@ body {
   text-align: left;
   padding-left: 8px;
   padding-right: 4px;
+  &:last-child {
+    padding-right: 8px;
+  }
 }
 
 .table-header.sort {

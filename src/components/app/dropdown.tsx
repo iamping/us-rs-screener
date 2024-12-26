@@ -7,6 +7,7 @@ import { DropdownProps, SelectOption } from '../../models/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '../../state/atom';
 import { useMediaQuery } from 'usehooks-ts';
+import { mobileMediaQuery } from '../../utils/constant';
 
 export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
   const filterChanged = useAtomValue(manualFilterAtom);
@@ -31,7 +32,7 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
     setOpen(false);
   };
 
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery(mobileMediaQuery);
 
   useEffect(() => {
     if (type === 'Preset') {

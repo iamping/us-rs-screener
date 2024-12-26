@@ -6,6 +6,7 @@
 
 body {
   padding: 0;
+  min-width: 380px;
 }
 
 .borel-regular {

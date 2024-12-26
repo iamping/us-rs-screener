@@ -215,14 +215,16 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
         <InputGroup
           flex="1"
           endElement={keyword.length === 0 ? <PiMagnifyingGlass /> : <PiXDuotone color="black" onClick={onClear} />}
+          endElementProps={{ paddingRight: 2 }}
           width="100%">
           <Input
             ref={inputRef}
-            _focus={{ borderColor: 'gray.300' }}
+            id={`${id}-checkbox-search`}
             placeholder="Search items"
             value={keyword}
             size="xs"
             focusRing="none"
+            _focus={{ borderColor: 'gray.300' }}
             onChange={onInputChange}
           />
         </InputGroup>

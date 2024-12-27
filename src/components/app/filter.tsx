@@ -229,7 +229,7 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
           />
         </InputGroup>
       </Show>
-      <div style={{ height: '200px', overflowY: 'auto', width: '100%' }}>
+      <div style={{ height: '200px', overflowY: 'auto', width: '100%' }} className="scrollbar">
         <Show when={selectList.length > 0}>
           {selectList.map((value, idx) => {
             return (

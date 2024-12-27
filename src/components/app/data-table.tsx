@@ -275,7 +275,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
           <PanelResizeHandle className="resize-handle"></PanelResizeHandle>
         </Show>
         <Panel id="panel-stock" minSize={30} order={2}>
-          <div ref={parentRef} className="grid-area" style={gridAreaStyle}>
+          <div ref={parentRef} className="grid-area scrollbar" style={gridAreaStyle}>
             <div className="grid" style={gridTemplateColumnsStyle}>
               {table.getHeaderGroups().map((headerGroup) => (
                 <div key={headerGroup.id} className="grid-row-header" style={gridColumnStyle}>

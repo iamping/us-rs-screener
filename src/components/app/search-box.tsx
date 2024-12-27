@@ -1,6 +1,6 @@
 import { IconButton, Input, Show } from '@chakra-ui/react';
 import { ChangeEvent, CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
-import { PiMagnifyingGlassBold, PiArrowCounterClockwiseDuotone, PiXDuotone } from 'react-icons/pi';
+import { PiMagnifyingGlassBold, PiXDuotone } from 'react-icons/pi';
 import { InputGroup } from '../ui/input-group';
 import { useDebounceCallback, useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
 import { mobileMediaQuery } from '../../utils/constant';
@@ -10,7 +10,6 @@ import { Stock } from '../../models/stock';
 import fuzzysort from 'fuzzysort';
 
 export const SearchBox = () => {
-  // console.log('SearchBox');
   const [open, setOpen] = useAtom(searchBoxOpenAtom);
   const [keyword, setKeyword] = useState('');
 
@@ -106,11 +105,12 @@ export const SearchBox = () => {
   const MagnifyIcon = (
     <>
       <Show when={open}>
-        <div title="Clear search" onClick={clearSearch} style={{ cursor: 'pointer' }}>
-          <PiArrowCounterClockwiseDuotone color="black" />
+        <div className="close-link" title="Close" onClick={() => setOpen(false)}>
+          Close
         </div>
-        <IconButton size="xs" variant="outline" border={0} onClick={() => setOpen(false)}>
-          {open && <PiXDuotone title="Close" />}
+        <IconButton size="xs" variant="outline" border={0} onClick={clearSearch}>
+          {open && keyword.length > 0 && <PiXDuotone title="Clear search" />}
+          {open && keyword.length === 0 && <PiMagnifyingGlassBold title="Search stocks" />}
         </IconButton>
       </Show>
       <Show when={!open}>

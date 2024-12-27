@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Borel&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Borel&family=Outfit:wght@100..900&display=swap');
 
 :root {
   --content-max-height: calc(100svh - 48px);
@@ -7,10 +7,24 @@
 body {
   padding: 0;
   min-width: 380px;
+  font-family: 'Outfit', serif;
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Outfit', serif;
+  font-optical-sizing: auto;
 }
 
 .borel-regular {
   font-family: 'Borel', serif;
+  font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
 }

@@ -1,6 +1,6 @@
-import { Heading, HStack, Separator, Spacer, Text } from '@chakra-ui/react';
+import { Heading, HStack, Separator, Show, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue } from 'jotai';
-import { rowCountAtom } from '../../state/atom';
+import { rowCountAtom, searchBoxOpenAtom } from '../../state/atom';
 import { presetOptions, viewOptions } from '../../utils/table.util';
 import { Dropdown } from './dropdown';
 import { Settings } from './settings';
@@ -11,6 +11,7 @@ import { mobileMediaQuery } from '../../utils/constant';
 
 export const Topbar = () => {
   const rowCount = useAtomValue(rowCountAtom);
+  const isSearchBoxOpen = useAtomValue(searchBoxOpenAtom);
 
   const isSmallScreen = useMediaQuery(mobileMediaQuery);
   const rowCountFormat = useMemo(() => {
@@ -38,12 +39,14 @@ export const Topbar = () => {
           </>
         )}
       </Heading>
-      <Separator orientation="vertical" height={5} />
-      <Dropdown type="Preset" optionList={presetOptions} />
-      <Separator orientation="vertical" height={5} />
-      <Dropdown type="View" optionList={viewOptions} />
-      <Separator orientation="vertical" height={5} />
-      <Spacer />
+      <Show when={(!isSearchBoxOpen && isSmallScreen) || !isSmallScreen}>
+        <Separator orientation="vertical" height={5} />
+        <Dropdown type="Preset" optionList={presetOptions} />
+        <Separator orientation="vertical" height={5} />
+        <Dropdown type="View" optionList={viewOptions} />
+        <Separator orientation="vertical" height={5} />
+        <Spacer />
+      </Show>
       <SearchBox />
       <Settings />
     </HStack>

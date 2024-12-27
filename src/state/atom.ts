@@ -24,6 +24,7 @@ export const dropdownFnAtom = atom<{
 
 export const stockListAtom = atom<Stock[]>([]);
 export const fuzzyListAtom = atom<Stock[]>([]);
+export const searchBoxOpenAtom = atom(false);
 
 // stock list after exclude (OTC & Biotechnology)
 export const preFilteredListAtom = atom((get) => {

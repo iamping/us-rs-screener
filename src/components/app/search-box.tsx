@@ -4,14 +4,14 @@ import { PiMagnifyingGlassBold, PiArrowCounterClockwiseDuotone, PiXDuotone } fro
 import { InputGroup } from '../ui/input-group';
 import { useDebounceCallback, useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
 import { mobileMediaQuery } from '../../utils/constant';
-import { useAtomValue, useSetAtom } from 'jotai';
-import { fuzzyListAtom, preFilteredListAtom } from '../../state/atom';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { fuzzyListAtom, preFilteredListAtom, searchBoxOpenAtom } from '../../state/atom';
 import { Stock } from '../../models/stock';
 import fuzzysort from 'fuzzysort';
 
 export const SearchBox = () => {
   // console.log('SearchBox');
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useAtom(searchBoxOpenAtom);
   const [keyword, setKeyword] = useState('');
 
   const preFilteredList = useAtomValue(preFilteredListAtom);
@@ -21,9 +21,7 @@ export const SearchBox = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isMobile = useMediaQuery(mobileMediaQuery);
-  const styleForMobile: CSSProperties = isMobile
-    ? { position: 'absolute', left: 78, right: 44, top: 8 }
-    : { flexGrow: 0, minWidth: 250 };
+  const styleForMobile: CSSProperties = isMobile ? { flexGrow: 1 } : { flexGrow: 0, minWidth: 250 };
 
   const openSearch = () => {
     setOpen((val) => !val);
@@ -88,6 +86,9 @@ export const SearchBox = () => {
         });
       }
       if (event.key === 'Escape') {
+        if (keyword.length === 0) {
+          setOpen(false);
+        }
         setKeyword('');
       }
       setTimeout(() => {
@@ -122,9 +123,9 @@ export const SearchBox = () => {
 
   return (
     <>
-      <Show when={!open}>{MagnifyIcon}</Show>
-      <Show when={open}>
-        <div ref={divRef}>
+      <div ref={divRef} style={{ flexGrow: open && isMobile ? 1 : undefined, display: 'flex', alignItems: 'flex-end' }}>
+        <Show when={!open}>{MagnifyIcon}</Show>
+        <Show when={open}>
           <InputGroup flex="1" style={styleForMobile} endElement={MagnifyIcon} endElementProps={{ padding: 0 }}>
             <Input
               ref={inputRef}
@@ -139,8 +140,8 @@ export const SearchBox = () => {
               onChange={onInputChange}
             />
           </InputGroup>
-        </div>
-      </Show>
+        </Show>
+      </div>
     </>
   );
 };

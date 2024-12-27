@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { CSSProperties, FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Stock } from '../../models/stock';
 import { Show, Text } from '@chakra-ui/react';
 import {
@@ -245,6 +245,16 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
   const parentRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<ViewportListRef>(null);
 
+  // grid style based on result & columns
+  const numColumns = table.getVisibleFlatColumns().length;
+  const numRows = table.getRowModel().rows.length;
+  const gridAreaStyle: CSSProperties = {
+    overflow: numRows === 0 ? 'hidden' : 'auto',
+    minHeight: numRows === 0 ? 'auto' : 'var(--content-max-height)'
+  };
+  const gridTemplateColumnsStyle: CSSProperties = { gridTemplateColumns: `repeat(${numColumns}, auto)` };
+  const gridColumnStyle: CSSProperties = { gridColumn: `1 / ${numColumns + 1}` };
+
   return (
     <>
       <PanelGroup autoSaveId="panel-group" direction="horizontal">
@@ -265,67 +275,54 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
           <PanelResizeHandle className="resize-handle"></PanelResizeHandle>
         </Show>
         <Panel id="panel-stock" minSize={30} order={2}>
-          <div
-            className="table-area"
-            ref={parentRef}
-            style={{ overflow: table.getRowModel().rows.length === 0 ? 'hidden' : 'auto' }}>
-            <table className="table">
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return <ColumnHeader key={header.id} header={header} resetPageIndex={resetPageIndex} />;
-                    })}
-                  </tr>
-                ))}
-              </thead>
-              <Show when={table.getRowModel().rows.length > 0}>
-                <tbody>
-                  <ViewportList
-                    initialPrerender={50}
-                    ref={listRef}
-                    viewportRef={parentRef}
-                    items={table.getRowModel().rows}>
-                    {(row) => (
-                      <tr
+          <div ref={parentRef} className="grid-area" style={gridAreaStyle}>
+            <div className="grid" style={gridTemplateColumnsStyle}>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <div key={headerGroup.id} className="grid-row-header" style={gridColumnStyle}>
+                  {headerGroup.headers.map((header) => {
+                    return <GridHeaderCell key={header.id} header={header} resetPageIndex={resetPageIndex} />;
+                  })}
+                </div>
+              ))}
+              <Show when={numRows > 0}>
+                <ViewportList
+                  initialPrerender={50}
+                  ref={listRef}
+                  viewportRef={parentRef}
+                  items={table.getRowModel().rows}>
+                  {(row) => {
+                    return (
+                      <div
                         key={row.id}
-                        className={`table-row ${row.original.ticker === ticker ? 'active' : ''}`}
+                        className={`grid-row ${row.original.ticker === ticker ? 'active' : ''}`}
+                        style={gridColumnStyle}
                         onClick={() => setTicker(row.original.ticker)}>
                         {row.getVisibleCells().map((cell) => (
-                          <Cell key={cell.id} cell={cell} />
+                          <GridCell key={cell.id} cell={cell} />
                         ))}
-                      </tr>
-                    )}
-                  </ViewportList>
-                </tbody>
+                      </div>
+                    );
+                  }}
+                </ViewportList>
               </Show>
-              <Show when={table.getRowModel().rows.length === 0}>
-                <tbody>
-                  <tr>
-                    <td colSpan={table.getVisibleFlatColumns().length}>
-                      <EmptyState
-                        width="100vw"
-                        position="sticky"
-                        left={0}
-                        right={0}
-                        marginTop={10}
-                        icon={<AiOutlineStock />}
-                        title="No results found"
-                        description="Try adjusting filters"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </Show>
-            </table>
+            </div>
           </div>
+          <Show when={numRows === 0}>
+            <EmptyState
+              width="100%"
+              marginTop={10}
+              icon={<AiOutlineStock />}
+              title="No results found"
+              description="Try adjusting filters"
+            />
+          </Show>
         </Panel>
       </PanelGroup>
     </>
   );
 };
 
-const ColumnHeader = <T,>({ header, resetPageIndex }: ColumnHeaderProps<T>) => {
+const GridHeaderCell = <T,>({ header, resetPageIndex }: ColumnHeaderProps<T>) => {
   const canSort = header.column.getCanSort();
   const isFilterNotReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length === 0;
   const isFilterReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;
@@ -334,9 +331,9 @@ const ColumnHeader = <T,>({ header, resetPageIndex }: ColumnHeaderProps<T>) => {
   const isPinned = header.column.getIsPinned();
 
   return (
-    <th
+    <div
       key={header.id}
-      className={`table-header ${canSort ? 'sort' : ''} ${isPinned ? 'pinned' : ''}`}
+      className={`grid-header-cell ${canSort ? 'sort' : ''} ${isPinned ? 'pinned' : ''}`}
       style={{
         minWidth: `${width}px`
       }}
@@ -357,15 +354,18 @@ const ColumnHeader = <T,>({ header, resetPageIndex }: ColumnHeaderProps<T>) => {
           />
         )}
       </div>
-    </th>
+    </div>
   );
 };
 
-const Cell = <T,>({ cell }: CellProps<T>) => {
+const GridCell = <T,>({ cell }: CellProps<T>) => {
   const isPinned = cell.column.getIsPinned();
   return (
-    <td key={cell.id} className={`${isPinned ? 'pinned' : ''}`}>
+    <div
+      key={cell.id}
+      className={`grid-cell ${isPinned ? 'pinned' : ''}`}
+      style={{ width: `${cell.column.columnDef.meta?.width}px` }}>
       {flexRender(cell.column.columnDef.cell, cell.getContext())}
-    </td>
+    </div>
   );
 };

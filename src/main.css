@@ -16,6 +16,7 @@ body {
 }
 
 .chart-max-height {
+  min-height: var(--content-max-height);
   max-height: var(--content-max-height);
   position: relative;
 }
@@ -38,7 +39,7 @@ body {
   color: var(--chakra-colors-gray-500);
 }
 
-.table-area {
+.grid-area {
   max-width: 100%;
   min-height: var(--content-max-height);
   max-height: var(--content-max-height);
@@ -48,102 +49,9 @@ body {
   will-change: transform;
 }
 
-.table {
-  font-size: 14px;
-  table-layout: fixed;
-  border-spacing: 0;
-  border-collapse: separate;
-  thead {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-  }
-}
-
-.table-header {
-  border-top: 1px solid var(--chakra-colors-gray-200);
-  border-bottom: 1px solid var(--chakra-colors-gray-200);
-  background: var(--chakra-colors-white);
-  font-weight: 500;
-  height: 40px;
-  text-align: left;
-  padding-left: 8px;
-  padding-right: 4px;
-  &:last-child {
-    padding-right: 8px;
-  }
-}
-
-.table-header.sort {
-  cursor: pointer;
-}
-
-.table-header.pinned {
-  position: sticky;
-  border-right: 1px solid var(--chakra-colors-gray-200);
-  left: 0;
-  z-index: 3;
-  padding-left: 12px;
-}
-
-.table-header.sort:hover {
-  background-color: var(--chakra-colors-gray-50);
-}
-
-.table-header:hover {
-  .sort-icon {
-    color: var(--chakra-colors-black);
-  }
-}
-
-.table-row td {
-  vertical-align: top;
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--chakra-colors-gray-200);
-  &.pinned {
-    position: sticky;
-    border-right: 1px solid var(--chakra-colors-gray-200);
-    left: 0;
-    z-index: 1;
-    padding-left: 12px;
-  }
-}
-
-.table-row > td:first-child {
-  background-color: var(--chakra-colors-white);
-}
-
-.table-row:hover,
-.table-row.active {
-  cursor: pointer;
-  background-color: var(--chakra-colors-gray-50);
-  & > td:first-child {
-    font-weight: 500;
-    background-color: var(--chakra-colors-gray-50);
-  }
-}
-
-.table-row.active > td:first-child {
-  background-color: var(--chakra-colors-gray-600);
-  color: var(--chakra-colors-white);
-}
-
-.filter-icon:hover {
-  color: var(--chakra-colors-black);
-}
-
-.sort-icon:has(~ .filter-icon:hover) {
-  color: var(--chakra-colors-gray-300);
-}
-
-/* .radio-wrapper {
-  border: 1px solid transparent;
-} */
-
 .radio-wrapper:has(.radio:checked),
 .radio-wrapper:hover {
   background-color: var(--chakra-colors-gray-100);
-  /* border: 1px solid var(--chakra-colors-gray-500); */
   cursor: pointer;
 }
 
@@ -164,14 +72,87 @@ body {
   }
 }
 
-/* @media only screen and (max-device-width: 812px) and (orientation: portrait) {
-  .table-area {
-    max-height: calc(100vh - 100px);
+.grid {
+  display: grid;
+  font-size: 14px;
+}
+
+.grid-row,
+.grid-row-header {
+  display: grid;
+  grid-template-columns: subgrid;
+}
+
+.grid-row-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.grid-header-cell {
+  border-top: 1px solid var(--chakra-colors-gray-200);
+  border-bottom: 1px solid var(--chakra-colors-gray-200);
+  background: var(--chakra-colors-white);
+  font-weight: 500;
+  text-align: left;
+  padding: 8px 4px 8px 8px;
+  &:last-child {
+    padding-right: 8px;
+  }
+  &.sort {
+    cursor: pointer;
+  }
+  &.sort:hover {
+    background-color: var(--chakra-colors-gray-50);
+  }
+  &.pinned {
+    position: sticky;
+    border-right: 1px solid var(--chakra-colors-gray-200);
+    left: 0;
+    z-index: 3;
+    padding-left: 12px;
   }
 }
 
-@media only screen and (max-device-width: 812px) and (orientation: landscape) {
-  .table-area {
-    max-height: calc(100vh - 100px);
+.grid-header-cell:hover {
+  .sort-icon {
+    color: var(--chakra-colors-black);
   }
-} */
+}
+
+.grid-row:hover,
+.grid-row.active {
+  cursor: pointer;
+  background-color: var(--chakra-colors-gray-50);
+  & > div:first-child {
+    font-weight: 500;
+    background-color: var(--chakra-colors-gray-50);
+  }
+}
+
+.grid-row.active > div:first-child {
+  background-color: var(--chakra-colors-gray-600);
+  color: var(--chakra-colors-white);
+}
+
+.grid-cell {
+  vertical-align: top;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--chakra-colors-gray-200);
+  &.pinned {
+    position: sticky;
+    border-right: 1px solid var(--chakra-colors-gray-200);
+    background-color: var(--chakra-colors-white);
+    left: 0;
+    z-index: 1;
+    padding-left: 12px;
+  }
+}
+
+.filter-icon:hover {
+  color: var(--chakra-colors-black);
+}
+
+.sort-icon:has(~ .filter-icon:hover) {
+  color: var(--chakra-colors-gray-300);
+}

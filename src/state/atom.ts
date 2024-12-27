@@ -7,8 +7,10 @@ import {
   defaultFilterState,
   defaultPreset,
   defaultSettings,
-  defaultView
+  defaultView,
+  initialFilter
 } from '../utils/table.util';
+import { Stock } from '../models/stock';
 
 export const rowCountAtom = atom(-1);
 
@@ -19,6 +21,25 @@ export const dropdownFnAtom = atom<{
   setColumnVisibility?: (visibility: ColumnVisibility) => void;
   resetPageIndex?: () => void;
 }>({ setColumnFilters: undefined, setColumnVisibility: undefined, resetPageIndex: undefined });
+
+export const stockListAtom = atom<Stock[]>([]);
+export const fuzzyListAtom = atom<Stock[]>([]);
+
+// stock list after exclude (OTC & Biotechnology)
+export const preFilteredListAtom = atom((get) => {
+  const settings = get(appSettingsAtom);
+  const stockList = get(stockListAtom);
+  return initialFilter(stockList, settings);
+});
+
+// stock list after exclude (OTC & Biotechnology) + fuzzy search
+export const filteredStockListAtom = atom((get) => {
+  const fuzzyList = get(fuzzyListAtom);
+  if (fuzzyList.length > 0) {
+    return fuzzyList.some((e) => e.fuzzySearchEmpty) ? [] : fuzzyList;
+  }
+  return get(preFilteredListAtom);
+});
 
 // atom with localstorage
 export const appSettingsAtom = atomWithStorage('appSettings', defaultSettings);

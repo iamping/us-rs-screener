@@ -1,7 +1,12 @@
+import { ReactNode } from 'react';
+
 export interface Stock {
   key: number;
   ticker: string;
   companyName: string;
+  highlightedTicker?: ReactNode | string;
+  highlightedCompanyName?: ReactNode | string;
+  fuzzySearchEmpty?: boolean;
   sector: string;
   industry: string;
   exchange: string;

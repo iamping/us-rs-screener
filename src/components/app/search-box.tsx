@@ -1,13 +1,22 @@
 import { IconButton, Input, Show } from '@chakra-ui/react';
-import { ChangeEvent, CSSProperties, useRef, useState } from 'react';
+import { ChangeEvent, CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import { PiMagnifyingGlassBold, PiArrowCounterClockwiseDuotone, PiXDuotone } from 'react-icons/pi';
 import { InputGroup } from '../ui/input-group';
-import { useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
+import { useDebounceCallback, useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
 import { mobileMediaQuery } from '../../utils/constant';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { fuzzyListAtom, preFilteredListAtom } from '../../state/atom';
+import { Stock } from '../../models/stock';
+import fuzzysort from 'fuzzysort';
 
 export const SearchBox = () => {
+  // console.log('SearchBox');
   const [open, setOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
+
+  const preFilteredList = useAtomValue(preFilteredListAtom);
+  const setFuzzyList = useSetAtom(fuzzyListAtom);
+
   const divRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -35,6 +44,38 @@ export const SearchBox = () => {
     setKeyword(event.target.value);
   };
 
+  const highlightFn = (m: string, i: number) => (
+    <span className="highlight" key={i}>
+      {m}
+    </span>
+  );
+
+  const fuzzySearch = useCallback(
+    (keyword: string) => {
+      const results = fuzzysort.go(keyword, preFilteredList, {
+        threshold: 0.3,
+        keys: ['ticker', 'companyName']
+      });
+      if (results.length === 0) {
+        setFuzzyList(keyword.length > 0 ? [{ fuzzySearchEmpty: true } as Stock] : []);
+      } else {
+        setFuzzyList(
+          results.map((stock) => {
+            const highlightedTicker = stock[0].target.length > 0 ? stock[0].highlight(highlightFn) : null;
+            const highlightedCompanyName = stock[1].target.length > 0 ? stock[1].highlight(highlightFn) : null;
+            return { ...stock.obj, highlightedTicker, highlightedCompanyName };
+          })
+        );
+      }
+    },
+    [preFilteredList, setFuzzyList]
+  );
+  const debouncedFuzzySearch = useDebounceCallback(fuzzySearch, 250);
+
+  useEffect(() => {
+    debouncedFuzzySearch(keyword);
+  }, [keyword, debouncedFuzzySearch]);
+
   useEventListener('keydown', (event) => {
     const id = (event.target as HTMLElement)?.id ?? '';
     if (id === 'search-stocks' || id === '') {
@@ -45,14 +86,13 @@ export const SearchBox = () => {
           }
           return true;
         });
-        setTimeout(() => {
-          inputRef.current?.focus();
-        }, 0);
       }
       if (event.key === 'Escape') {
-        setOpen(false);
         setKeyword('');
       }
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     }
   });
 

@@ -42,7 +42,7 @@ const columnHelper = createColumnHelper<Stock>();
 const columns = [
   columnHelper.accessor('ticker', {
     header: () => 'Ticker',
-    cell: (cell) => cell.getValue(),
+    cell: (cell) => cell.row.original.highlightedTicker ?? cell.getValue(),
     meta: { width: 85, sticky: true },
     enableColumnFilter: false
   }),
@@ -50,7 +50,7 @@ const columns = [
     header: () => 'Company Name',
     cell: (cell) => (
       <EllipsisText width={200} color="gray.500" title={cell.getValue()}>
-        {cell.getValue()}
+        {cell.row.original.highlightedCompanyName ?? cell.getValue()}
       </EllipsisText>
     ),
     meta: { width: 200 },

@@ -3,23 +3,15 @@ import { fetchStockRsList } from './services/data.service';
 import { Stock } from './models/stock';
 import { Box, Show, Skeleton } from '@chakra-ui/react';
 import { DataTable } from './components/app/data-table';
-import { initialFilter } from './utils/table.util';
 import { Topbar } from './components/app/topbar';
-import { useAtomValue } from 'jotai';
-import { appSettingsAtom } from './state/atom';
-// import { useEventListener } from 'usehooks-ts';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { filteredStockListAtom, stockListAtom } from './state/atom';
 
 const App: FC = () => {
-  const settings = useAtomValue(appSettingsAtom);
-  const [stockList, setStockList] = useState<Stock[]>([]);
-  const [filteredStockList, setFilteredStockList] = useState<Stock[]>([]);
   const [error, setError] = useState<null | string>(null);
-
-  // useEventListener('keydown', (event) => {
-  //   if (/[A-Za-z- ]/.test(event.key)) {
-  //     console.log('gonna open dialog => ', event.key);
-  //   }
-  // });
+  const [loading, setLoading] = useState<boolean>(true);
+  const setStockList = useSetAtom(stockListAtom);
+  const filteredStockList = useAtomValue(filteredStockListAtom);
 
   // console.log('render app');
 
@@ -33,15 +25,9 @@ const App: FC = () => {
       .catch((e) => {
         console.error(e);
         setError('Something went wrong. Please try again later.');
-      });
-  }, []);
-
-  useEffect(() => {
-    if (stockList.length > 0) {
-      const tmpList = initialFilter(stockList, settings);
-      setFilteredStockList(tmpList);
-    }
-  }, [settings, stockList]);
+      })
+      .finally(() => setLoading(false));
+  }, [setStockList]);
 
   if (error) {
     return error;
@@ -50,10 +36,10 @@ const App: FC = () => {
   return (
     <Box>
       <Topbar />
-      <Show when={filteredStockList.length > 0}>
+      <Show when={!loading}>
         <DataTable data={filteredStockList}></DataTable>
       </Show>
-      <Show when={filteredStockList.length === 0}>
+      <Show when={loading}>
         <Skeleton flex="1" height="4" variant="pulse" marginY={4} />
         <Skeleton flex="1" height="4" variant="pulse" marginY={4} />
         <Skeleton flex="1" height="4" variant="pulse" marginY={4} />

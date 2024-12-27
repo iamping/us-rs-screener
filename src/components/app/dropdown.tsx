@@ -42,10 +42,6 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
     }
   }, [dropdownState, type]);
 
-  // useEffect(() => {
-  //   setValue(optionList[0]);
-  // }, [optionList]);
-
   useEffect(() => {
     if (filterChanged > 0 && type === 'Preset') {
       setValue({ title: 'Manual', value: '-' });

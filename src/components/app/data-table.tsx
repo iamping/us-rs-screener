@@ -265,7 +265,10 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
           <PanelResizeHandle className="resize-handle"></PanelResizeHandle>
         </Show>
         <Panel id="panel-stock" minSize={30} order={2}>
-          <div className="table-area" ref={parentRef}>
+          <div
+            className="table-area"
+            ref={parentRef}
+            style={{ overflow: table.getRowModel().rows.length === 0 ? 'hidden' : 'auto' }}>
             <table className="table">
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -296,19 +299,28 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
                   </ViewportList>
                 </tbody>
               </Show>
+              <Show when={table.getRowModel().rows.length === 0}>
+                <tbody>
+                  <tr>
+                    <td colSpan={table.getVisibleFlatColumns().length}>
+                      <EmptyState
+                        width="100vw"
+                        position="sticky"
+                        left={0}
+                        right={0}
+                        marginTop={10}
+                        icon={<AiOutlineStock />}
+                        title="No results found"
+                        description="Try adjusting filters"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </Show>
             </table>
           </div>
         </Panel>
       </PanelGroup>
-      <Show when={table.getRowModel().rows.length === 0}>
-        <EmptyState
-          width="100%"
-          marginTop={10}
-          icon={<AiOutlineStock />}
-          title="No results found"
-          description="Try adjusting filters"
-        />
-      </Show>
     </>
   );
 };

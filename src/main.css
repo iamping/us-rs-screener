@@ -40,6 +40,7 @@ body {
 
 .table-area {
   max-width: 100%;
+  min-height: var(--content-max-height);
   max-height: var(--content-max-height);
   overflow: auto;
   white-space: nowrap;

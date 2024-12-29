@@ -18,6 +18,7 @@ export const Settings: FC<SettingsProps> = () => {
   return (
     <PopoverRoot
       modal={true}
+      lazyMount={true}
       open={open}
       onOpenChange={(e) => setOpen(e.open)}
       positioning={{ placement: 'bottom-end' }}>

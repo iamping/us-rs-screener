@@ -61,6 +61,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   return (
     <PopoverRoot
       modal={true}
+      lazyMount={true}
       open={open}
       onOpenChange={(e) => setOpen(e.open)}
       positioning={{ placement: 'bottom-end' }}>

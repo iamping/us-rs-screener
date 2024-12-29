@@ -52,6 +52,7 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
   return (
     <PopoverRoot
       modal={true}
+      lazyMount={true}
       open={open}
       onOpenChange={(e) => setOpen(e.open)}
       positioning={{ placement: 'bottom-start' }}>

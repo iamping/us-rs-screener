@@ -30,7 +30,13 @@ export const Topbar = () => {
   }, [isSmallScreen, rowCount]);
 
   return (
-    <HStack gap={1} paddingY={2} paddingLeft={1} paddingRight={2} position="relative">
+    <HStack
+      gap={1}
+      paddingY={2}
+      paddingLeft={1}
+      paddingRight={2}
+      position="relative"
+      borderBottom="1px solid var(--chakra-colors-gray-200)">
       <Heading paddingX={1} title="US Stock Screener" lineHeight="10px" paddingTop="12px" className="borel-regular">
         {rowCount < 0 && 'Loading...'}
         {rowCount >= 0 && (

@@ -15,6 +15,8 @@
     "@emotion/react": "^11.14.0",
     "@tanstack/react-table": "^8.20.6",
     "fuzzysort": "^3.1.0",
+    "highcharts": "^12.1.2",
+    "highcharts-react-official": "^3.2.1",
     "jotai": "^2.11.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

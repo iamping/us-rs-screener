@@ -109,7 +109,6 @@ h6 {
 }
 
 .grid-header-cell {
-  border-top: 1px solid var(--chakra-colors-gray-200);
   border-bottom: 1px solid var(--chakra-colors-gray-200);
   background: var(--chakra-colors-white);
   font-weight: 500;

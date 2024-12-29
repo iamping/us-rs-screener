@@ -30,12 +30,12 @@ import {
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
 import { CellProps, ColumnHeaderProps, DataTableProps } from '../../models/common';
-import { TradingViewWidget } from './trading-view';
 import { CloseButton } from '../ui/close-button';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
 import { useAtom, useSetAtom } from 'jotai';
 import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom } from '../../state/atom';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { HistoricalChart } from './historical-chart';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -270,7 +270,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
               zIndex={1}
               onClick={() => setTicker('')}
             />
-            <TradingViewWidget ticker={ticker} />
+            <HistoricalChart ticker={ticker} />
           </Panel>
           <PanelResizeHandle className="resize-handle"></PanelResizeHandle>
         </Show>

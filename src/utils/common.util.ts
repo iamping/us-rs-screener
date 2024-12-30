@@ -8,3 +8,6 @@ export const formatDecimal = (val: string | number) => {
 export const formatNumber = (val: string | number) => {
   return numberFormatter.format(Number(val));
 };
+
+export const mobileMediaQuery = '(max-width: 680px)';
+

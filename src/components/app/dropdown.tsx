@@ -7,7 +7,7 @@ import { DropdownProps, SelectOption } from '../../models/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '../../state/atom';
 import { useMediaQuery } from 'usehooks-ts';
-import { mobileMediaQuery } from '../../utils/constant';
+import { mobileMediaQuery } from '../../utils/common.util';
 
 export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
   const filterChanged = useAtomValue(manualFilterAtom);

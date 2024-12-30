@@ -7,7 +7,7 @@ import { Settings } from './settings';
 import { useMediaQuery } from 'usehooks-ts';
 import { useMemo } from 'react';
 import { SearchBox } from './search-box';
-import { mobileMediaQuery } from '../../utils/constant';
+import { mobileMediaQuery } from '../../utils/common.util';
 
 export const Topbar = () => {
   const rowCount = useAtomValue(rowCountAtom);

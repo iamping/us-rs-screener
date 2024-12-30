@@ -1,16 +1,19 @@
 import { useAtomValue } from 'jotai';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { stockListAtom } from '../../state/atom';
 import { fetchHistoricalData } from '../../services/data.service';
 import { Heading, Spinner, Text } from '@chakra-ui/react';
-import { ChartSeries, HistoricalData } from '../../models/historical-data';
-import HighchartsReact from 'highcharts-react-official';
+import { HistoricalData } from '../../models/historical-data';
+import { chartOptions, prepareSeries } from '../../utils/chart.util';
 import Highcharts from 'highcharts/highstock';
+import HighchartsReact, { HighchartsReactRefObject } from 'highcharts-react-official';
+import 'highcharts/indicators/indicators';
 
 export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   const [isLoading, setIsLoading] = useState(false);
   const stockList = useAtomValue(stockListAtom);
   const [historicalData, setHistoricalData] = useState<HistoricalData | null>(null);
+  const chartRef = useRef<HighchartsReactRefObject>(null);
 
   const stock = useMemo(() => {
     return stockList.find((e) => e.ticker === ticker);
@@ -31,83 +34,11 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   }, [ticker]);
 
   const series = useMemo(() => {
-    const tmpSeries: ChartSeries = { ohlc: [], volume: [] };
-    if (historicalData && Object.keys(historicalData).length > 0) {
-      for (let i = 0; i < historicalData.date.length; i += 1) {
-        const date = historicalData.date[i] * 1000;
-        tmpSeries.ohlc.push([
-          date,
-          historicalData.open[i],
-          historicalData.high[i],
-          historicalData.low[i],
-          historicalData.close[i]
-        ]);
-        tmpSeries.volume.push([date, historicalData.volume[i]]);
-      }
-    }
-    return tmpSeries;
+    return prepareSeries(historicalData);
   }, [historicalData]);
 
   const options: Highcharts.Options = useMemo(() => {
-    return {
-      accessibility: { enabled: false },
-      yAxis: [
-        {
-          type: 'logarithmic',
-          labels: {
-            align: 'left'
-          },
-          height: '80%',
-          resize: {
-            enabled: true
-          }
-        },
-        {
-          type: 'logarithmic',
-          labels: {
-            align: 'left'
-          },
-          top: '80%',
-          height: '20%',
-          offset: 0
-        }
-      ],
-      // rangeSelector: {
-      //   selected: 4
-      // },
-      series: [
-        {
-          type: 'candlestick',
-          id: 'nvidia-candlestick',
-          name: 'NVIDIA Corp Stock Price',
-          data: series.ohlc,
-          dataGrouping: {
-            groupPixelWidth: 10
-          }
-        },
-        {
-          type: 'column',
-          id: 'nvidia-volume',
-          name: 'NVIDIA Volume',
-          data: series.volume,
-          yAxis: 1
-        }
-      ],
-      responsive: {
-        rules: [
-          {
-            condition: {
-              maxWidth: 800
-            },
-            chartOptions: {
-              rangeSelector: {
-                inputEnabled: false
-              }
-            }
-          }
-        ]
-      }
-    } as Highcharts.Options;
+    return chartOptions(series);
   }, [series]);
 
   return (
@@ -120,7 +51,7 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
       </Heading>
       {isLoading && <Spinner position="absolute" top={2} right={12} />}
       {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
-      <HighchartsReact highcharts={Highcharts} constructorType={'stockChart'} options={options} />
+      <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />
     </>
   );
 };

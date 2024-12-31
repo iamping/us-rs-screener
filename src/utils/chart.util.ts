@@ -7,14 +7,24 @@ export const prepareSeries = (historicalData: HistoricalData | null) => {
   if (historicalData && Object.keys(historicalData).length > 0) {
     for (let i = 0; i < historicalData.date.length; i += 1) {
       const date = historicalData.date[i] * 1000;
-      tmpSeries.ohlc.push([
-        date,
-        historicalData.open[i],
-        historicalData.high[i],
-        historicalData.low[i],
-        historicalData.close[i]
-      ]);
-      tmpSeries.volume.push([date, historicalData.volume[i]]);
+      tmpSeries.ohlc.push({
+        x: date,
+        open: historicalData.open[i],
+        high: historicalData.high[i],
+        low: historicalData.low[i],
+        close: historicalData.close[i],
+        custom: {
+          change: i === 0 ? 0 : historicalData.close[i] - historicalData.close[i - 1],
+          changePercent: i === 0 ? 0 : (historicalData.close[i] / historicalData.close[i - 1] - 1) * 100
+        }
+      });
+      tmpSeries.volume.push({
+        x: date,
+        y: historicalData.volume[i],
+        custom: {
+          change: i === 0 ? 0 : historicalData.close[i] - historicalData.close[i - 1]
+        }
+      });
     }
   }
   return tmpSeries;
@@ -163,7 +173,13 @@ export const chartOptions = (series: ChartSeries) => {
         tooltip: {
           valueDecimals: 2,
           pointFormat:
-            '<div class="chart-series-tooltip"><b>O</b>{point.open:.2f} <b>H</b>{point.high:.2f} <b>L</b>{point.low:.2f} <b>C</b>{point.close:.2f}</div>'
+            '<div class="chart-series-tooltip">' +
+            '<b>O</b>{point.open:.2f} ' +
+            '<b>H</b>{point.high:.2f} ' +
+            '<b>L</b>{point.low:.2f} ' +
+            '<b>C</b><span class="change{point.custom.change:.2f}">{point.close:.2f}' +
+            ' {point.custom.change:.2f} ({point.custom.changePercent:.2f}%)</span>' +
+            '</div>'
         }
       },
       {
@@ -175,7 +191,9 @@ export const chartOptions = (series: ChartSeries) => {
         yAxis: 1,
         tooltip: {
           valueDecimals: 0,
-          pointFormat: '<div class="chart-series-tooltip"><b>{series.name}</b> {point.y}</div>'
+          pointFormat:
+            '<div class="chart-series-tooltip"><b>{series.name}</b> ' +
+            '<span class="change{point.custom.change:.2f}">{point.y}</span></div>'
         }
       },
       {

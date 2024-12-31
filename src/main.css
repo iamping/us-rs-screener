@@ -178,7 +178,13 @@ h6 {
 
 .chart-series-tooltip {
   white-space: nowrap;
+  
 }
+
+.chart-series-tooltip span[class^="change-"] {
+  color: var(--chakra-colors-red-500);
+}
+
 .chart-date-tooltip {
   color: var(--chakra-colors-white);
   white-space: nowrap;

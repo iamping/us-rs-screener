@@ -1,3 +1,5 @@
+import { PointOptionsObject } from 'highcharts';
+
 export interface HistoricalData {
   date: number[];
   close: number[];
@@ -8,6 +10,6 @@ export interface HistoricalData {
 }
 
 export interface ChartSeries {
-  ohlc: Array<(number | Date)[]>;
-  volume: Array<(number | Date)[]>;
+  ohlc: Array<(number | Date)[] | PointOptionsObject>;
+  volume: Array<(number | Date)[] | PointOptionsObject>;
 }

@@ -4,7 +4,7 @@ import { stockListAtom } from '../../state/atom';
 import { fetchHistoricalData } from '../../services/data.service';
 import { Heading, Spinner, Text } from '@chakra-ui/react';
 import { HistoricalData } from '../../models/historical-data';
-import { chartOptions, prepareSeries } from '../../utils/chart.util';
+import { chartGlobalOptions, chartOptions, prepareSeries } from '../../utils/chart.util';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact, { HighchartsReactRefObject } from 'highcharts-react-official';
 import 'highcharts/indicators/indicators';
@@ -21,6 +21,7 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
 
   useEffect(() => {
     setIsLoading(true);
+    chartRef.current?.chart.showLoading();
     fetchHistoricalData(ticker)
       .then((response) => response.clone().json())
       .then((data: HistoricalData) => setHistoricalData(data))
@@ -30,8 +31,13 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
       })
       .finally(() => {
         setIsLoading(false);
+        chartRef.current?.chart.hideLoading();
       });
   }, [ticker]);
+
+  useEffect(() => {
+    Highcharts.setOptions(chartGlobalOptions);
+  }, []);
 
   const series = useMemo(() => {
     return prepareSeries(historicalData);

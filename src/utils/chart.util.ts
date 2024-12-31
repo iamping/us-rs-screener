@@ -20,6 +20,27 @@ export const prepareSeries = (historicalData: HistoricalData | null) => {
   return tmpSeries;
 };
 
+export const chartGlobalOptions: Highcharts.Options = {
+  lang: {
+    rangeSelectorZoom: ''
+  },
+  global: {
+    buttonTheme: {
+      states: {
+        select: {
+          fill: 'var(--chakra-colors-gray-700)',
+          style: {
+            color: 'var(--chakra-colors-white)'
+          }
+        },
+        hover: {
+          fill: 'var(--chakra-colors-gray-300)'
+        }
+      }
+    }
+  }
+};
+
 export const chartOptions = (series: ChartSeries) => {
   return {
     accessibility: { enabled: false },
@@ -27,10 +48,22 @@ export const chartOptions = (series: ChartSeries) => {
       enabled: false
     },
     chart: {
-      height: `${chartHeight}`
+      animation: false,
+      height: `${chartHeight}`,
+      panning: { enabled: false },
+      zooming: {
+        mouseWheel: { enabled: false }
+      }
+    },
+    navigator: {
+      enabled: false
     },
     tooltip: {
       valueDecimals: 2
+    },
+    scrollbar: {
+      height: 1,
+      trackBorderColor: 'transparent'
     },
     yAxis: [
       {
@@ -56,40 +89,26 @@ export const chartOptions = (series: ChartSeries) => {
     ],
     rangeSelector: {
       inputEnabled: false,
-      selected: 1,
+      selected: 0,
       buttons: [
         {
           type: 'month',
-          count: 3,
-          text: '3m',
-          title: 'View 3 months',
+          count: 6,
+          text: 'D',
+          title: 'Day',
           dataGrouping: {
-            enabled: false
+            forced: true,
+            units: [['day', [1]]]
           }
         },
         {
-          type: 'month',
-          count: 6,
-          text: '6m',
-          title: 'View 6 months',
-          preserveDataGrouping: true
-        },
-        {
-          type: 'ytd',
-          text: 'YTD',
-          title: 'View year to date'
-        },
-        {
-          type: 'year',
-          count: 1,
-          text: '1y',
-          title: 'View 1 year'
-        },
-        {
-          type: 'year',
-          count: 2,
-          text: '2y',
-          title: 'View 2 year'
+          type: 'all',
+          text: 'W',
+          title: 'Week',
+          dataGrouping: {
+            forced: true,
+            units: [['week', [1]]]
+          }
         }
       ]
     },
@@ -98,12 +117,14 @@ export const chartOptions = (series: ChartSeries) => {
         type: 'candlestick',
         id: 'stock-candlestick',
         name: 'Stock Price',
+        color: 'var(--chakra-colors-black)',
         data: series.ohlc
       },
       {
         type: 'column',
         id: 'stock-volume',
         name: 'Volume',
+        color: 'var(--chakra-colors-black)',
         data: series.volume,
         yAxis: 1,
         tooltip: {
@@ -116,12 +137,13 @@ export const chartOptions = (series: ChartSeries) => {
         zIndex: 1,
         color: 'var(--chakra-colors-gray-300)',
         lineWidth: 1,
-        marker: {
-          enabled: false
-        },
         params: {
           period: 21
-        }
+        },
+        tooltip: {
+          pointFormat: ''
+        },
+        enableMouseTracking: false
       },
       {
         type: 'ema',
@@ -129,12 +151,13 @@ export const chartOptions = (series: ChartSeries) => {
         zIndex: 1,
         color: 'var(--chakra-colors-gray-400)',
         lineWidth: 1,
-        marker: {
-          enabled: false
-        },
         params: {
           period: 50
-        }
+        },
+        tooltip: {
+          pointFormat: ''
+        },
+        enableMouseTracking: false
       },
       {
         type: 'ema',
@@ -142,12 +165,13 @@ export const chartOptions = (series: ChartSeries) => {
         zIndex: 1,
         color: 'var(--chakra-colors-red-400)',
         lineWidth: 1,
-        marker: {
-          enabled: false
-        },
         params: {
           period: 200
-        }
+        },
+        tooltip: {
+          pointFormat: ''
+        },
+        enableMouseTracking: false
       }
     ]
   } as Highcharts.Options;

@@ -143,7 +143,10 @@ export const chartOptions = (series: ChartSeries) => {
         tooltip: {
           pointFormat: ''
         },
-        enableMouseTracking: false
+        enableMouseTracking: false,
+        marker: {
+          enabled: false
+        }
       },
       {
         type: 'ema',
@@ -157,7 +160,10 @@ export const chartOptions = (series: ChartSeries) => {
         tooltip: {
           pointFormat: ''
         },
-        enableMouseTracking: false
+        enableMouseTracking: false,
+        marker: {
+          enabled: false
+        }
       },
       {
         type: 'ema',
@@ -171,7 +177,10 @@ export const chartOptions = (series: ChartSeries) => {
         tooltip: {
           pointFormat: ''
         },
-        enableMouseTracking: false
+        enableMouseTracking: false,
+        marker: {
+          enabled: false
+        }
       }
     ]
   } as Highcharts.Options;

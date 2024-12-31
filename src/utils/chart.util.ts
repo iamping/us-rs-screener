@@ -53,13 +53,41 @@ export const chartOptions = (series: ChartSeries) => {
       panning: { enabled: false },
       zooming: {
         mouseWheel: { enabled: false }
-      }
+      },
+      plotBorderWidth: 1,
+      plotBorderColor: 'var(--chakra-colors-gray-300)'
     },
     navigator: {
       enabled: false
     },
     tooltip: {
-      valueDecimals: 2
+      valueDecimals: 2,
+      backgroundColor: 'transparent',
+      shadow: false,
+      useHTML: true,
+      borderRadius: 0,
+      borderWidth: 0,
+      headerShape: 'rect',
+      headerFormat: '<p class="chart-date-tooltip">{point.key}</p>',
+      positioner: function (width, _height, point) {
+        const chart = this.chart;
+        if (point.isHeader) {
+          const tmpX = Math.max(
+            // Left side limit
+            0,
+            Math.min(
+              point.plotX + chart.plotLeft - width / 2,
+              // Right side limit
+              chart.chartWidth - width
+            )
+          );
+          return { x: tmpX, y: point.plotY - 8 };
+        }
+        return {
+          x: point.series.chart.plotLeft,
+          y: point.series.yAxis.pos - chart.plotTop
+        };
+      }
     },
     scrollbar: {
       height: 1,
@@ -67,24 +95,37 @@ export const chartOptions = (series: ChartSeries) => {
     },
     yAxis: [
       {
+        gridLineWidth: 1,
+        gridLineColor: 'var(--chakra-colors-gray-300)',
+        gridLineDashStyle: 'Dash',
         type: 'logarithmic',
+        endOnTick: true,
         labels: {
           align: 'left'
         },
-        height: '70%',
-        lineWidth: 1,
-        resize: {
-          enabled: true
-        }
+        height: '75%',
+        crosshair: {
+          label: {
+            enabled: true,
+            backgroundColor: '#000000',
+            padding: 2,
+            shape: 'rect',
+            borderRadius: 0,
+            format: '{value:.2f}'
+          }
+        },
+        showLastLabel: true
       },
       {
+        gridLineWidth: 1,
+        gridLineColor: 'var(--chakra-colors-gray-300)',
+        gridLineDashStyle: 'Dash',
         labels: {
-          align: 'left'
+          align: 'left',
+          enabled: false
         },
         top: '75%',
-        height: '25%',
-        offset: 0,
-        lineWidth: 1
+        height: '25%'
       }
     ],
     rangeSelector: {
@@ -118,7 +159,12 @@ export const chartOptions = (series: ChartSeries) => {
         id: 'stock-candlestick',
         name: 'Stock Price',
         color: 'var(--chakra-colors-black)',
-        data: series.ohlc
+        data: series.ohlc,
+        tooltip: {
+          valueDecimals: 2,
+          pointFormat:
+            '<div class="chart-series-tooltip"><b>O</b>{point.open:.2f} <b>H</b>{point.high:.2f} <b>L</b>{point.low:.2f} <b>C</b>{point.close:.2f}</div>'
+        }
       },
       {
         type: 'column',
@@ -128,13 +174,13 @@ export const chartOptions = (series: ChartSeries) => {
         data: series.volume,
         yAxis: 1,
         tooltip: {
-          valueDecimals: 0
+          valueDecimals: 0,
+          pointFormat: '<div class="chart-series-tooltip"><b>{series.name}</b> {point.y}</div>'
         }
       },
       {
         type: 'ema',
         linkedTo: 'stock-candlestick',
-        zIndex: 1,
         color: 'var(--chakra-colors-gray-300)',
         lineWidth: 1,
         params: {
@@ -151,7 +197,6 @@ export const chartOptions = (series: ChartSeries) => {
       {
         type: 'ema',
         linkedTo: 'stock-candlestick',
-        zIndex: 1,
         color: 'var(--chakra-colors-gray-400)',
         lineWidth: 1,
         params: {
@@ -168,7 +213,6 @@ export const chartOptions = (series: ChartSeries) => {
       {
         type: 'ema',
         linkedTo: 'stock-candlestick',
-        zIndex: 1,
         color: 'var(--chakra-colors-red-400)',
         lineWidth: 1,
         params: {

@@ -44,6 +44,7 @@ h6 {
   display: flex;
   align-items: center;
   width: 4px;
+  background-color: var(--chakra-colors-gray-100);
 }
 
 .resize-handle[data-resize-handle-state='hover'] {
@@ -173,4 +174,14 @@ h6 {
 
 .sort-icon:has(~ .filter-icon:hover) {
   color: var(--chakra-colors-gray-300);
+}
+
+.chart-series-tooltip {
+  white-space: nowrap;
+}
+.chart-date-tooltip {
+  color: var(--chakra-colors-white);
+  white-space: nowrap;
+  background-color: var(--chakra-colors-black);
+  padding: 4px;
 }

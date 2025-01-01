@@ -1,5 +1,6 @@
 import Highcharts from 'highcharts';
 import { ChartSeries, CustomPoint, HistoricalData, SeriePoint } from '../models/historical-data';
+import { Stock } from '../models/stock';
 
 const chartHeight = window.innerHeight - 48 * 2;
 
@@ -58,7 +59,7 @@ export const chartGlobalOptions: Highcharts.Options = {
   }
 };
 
-export const chartOptions = (series: ChartSeries) => {
+export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
   return {
     accessibility: { enabled: false },
     credits: {
@@ -72,7 +73,26 @@ export const chartOptions = (series: ChartSeries) => {
         mouseWheel: { enabled: false }
       },
       plotBorderWidth: 1,
-      plotBorderColor: 'var(--chakra-colors-gray-300)'
+      plotBorderColor: 'var(--chakra-colors-gray-300)',
+      events: {
+        render: function () {
+          const _this = this as Highcharts.Chart & { rsRatingText: Highcharts.SVGElement };
+          const rsSeries = this.series.find((e) => e.name === 'Relative Strength');
+          if (_this.rsRatingText) {
+            _this.rsRatingText.destroy();
+          }
+          if (stock) {
+            const pos = {
+              x: (rsSeries?.chart.plotLeft ?? 0) + this.plotWidth - 110,
+              y: this.plotHeight + 30
+            };
+            _this.rsRatingText = this.renderer
+              .text(`RS Rating: ${stock?.rsRating ?? 0}`, pos.x, pos.y)
+              .addClass('chart-rs-rating')
+              .add();
+          }
+        }
+      }
     },
     navigator: {
       enabled: false
@@ -209,6 +229,40 @@ export const chartOptions = (series: ChartSeries) => {
         }
       ]
     },
+    annotations: [
+      {
+        labels: [
+          {
+            point: {
+              x: 3,
+              y: 129.2,
+              xAxis: 0,
+              yAxis: 0
+            },
+            text: 'x: {x}<br/>y: {y}'
+          },
+          {
+            point: {
+              x: 0,
+              y: 0
+            },
+            text: 'x: {point.plotX} px<br/>y: {point.plotY} px'
+          },
+          {
+            point: {
+              x: 1734048000 * 1000,
+              y: 424.82,
+              xAxis: 0
+            },
+            text: 'x: {x}<br/>y: {point.plotY} px'
+          }
+        ],
+        labelOptions: {
+          x: 40,
+          y: -10
+        }
+      }
+    ],
     series: [
       {
         type: 'candlestick',

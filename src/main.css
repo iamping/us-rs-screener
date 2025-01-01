@@ -181,7 +181,7 @@ h6 {
   background-color: var(--chakra-colors-white);
 }
 
-.chart-series-tooltip span[class^="change-"] {
+.chart-series-tooltip span[class^='change-'] {
   color: var(--chakra-colors-red-500);
 }
 
@@ -190,4 +190,8 @@ h6 {
   white-space: nowrap;
   background-color: var(--chakra-colors-black);
   padding: 4px;
+}
+
+.chart-rs-rating {
+  font-family: 'Outfit', serif;
 }

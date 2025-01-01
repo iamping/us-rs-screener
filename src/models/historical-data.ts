@@ -1,4 +1,4 @@
-import { Point, PointOptionsObject } from 'highcharts';
+import { Point, PointOptionsObject, Series } from 'highcharts';
 
 export interface HistoricalData {
   date: number[];
@@ -19,4 +19,9 @@ export type SeriePoint = Point & PointOptionsObject;
 
 export interface CustomPoint extends Point {
   points: SeriePoint[];
+}
+
+export interface CustomSeries extends Series {
+  currentDataGrouping: { unitName: string };
+  groupedData: CustomPoint[];
 }

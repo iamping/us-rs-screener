@@ -43,8 +43,8 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   }, []);
 
   const series = useMemo(() => {
-    return prepareSeries(historicalData, spyData);
-  }, [historicalData, spyData]);
+    return prepareSeries(historicalData, spyData, stock);
+  }, [historicalData, spyData, stock]);
 
   const options: Highcharts.Options = useMemo(() => {
     return chartOptions(series, stock);

@@ -1,14 +1,20 @@
 import Highcharts from 'highcharts';
-import { ChartSeries, CustomPoint, HistoricalData, SeriePoint } from '../models/historical-data';
+import { ChartSeries, CustomPoint, CustomSeries, HistoricalData, SeriePoint } from '../models/historical-data';
 import { Stock } from '../models/stock';
 
 const chartHeight = window.innerHeight - 48 * 2;
 
-export const prepareSeries = (historicalData: HistoricalData | null, spyData: HistoricalData | null) => {
+export const prepareSeries = (
+  historicalData: HistoricalData | null,
+  spyData: HistoricalData | null,
+  stock: Stock | undefined
+) => {
   const tmpSeries: ChartSeries = { ohlc: [], volume: [], rs: [] };
-  if (historicalData && Object.keys(historicalData).length > 0 && spyData) {
-    const start = historicalData.date.length - 1;
-    for (let i = start; i >= 0; i -= 1) {
+  if (historicalData && Object.keys(historicalData).length > 0 && spyData && stock) {
+    const len = historicalData.date.length;
+    const spyLen = spyData.date.length;
+    const start = len < spyLen ? spyLen - len : 0;
+    for (let i = 0; i < len; i++) {
       const date = historicalData.date[i] * 1000;
       tmpSeries.ohlc.push({
         x: date,
@@ -16,24 +22,18 @@ export const prepareSeries = (historicalData: HistoricalData | null, spyData: Hi
         high: historicalData.high[i],
         low: historicalData.low[i],
         close: historicalData.close[i]
-        // custom: {
-        //   change: i === 0 ? 0 : historicalData.close[i] - historicalData.close[i - 1],
-        //   changePercent: i === 0 ? 0 : (historicalData.close[i] / historicalData.close[i - 1] - 1) * 100
-        // }
       });
       tmpSeries.volume.push({
         x: date,
-        y: historicalData.volume[i]
+        y: historicalData.volume[i],
+        color:
+          historicalData.volume[i] > stock.avgVolume ? 'var(--chakra-colors-black)' : 'var(--chakra-colors-gray-200)'
       });
       tmpSeries.rs.push({
         x: date,
-        y: (historicalData.close[i] / spyData.close[i]) * 100,
-        open: spyData.close[i]
+        y: (historicalData.close[i] / spyData.close[i + start]) * 100
       });
     }
-    tmpSeries.ohlc.reverse();
-    tmpSeries.volume.reverse();
-    tmpSeries.rs.reverse();
   }
   return tmpSeries;
 };
@@ -76,6 +76,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
       plotBorderColor: 'var(--chakra-colors-gray-300)',
       events: {
         render: function () {
+          // add rs rating text
           const _this = this as Highcharts.Chart & { rsRatingText: Highcharts.SVGElement };
           const rsSeries = this.series.find((e) => e.name === 'Relative Strength');
           if (_this.rsRatingText) {
@@ -90,6 +91,20 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
               .text(`RS Rating: ${stock?.rsRating ?? 0}`, pos.x, pos.y)
               .addClass('chart-rs-rating')
               .add();
+          }
+
+          // check if chart is grouped, and reset color of volume column
+          const volumeSeries = this.series.find((e) => e.name === 'Volume') as CustomSeries;
+          if (volumeSeries?.currentDataGrouping?.unitName === 'week') {
+            const avgVolumeWeek = (stock?.avgVolume ?? 0) * 5;
+            volumeSeries.groupedData.forEach((e) => {
+              const weekVolume = e.y ?? 0;
+              if (weekVolume > avgVolumeWeek) {
+                e.graphic?.css({ fill: 'var(--chakra-colors-black)' });
+              } else {
+                e.graphic?.css({ fill: 'var(--chakra-colors-gray-200)' });
+              }
+            });
           }
         }
       }
@@ -172,21 +187,19 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
         crosshair: {
           label: {
             enabled: true,
-            backgroundColor: '#000000',
+            backgroundColor: 'var(--chakra-colors-black)',
             padding: 2,
             shape: 'rect',
             borderRadius: 0,
             format: '{value:.2f}'
           }
-        },
-        showLastLabel: true
+        }
       },
       {
         gridLineWidth: 1,
         gridLineColor: 'var(--chakra-colors-gray-300)',
         gridLineDashStyle: 'Dash',
         labels: {
-          align: 'left',
           enabled: false
         },
         top: '60%',
@@ -197,7 +210,6 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
         gridLineColor: 'var(--chakra-colors-gray-300)',
         gridLineDashStyle: 'Dash',
         labels: {
-          align: 'left',
           enabled: false
         },
         top: '80%',
@@ -237,23 +249,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
         color: 'var(--chakra-colors-black)',
         data: series.ohlc
       },
-      {
-        type: 'column',
-        id: 'stock-volume',
-        name: 'Volume',
-        color: 'var(--chakra-colors-black)',
-        data: series.volume,
-        yAxis: 1
-      },
-      {
-        type: 'line',
-        id: 'rs-line',
-        name: 'Relative Strength',
-        color: 'var(--chakra-colors-black)',
-        data: series.rs,
-        lineWidth: 1,
-        yAxis: 2
-      },
+
       {
         type: 'ema',
         linkedTo: 'stock-candlestick',
@@ -301,6 +297,22 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
         marker: {
           enabled: false
         }
+      },
+      {
+        type: 'column',
+        id: 'stock-volume',
+        name: 'Volume',
+        data: series.volume,
+        yAxis: 1
+      },
+      {
+        type: 'line',
+        id: 'rs-line',
+        name: 'Relative Strength',
+        color: 'var(--chakra-colors-black)',
+        data: series.rs,
+        lineWidth: 1,
+        yAxis: 2
       },
       {
         type: 'ema',

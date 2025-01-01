@@ -229,40 +229,6 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
         }
       ]
     },
-    annotations: [
-      {
-        labels: [
-          {
-            point: {
-              x: 3,
-              y: 129.2,
-              xAxis: 0,
-              yAxis: 0
-            },
-            text: 'x: {x}<br/>y: {y}'
-          },
-          {
-            point: {
-              x: 0,
-              y: 0
-            },
-            text: 'x: {point.plotX} px<br/>y: {point.plotY} px'
-          },
-          {
-            point: {
-              x: 1734048000 * 1000,
-              y: 424.82,
-              xAxis: 0
-            },
-            text: 'x: {x}<br/>y: {point.plotY} px'
-          }
-        ],
-        labelOptions: {
-          x: 40,
-          y: -10
-        }
-      }
-    ],
     series: [
       {
         type: 'candlestick',

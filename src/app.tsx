@@ -17,8 +17,7 @@ const App: FC = () => {
 
   useEffect(() => {
     setError(null);
-    fetchStockRsList
-      .then((response) => response.clone().json())
+    fetchStockRsList()
       .then((stocks: Stock[]) => {
         setStockList(stocks.map((e, i) => ({ ...e, key: i + 1 })));
       })

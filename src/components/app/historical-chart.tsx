@@ -10,9 +10,10 @@ import HighchartsReact, { HighchartsReactRefObject } from 'highcharts-react-offi
 import 'highcharts/indicators/indicators';
 
 export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
-  const [isLoading, setIsLoading] = useState(false);
   const stockList = useAtomValue(stockListAtom);
+  const [isLoading, setIsLoading] = useState(false);
   const [historicalData, setHistoricalData] = useState<HistoricalData | null>(null);
+  const [spyData, setSpyData] = useState<HistoricalData | null>(null);
   const chartRef = useRef<HighchartsReactRefObject>(null);
 
   const stock = useMemo(() => {
@@ -22,9 +23,11 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   useEffect(() => {
     setIsLoading(true);
     chartRef.current?.chart.showLoading();
-    fetchHistoricalData(ticker)
-      .then((response) => response.clone().json())
-      .then((data: HistoricalData) => setHistoricalData(data))
+    Promise.all([fetchHistoricalData(ticker), fetchHistoricalData('SPY')])
+      .then((data: HistoricalData[]) => {
+        setHistoricalData(data[0]);
+        setSpyData(data[1]);
+      })
       .catch((e) => {
         console.log(e);
         setHistoricalData({} as HistoricalData);

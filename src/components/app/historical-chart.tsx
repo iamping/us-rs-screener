@@ -43,8 +43,8 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   }, []);
 
   const series = useMemo(() => {
-    return prepareSeries(historicalData);
-  }, [historicalData]);
+    return prepareSeries(historicalData, spyData);
+  }, [historicalData, spyData]);
 
   const options: Highcharts.Options = useMemo(() => {
     return chartOptions(series);
@@ -58,6 +58,9 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
           {stock?.companyName}
         </Text>
       </Heading>
+      <Text position="absolute" zIndex={1} bottom="80px" right="60px" fontSize="sm">
+        RS Rating: {stock?.rsRating}
+      </Text>
       {isLoading && <Spinner position="absolute" top={2} right={12} />}
       {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
       <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />

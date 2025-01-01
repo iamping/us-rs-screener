@@ -3,10 +3,11 @@ import { ChartSeries, CustomPoint, HistoricalData, SeriePoint } from '../models/
 
 const chartHeight = window.innerHeight - 48 * 2;
 
-export const prepareSeries = (historicalData: HistoricalData | null) => {
-  const tmpSeries: ChartSeries = { ohlc: [], volume: [] };
-  if (historicalData && Object.keys(historicalData).length > 0) {
-    for (let i = 0; i < historicalData.date.length; i += 1) {
+export const prepareSeries = (historicalData: HistoricalData | null, spyData: HistoricalData | null) => {
+  const tmpSeries: ChartSeries = { ohlc: [], volume: [], rs: [] };
+  if (historicalData && Object.keys(historicalData).length > 0 && spyData) {
+    const start = historicalData.date.length - 1;
+    for (let i = start; i >= 0; i -= 1) {
       const date = historicalData.date[i] * 1000;
       tmpSeries.ohlc.push({
         x: date,
@@ -23,7 +24,15 @@ export const prepareSeries = (historicalData: HistoricalData | null) => {
         x: date,
         y: historicalData.volume[i]
       });
+      tmpSeries.rs.push({
+        x: date,
+        y: (historicalData.close[i] / spyData.close[i]) * 100,
+        open: spyData.close[i]
+      });
     }
+    tmpSeries.ohlc.reverse();
+    tmpSeries.volume.reverse();
+    tmpSeries.rs.reverse();
   }
   return tmpSeries;
 };
@@ -80,6 +89,7 @@ export const chartOptions = (series: ChartSeries) => {
         const index = _this.points[0].index;
         const pricePoint = _this.points.find((e) => e.series.name === 'Price');
         const volumePoint = _this.points.find((e) => e.series.name === 'Volume');
+        const rsPoint = _this.points.find((e) => e.series.name === 'Relative Strength');
         const change = [];
         if (index === 0) {
           change.push(0, 0);
@@ -99,8 +109,10 @@ export const chartOptions = (series: ChartSeries) => {
           </div>`;
         const volume = `<div class="chart-series-tooltip"><b>Volume</b> 
           <span class="change${change[0]}">${Highcharts.numberFormat(volumePoint?.y ?? 0, 0)}</span></div>`;
+        const relativeStrength = `<div class="chart-series-tooltip"><b>Relative Strength</b> 
+          <span>${Highcharts.numberFormat(rsPoint?.y ?? 0, 2)}</span></div>`;
 
-        return [date, price, volume];
+        return [date, price, volume, relativeStrength];
       },
       positioner: function (width, _height, point) {
         const chart = this.chart;
@@ -136,7 +148,7 @@ export const chartOptions = (series: ChartSeries) => {
         labels: {
           align: 'left'
         },
-        height: '75%',
+        height: '60%',
         crosshair: {
           label: {
             enabled: true,
@@ -157,8 +169,19 @@ export const chartOptions = (series: ChartSeries) => {
           align: 'left',
           enabled: false
         },
-        top: '75%',
-        height: '25%'
+        top: '60%',
+        height: '20%'
+      },
+      {
+        gridLineWidth: 1,
+        gridLineColor: 'var(--chakra-colors-gray-300)',
+        gridLineDashStyle: 'Dash',
+        labels: {
+          align: 'left',
+          enabled: false
+        },
+        top: '80%',
+        height: '20%'
       }
     ],
     rangeSelector: {
@@ -203,6 +226,15 @@ export const chartOptions = (series: ChartSeries) => {
         yAxis: 1
       },
       {
+        type: 'line',
+        id: 'rs-line',
+        name: 'Relative Strength',
+        color: 'var(--chakra-colors-black)',
+        data: series.rs,
+        lineWidth: 1,
+        yAxis: 2
+      },
+      {
         type: 'ema',
         linkedTo: 'stock-candlestick',
         color: 'var(--chakra-colors-gray-300)',
@@ -241,6 +273,23 @@ export const chartOptions = (series: ChartSeries) => {
         lineWidth: 1,
         params: {
           period: 200
+        },
+        tooltip: {
+          pointFormat: ''
+        },
+        enableMouseTracking: false,
+        marker: {
+          enabled: false
+        }
+      },
+      {
+        type: 'ema',
+        linkedTo: 'rs-line',
+        color: 'var(--chakra-colors-gray-300)',
+        lineWidth: 1,
+        yAxis: 2,
+        params: {
+          period: 21
         },
         tooltip: {
           pointFormat: ''

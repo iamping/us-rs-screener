@@ -1,4 +1,5 @@
-import { ChartSeries, HistoricalData } from '../models/historical-data';
+import Highcharts from 'highcharts';
+import { ChartSeries, CustomPoint, HistoricalData, SeriePoint } from '../models/historical-data';
 
 const chartHeight = window.innerHeight - 48 * 2;
 
@@ -12,18 +13,15 @@ export const prepareSeries = (historicalData: HistoricalData | null) => {
         open: historicalData.open[i],
         high: historicalData.high[i],
         low: historicalData.low[i],
-        close: historicalData.close[i],
-        custom: {
-          change: i === 0 ? 0 : historicalData.close[i] - historicalData.close[i - 1],
-          changePercent: i === 0 ? 0 : (historicalData.close[i] / historicalData.close[i - 1] - 1) * 100
-        }
+        close: historicalData.close[i]
+        // custom: {
+        //   change: i === 0 ? 0 : historicalData.close[i] - historicalData.close[i - 1],
+        //   changePercent: i === 0 ? 0 : (historicalData.close[i] / historicalData.close[i - 1] - 1) * 100
+        // }
       });
       tmpSeries.volume.push({
         x: date,
-        y: historicalData.volume[i],
-        custom: {
-          change: i === 0 ? 0 : historicalData.close[i] - historicalData.close[i - 1]
-        }
+        y: historicalData.volume[i]
       });
     }
   }
@@ -71,14 +69,39 @@ export const chartOptions = (series: ChartSeries) => {
       enabled: false
     },
     tooltip: {
-      valueDecimals: 2,
       backgroundColor: 'transparent',
       shadow: false,
       useHTML: true,
       borderRadius: 0,
       borderWidth: 0,
       headerShape: 'rect',
-      headerFormat: '<p class="chart-date-tooltip">{point.key}</p>',
+      formatter: function () {
+        const _this = this as CustomPoint;
+        const index = _this.points[0].index;
+        const pricePoint = _this.points.find((e) => e.series.name === 'Price');
+        const volumePoint = _this.points.find((e) => e.series.name === 'Volume');
+        const change = [];
+        if (index === 0) {
+          change.push(0, 0);
+        } else {
+          const previousPoint = pricePoint?.series.points[index - 1] as SeriePoint;
+          const close = pricePoint?.close ?? 0; // should not be undefined
+          const previousClose = previousPoint?.close ?? 0; // should not be undefined
+          change.push(close - previousClose, (close / previousClose - 1) * 100);
+        }
+        const date = `<p class="chart-date-tooltip">${Highcharts.dateFormat('%A, %e %b %Y', this.x)}</p>`;
+        const price = `<div class="chart-series-tooltip">
+          <b>O</b>${Highcharts.numberFormat(pricePoint?.open ?? 0, 2)} 
+          <b>H</b>${Highcharts.numberFormat(pricePoint?.high ?? 0, 2)}
+          <b>L</b>${Highcharts.numberFormat(pricePoint?.low ?? 0, 2)}
+          <b>C</b><span class="change${change[0]}">${Highcharts.numberFormat(pricePoint?.close ?? 0, 2)}
+           ${Highcharts.numberFormat(change[0], 2)} (${Highcharts.numberFormat(change[1], 2)}%)</span>
+          </div>`;
+        const volume = `<div class="chart-series-tooltip"><b>Volume</b> 
+          <span class="change${change[0]}">${Highcharts.numberFormat(volumePoint?.y ?? 0, 0)}</span></div>`;
+
+        return [date, price, volume];
+      },
       positioner: function (width, _height, point) {
         const chart = this.chart;
         if (point.isHeader) {
@@ -167,20 +190,9 @@ export const chartOptions = (series: ChartSeries) => {
       {
         type: 'candlestick',
         id: 'stock-candlestick',
-        name: 'Stock Price',
+        name: 'Price',
         color: 'var(--chakra-colors-black)',
-        data: series.ohlc,
-        tooltip: {
-          valueDecimals: 2,
-          pointFormat:
-            '<div class="chart-series-tooltip">' +
-            '<b>O</b>{point.open:.2f} ' +
-            '<b>H</b>{point.high:.2f} ' +
-            '<b>L</b>{point.low:.2f} ' +
-            '<b>C</b><span class="change{point.custom.change:.2f}">{point.close:.2f}' +
-            ' {point.custom.change:.2f} ({point.custom.changePercent:.2f}%)</span>' +
-            '</div>'
-        }
+        data: series.ohlc
       },
       {
         type: 'column',
@@ -188,13 +200,7 @@ export const chartOptions = (series: ChartSeries) => {
         name: 'Volume',
         color: 'var(--chakra-colors-black)',
         data: series.volume,
-        yAxis: 1,
-        tooltip: {
-          valueDecimals: 0,
-          pointFormat:
-            '<div class="chart-series-tooltip"><b>{series.name}</b> ' +
-            '<span class="change{point.custom.change:.2f}">{point.y}</span></div>'
-        }
+        yAxis: 1
       },
       {
         type: 'ema',

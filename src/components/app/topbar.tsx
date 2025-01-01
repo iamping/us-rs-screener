@@ -35,6 +35,7 @@ export const Topbar = () => {
       paddingY={2}
       paddingLeft={1}
       paddingRight={2}
+      height="48px"
       position="relative"
       borderBottom="1px solid var(--chakra-colors-gray-200)">
       <Heading paddingX={1} title="US Stock Screener" lineHeight="10px" paddingTop="12px" className="borel-regular">

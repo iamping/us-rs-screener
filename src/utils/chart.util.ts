@@ -93,16 +93,33 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
               .add();
           }
 
+          // correct color of candlestick based on previous close
+          const priceSeries = this.series.find((e) => e.name === 'Price') as CustomSeries;
+          priceSeries.points.forEach((point: SeriePoint, index) => {
+            const currentClose = point.close ?? 0;
+            const currentOpen = point.open ?? 0;
+            if (index === 0) {
+              point.graphic?.css({
+                fill: currentClose >= currentOpen ? 'var(--chakra-colors-white)' : 'var(--chakra-colors-black)'
+              });
+            } else {
+              const previousClose = priceSeries.points[index - 1].y ?? 0;
+              point.graphic?.css({
+                fill: currentClose >= previousClose ? 'var(--chakra-colors-white)' : 'var(--chakra-colors-black)'
+              });
+            }
+          });
+
           // check if chart is grouped, and reset color of volume column
           const volumeSeries = this.series.find((e) => e.name === 'Volume') as CustomSeries;
           if (volumeSeries?.currentDataGrouping?.unitName === 'week') {
             const avgVolumeWeek = (stock?.avgVolume ?? 0) * 5;
-            volumeSeries.groupedData.forEach((e) => {
-              const weekVolume = e.y ?? 0;
+            volumeSeries.points.forEach((point) => {
+              const weekVolume = point.y ?? 0;
               if (weekVolume > avgVolumeWeek) {
-                e.graphic?.css({ fill: 'var(--chakra-colors-black)' });
+                point.graphic?.css({ fill: 'var(--chakra-colors-black)' });
               } else {
-                e.graphic?.css({ fill: 'var(--chakra-colors-gray-200)' });
+                point.graphic?.css({ fill: 'var(--chakra-colors-gray-200)' });
               }
             });
           }

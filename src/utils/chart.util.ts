@@ -132,7 +132,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
       enabled: false
     },
     chart: {
-      marginBottom: 10,
+      marginBottom: 16,
       marginTop: 0,
       animation: false,
       height: `${chartHeight}`,
@@ -250,7 +250,8 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
         gridLineColor: 'var(--chakra-colors-gray-300)',
         gridLineDashStyle: 'Dash',
         type: 'logarithmic',
-        endOnTick: true,
+        endOnTick: false,
+        startOnTick: false,
         labels: {
           align: 'left'
         },

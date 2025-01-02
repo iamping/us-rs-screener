@@ -12,10 +12,17 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      '/historical-api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/historical-api/, '')
       }
     }
   },
   build: {
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       // https://rollupjs.org/configuration-options/
       output: {
@@ -27,6 +34,9 @@ export default defineConfig({
             id.includes('@tanstack/react-table')
           ) {
             return 'vendor-ui';
+          }
+          if (id.includes('highcharts')) {
+            return 'vendor-chart';
           }
           if (id.includes('node_modules')) {
             return 'vendor';

@@ -44,6 +44,7 @@ h6 {
   display: flex;
   align-items: center;
   width: 4px;
+  background-color: var(--chakra-colors-gray-100);
 }
 
 .resize-handle[data-resize-handle-state='hover'] {
@@ -109,7 +110,6 @@ h6 {
 }
 
 .grid-header-cell {
-  border-top: 1px solid var(--chakra-colors-gray-200);
   border-bottom: 1px solid var(--chakra-colors-gray-200);
   background: var(--chakra-colors-white);
   font-weight: 500;
@@ -174,4 +174,25 @@ h6 {
 
 .sort-icon:has(~ .filter-icon:hover) {
   color: var(--chakra-colors-gray-300);
+}
+
+.chart-series-tooltip {
+  white-space: nowrap;
+  background-color: var(--chakra-colors-white);
+}
+
+.chart-series-tooltip span[class^='change-'] {
+  color: var(--chakra-colors-red-500);
+}
+
+.chart-date-tooltip {
+  color: var(--chakra-colors-white);
+  white-space: nowrap;
+  background-color: var(--chakra-colors-black);
+  padding: 4px;
+}
+
+.chart-rs-rating {
+  font-family: 'Outfit', serif;
+  font-size: 14px;
 }

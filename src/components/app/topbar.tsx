@@ -7,7 +7,7 @@ import { Settings } from './settings';
 import { useMediaQuery } from 'usehooks-ts';
 import { useMemo } from 'react';
 import { SearchBox } from './search-box';
-import { mobileMediaQuery } from '../../utils/constant';
+import { mobileMediaQuery } from '../../utils/common.util';
 
 export const Topbar = () => {
   const rowCount = useAtomValue(rowCountAtom);
@@ -30,7 +30,14 @@ export const Topbar = () => {
   }, [isSmallScreen, rowCount]);
 
   return (
-    <HStack gap={1} paddingY={2} paddingLeft={1} paddingRight={2} position="relative">
+    <HStack
+      gap={1}
+      paddingY={2}
+      paddingLeft={1}
+      paddingRight={2}
+      height="48px"
+      position="relative"
+      borderBottom="1px solid var(--chakra-colors-gray-200)">
       <Heading paddingX={1} title="US Stock Screener" lineHeight="10px" paddingTop="12px" className="borel-regular">
         {rowCount < 0 && 'Loading...'}
         {rowCount >= 0 && (

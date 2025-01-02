@@ -3,7 +3,7 @@ import { ChangeEvent, CSSProperties, useCallback, useEffect, useRef, useState } 
 import { PiMagnifyingGlassBold, PiXDuotone } from 'react-icons/pi';
 import { InputGroup } from '../ui/input-group';
 import { useDebounceCallback, useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
-import { mobileMediaQuery } from '../../utils/constant';
+import { mobileMediaQuery } from '../../utils/common.util';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { fuzzyListAtom, preFilteredListAtom, searchBoxOpenAtom } from '../../state/atom';
 import { Stock } from '../../models/stock';

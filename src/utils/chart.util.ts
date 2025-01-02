@@ -1,6 +1,7 @@
 import Highcharts from 'highcharts';
 import { ChartSeries, CustomPoint, CustomSeries, HistoricalData, SeriePoint } from '../models/historical-data';
 import { Stock } from '../models/stock';
+import { findMax } from './common.util';
 
 const chartHeight = window.innerHeight - 48 * 2;
 
@@ -14,6 +15,12 @@ export const prepareSeries = (
     const len = historicalData.date.length;
     const spyLen = spyData.date.length;
     const start = len < spyLen ? spyLen - len : 0;
+    const showRsNewhighPeriod = 20;
+    let maxRs = 0,
+      newHigh = 0,
+      enoughData = false;
+    const priceSlice: number[] = [],
+      rsSlice: number[] = [];
     for (let i = 0; i < len; i++) {
       const date = historicalData.date[i] * 1000;
       tmpSeries.ohlc.push({
@@ -29,10 +36,35 @@ export const prepareSeries = (
         color:
           historicalData.volume[i] > stock.avgVolume ? 'var(--chakra-colors-black)' : 'var(--chakra-colors-gray-200)'
       });
+      const close = historicalData.close[i];
+      const rs = (historicalData.close[i] / spyData.close[i + start]) * 100;
+      const rsNewhigh = i >= len - showRsNewhighPeriod ? rs > maxRs && enoughData : false;
+      const rsNewhighBeforePrice = rs > maxRs && newHigh > close && enoughData;
       tmpSeries.rs.push({
         x: date,
-        y: (historicalData.close[i] / spyData.close[i + start]) * 100
+        y: rs,
+        marker: {
+          enabled: rsNewhigh || rsNewhighBeforePrice,
+          fillColor: rsNewhighBeforePrice ? 'rgb(0,204,0,0.4)' : 'rgb(0,0,0,0.2)',
+          radius: 8,
+          symbol: 'circle'
+        }
       });
+      if (len > 250) {
+        priceSlice.push(close);
+        rsSlice.push(rs);
+        if (i > 249) {
+          maxRs = findMax(rsSlice);
+          newHigh = findMax(priceSlice);
+          enoughData = true;
+          priceSlice.shift();
+          rsSlice.shift();
+        }
+      } else {
+        maxRs = rs > maxRs ? rs : maxRs;
+        newHigh = close > newHigh ? close : newHigh;
+        enoughData = true;
+      }
     }
   }
   return tmpSeries;
@@ -84,7 +116,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
           }
           if (stock) {
             const pos = {
-              x: (rsSeries?.chart.plotLeft ?? 0) + this.plotWidth - 110,
+              x: (rsSeries?.chart.plotLeft ?? 0) + this.plotWidth - 100,
               y: this.plotHeight + 30
             };
             _this.rsRatingText = this.renderer

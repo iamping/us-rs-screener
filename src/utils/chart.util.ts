@@ -132,6 +132,8 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
       enabled: false
     },
     chart: {
+      marginBottom: 10,
+      marginTop: 0,
       animation: false,
       height: `${chartHeight}`,
       // panning: { enabled: false },
@@ -151,7 +153,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
           if (stock) {
             const pos = {
               x: (rsSeries?.chart.plotLeft ?? 0) + this.plotWidth - 100,
-              y: this.plotHeight + 30
+              y: this.plotHeight + 20
             };
             _this.rsRatingText = this.renderer
               .text(`RS Rating: ${stock?.rsRating ?? 0}`, pos.x, pos.y)

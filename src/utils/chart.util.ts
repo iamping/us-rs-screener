@@ -66,9 +66,6 @@ export const prepareSeries = (
           .filter((e) => !e.isGainer)
           .map((e) => e.volume);
         maxVolumeOnLossDay = volumeSliceLosersOnly.length > 0 ? findMax(volumeSliceLosersOnly) : 0;
-        if (volume === 875198000) {
-          console.log(i, volume, avgVolume, maxVolumeOnLossDay);
-        }
         enoughVolumeData = true;
         volumeSlice.shift();
       }
@@ -164,34 +161,20 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
 
           // correct color of candlestick based on previous close
           const priceSeries = this.series.find((e) => e.name === 'Price') as CustomSeries;
+          const volumeSeries = this.series.find((e) => e.name === 'Volume') as CustomSeries;
           priceSeries.points.forEach((point: SeriePoint, index) => {
             const currentClose = point.close ?? 0;
-            const currentOpen = point.open ?? 0;
-            if (index === 0) {
-              point.graphic?.css({
-                fill: currentClose >= currentOpen ? 'var(--chakra-colors-white)' : 'var(--chakra-colors-black)'
-              });
-            } else {
-              const previousClose = priceSeries.points[index - 1].y ?? 0;
-              point.graphic?.css({
-                fill: currentClose >= previousClose ? 'var(--chakra-colors-white)' : 'var(--chakra-colors-black)'
+            const previousClose = index === 0 ? (point.open ?? 0) : (priceSeries.points[index - 1].y ?? 0);
+            point.graphic?.css({
+              fill: currentClose >= previousClose ? 'var(--chakra-colors-white)' : 'var(--chakra-colors-black)'
+            });
+            if (volumeSeries?.currentDataGrouping?.unitName === 'week') {
+              const volumePoint = volumeSeries.points[index];
+              volumePoint.graphic?.css({
+                fill: currentClose >= previousClose ? 'var(--chakra-colors-gray-200)' : 'var(--chakra-colors-black)'
               });
             }
           });
-
-          // check if chart is grouped, and reset color of volume column
-          const volumeSeries = this.series.find((e) => e.name === 'Volume') as CustomSeries;
-          if (volumeSeries?.currentDataGrouping?.unitName === 'week') {
-            const avgVolumeWeek = (stock?.avgVolume ?? 0) * 5;
-            volumeSeries.points.forEach((point) => {
-              const weekVolume = point.y ?? 0;
-              if (weekVolume > avgVolumeWeek) {
-                point.graphic?.css({ fill: 'var(--chakra-colors-black)' });
-              } else {
-                point.graphic?.css({ fill: 'var(--chakra-colors-gray-200)' });
-              }
-            });
-          }
         }
       }
     },

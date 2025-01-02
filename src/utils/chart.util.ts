@@ -16,13 +16,24 @@ export const prepareSeries = (
     const spyLen = spyData.date.length;
     const start = len < spyLen ? spyLen - len : 0;
     const showRsNewhighPeriod = 20;
+    const newHighPeriod = 250;
+    const pocketPivotPeriod = 10;
+    const avgVolumePeriod = 50;
     let maxRs = 0,
       newHigh = 0,
-      enoughData = false;
+      maxVolumeOnLossDay = 0,
+      avgVolume = stock.avgVolume,
+      enoughPriceData = false,
+      enoughVolumeData = false;
     const priceSlice: number[] = [],
-      rsSlice: number[] = [];
+      rsSlice: number[] = [],
+      volumeSlice: { volume: number; isGainer: boolean }[] = [];
     for (let i = 0; i < len; i++) {
+      // OHLC Series
       const date = historicalData.date[i] * 1000;
+      const close = historicalData.close[i];
+      const previousClose = i > 0 ? historicalData.close[i - 1] : 0;
+      const change = close - previousClose;
       tmpSeries.ohlc.push({
         x: date,
         open: historicalData.open[i],
@@ -30,16 +41,42 @@ export const prepareSeries = (
         low: historicalData.low[i],
         close: historicalData.close[i]
       });
+
+      // Volume Series
+      const volume = historicalData.volume[i];
+      const isGreatVolume = volume > avgVolume;
+      const isGainer = change > 0;
+      const isVolumeGreaterThanLossDay = volume > maxVolumeOnLossDay;
+      const isPocketPivot = enoughVolumeData && isGreatVolume && isGainer && isVolumeGreaterThanLossDay;
       tmpSeries.volume.push({
         x: date,
-        y: historicalData.volume[i],
-        color:
-          historicalData.volume[i] > stock.avgVolume ? 'var(--chakra-colors-black)' : 'var(--chakra-colors-gray-200)'
+        y: volume,
+        color: isPocketPivot
+          ? 'var(--chakra-colors-blue-500)'
+          : isGainer && isGreatVolume
+            ? 'var(--chakra-colors-green-500)'
+            : 'var(--chakra-colors-gray-200)'
       });
-      const close = historicalData.close[i];
-      const rs = (historicalData.close[i] / spyData.close[i + start]) * 100;
-      const rsNewhigh = i >= len - showRsNewhighPeriod ? rs > maxRs && enoughData : false;
-      const rsNewhighBeforePrice = rs > maxRs && newHigh > close && enoughData;
+      volumeSlice.push({ volume, isGainer });
+      if (i >= avgVolumePeriod - 1) {
+        const sumVolume = volumeSlice.reduce((acc, e) => acc + e.volume, 0);
+        avgVolume = sumVolume / avgVolumePeriod;
+        const volumeSliceLosersOnly = volumeSlice
+          .slice(avgVolumePeriod - pocketPivotPeriod, 50)
+          .filter((e) => !e.isGainer)
+          .map((e) => e.volume);
+        maxVolumeOnLossDay = volumeSliceLosersOnly.length > 0 ? findMax(volumeSliceLosersOnly) : 0;
+        if (volume === 875198000) {
+          console.log(i, volume, avgVolume, maxVolumeOnLossDay);
+        }
+        enoughVolumeData = true;
+        volumeSlice.shift();
+      }
+
+      // Relative Strength Series
+      const rs = (close / spyData.close[i + start]) * 100;
+      const rsNewhigh = i >= len - showRsNewhighPeriod ? rs > maxRs && enoughPriceData : false;
+      const rsNewhighBeforePrice = rs > maxRs && newHigh > close && enoughPriceData;
       tmpSeries.rs.push({
         x: date,
         y: rs,
@@ -50,20 +87,20 @@ export const prepareSeries = (
           symbol: 'circle'
         }
       });
-      if (len > 250) {
+      if (len > newHighPeriod) {
         priceSlice.push(close);
         rsSlice.push(rs);
-        if (i > 249) {
+        if (i > newHighPeriod - 1) {
           maxRs = findMax(rsSlice);
           newHigh = findMax(priceSlice);
-          enoughData = true;
+          enoughPriceData = true;
           priceSlice.shift();
           rsSlice.shift();
         }
       } else {
         maxRs = rs > maxRs ? rs : maxRs;
         newHigh = close > newHigh ? close : newHigh;
-        enoughData = true;
+        enoughPriceData = true;
       }
     }
   }
@@ -100,7 +137,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
     chart: {
       animation: false,
       height: `${chartHeight}`,
-      panning: { enabled: false },
+      // panning: { enabled: false },
       zooming: {
         mouseWheel: { enabled: false }
       },

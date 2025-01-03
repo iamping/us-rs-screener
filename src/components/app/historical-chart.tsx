@@ -10,6 +10,9 @@ import HighchartsReact, { HighchartsReactRefObject } from 'highcharts-react-offi
 import 'highcharts/indicators/indicators';
 import { useDebounceCallback, useResizeObserver } from 'usehooks-ts';
 
+// Set global options before creating the chart
+Highcharts.setOptions(chartGlobalOptions);
+
 export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   const stockList = useAtomValue(stockListAtom);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,10 +53,6 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
     box: 'border-box',
     onResize
   });
-
-  useEffect(() => {
-    Highcharts.setOptions(chartGlobalOptions);
-  }, []);
 
   const series = useMemo(() => {
     return prepareSeries(historicalData, spyData, stock);

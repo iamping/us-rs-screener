@@ -8,6 +8,7 @@ import { chartGlobalOptions, chartOptions, prepareSeries } from '../../utils/cha
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact, { HighchartsReactRefObject } from 'highcharts-react-official';
 import 'highcharts/indicators/indicators';
+import { useDebounceCallback, useResizeObserver } from 'usehooks-ts';
 
 export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   const stockList = useAtomValue(stockListAtom);
@@ -15,6 +16,8 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   const [historicalData, setHistoricalData] = useState<HistoricalData | null>(null);
   const [spyData, setSpyData] = useState<HistoricalData | null>(null);
   const chartRef = useRef<HighchartsReactRefObject>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [dynamicHeight, setDynamicHeight] = useState(0);
 
   const stock = useMemo(() => {
     return stockList.find((e) => e.ticker === ticker);
@@ -38,6 +41,16 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
       });
   }, [ticker]);
 
+  const onResize = useDebounceCallback((size) => {
+    setDynamicHeight(size.height - 48);
+  }, 200);
+
+  useResizeObserver({
+    ref: wrapperRef,
+    box: 'border-box',
+    onResize
+  });
+
   useEffect(() => {
     Highcharts.setOptions(chartGlobalOptions);
   }, []);
@@ -47,20 +60,24 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   }, [historicalData, spyData, stock]);
 
   const options: Highcharts.Options = useMemo(() => {
-    return chartOptions(series, stock);
-  }, [series, stock]);
+    return chartOptions(series, stock, dynamicHeight);
+  }, [series, stock, dynamicHeight]);
+
+  console.log('re-render');
 
   return (
     <>
-      <Heading size="md" padding={3}>
-        {ticker} -{' '}
-        <Text as={'span'} fontWeight={400} color="gray">
-          {stock?.companyName}
-        </Text>
-      </Heading>
-      {isLoading && <Spinner position="absolute" top={2} right={12} />}
-      {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
-      <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />
+      <div ref={wrapperRef} style={{ height: 'var(--content-max-height)' }}>
+        <Heading size="md" padding={3}>
+          {ticker} -{' '}
+          <Text as={'span'} fontWeight={400} color="gray">
+            {stock?.companyName}
+          </Text>
+        </Heading>
+        {isLoading && <Spinner position="absolute" top={2} right={12} />}
+        {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
+        <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />
+      </div>
     </>
   );
 };

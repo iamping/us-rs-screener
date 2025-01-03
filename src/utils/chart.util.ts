@@ -3,8 +3,6 @@ import { ChartSeries, CustomPoint, CustomSeries, HistoricalData, SeriePoint } fr
 import { Stock } from '../models/stock';
 import { findMax } from './common.util';
 
-const chartHeight = window.innerHeight - 48 * 2;
-
 export const prepareSeries = (
   historicalData: HistoricalData | null,
   spyData: HistoricalData | null,
@@ -127,7 +125,7 @@ export const chartGlobalOptions: Highcharts.Options = {
   }
 };
 
-export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
+export const chartOptions = (series: ChartSeries, stock: Stock | undefined, chartHeight: number) => {
   return {
     accessibility: { enabled: false },
     credits: {
@@ -137,7 +135,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
       marginBottom: 16,
       marginTop: 0,
       animation: false,
-      height: `${chartHeight}`,
+      height: chartHeight,
       // panning: { enabled: false },
       zooming: {
         mouseWheel: { enabled: false }

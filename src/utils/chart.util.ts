@@ -19,9 +19,9 @@ export const prepareSeries = (
     const newHighPeriod = 250;
     const pocketPivotPeriod = 10;
     const avgVolumePeriod = 50;
-    let maxRs = 0,
-      newHigh = 0,
-      maxVolumeOnLossDay = 0,
+    let rsNewHigh = 0,
+      priceNewHigh = 0,
+      maxVolumeOnLosingDay = 0,
       avgVolume = stock.avgVolume,
       enoughPriceData = false,
       enoughVolumeData = false;
@@ -45,9 +45,9 @@ export const prepareSeries = (
       // Volume Series
       const volume = historicalData.volume[i];
       const isGreatVolume = volume > avgVolume;
-      const isGainer = change > 0;
-      const isVolumeGreaterThanLossDay = volume > maxVolumeOnLossDay;
-      const isPocketPivot = enoughVolumeData && isGreatVolume && isGainer && isVolumeGreaterThanLossDay;
+      const isGainer = change >= 0;
+      const isVolumeGreaterThanLosingDay = volume > maxVolumeOnLosingDay;
+      const isPocketPivot = enoughVolumeData && isGreatVolume && isGainer && isVolumeGreaterThanLosingDay;
       tmpSeries.volume.push({
         x: date,
         y: volume,
@@ -61,25 +61,25 @@ export const prepareSeries = (
       if (i >= avgVolumePeriod - 1) {
         const sumVolume = volumeSlice.reduce((acc, e) => acc + e.volume, 0);
         avgVolume = sumVolume / avgVolumePeriod;
-        const volumeSliceLosersOnly = volumeSlice
+        const volumeLosingDay = volumeSlice
           .slice(avgVolumePeriod - pocketPivotPeriod, 50)
           .filter((e) => !e.isGainer)
           .map((e) => e.volume);
-        maxVolumeOnLossDay = volumeSliceLosersOnly.length > 0 ? findMax(volumeSliceLosersOnly) : 0;
+        maxVolumeOnLosingDay = volumeLosingDay.length > 0 ? findMax(volumeLosingDay) : 0;
         enoughVolumeData = true;
         volumeSlice.shift();
       }
 
       // Relative Strength Series
       const rs = (close / spyData.close[i + start]) * 100;
-      const rsNewhigh = i >= len - showRsNewhighPeriod ? rs > maxRs && enoughPriceData : false;
-      const rsNewhighBeforePrice = rs > maxRs && newHigh > close && enoughPriceData;
+      const isRsNewHigh = i >= len - showRsNewhighPeriod ? rs > rsNewHigh && enoughPriceData : false;
+      const isRsNewHighBeforePrice = rs > rsNewHigh && priceNewHigh > close && enoughPriceData;
       tmpSeries.rs.push({
         x: date,
         y: rs,
         marker: {
-          enabled: rsNewhigh || rsNewhighBeforePrice,
-          fillColor: rsNewhighBeforePrice ? 'rgb(0,204,0,0.4)' : 'rgb(0,0,0,0.2)',
+          enabled: isRsNewHigh || isRsNewHighBeforePrice,
+          fillColor: isRsNewHighBeforePrice ? 'rgb(0,204,0,0.4)' : 'rgb(0,0,0,0.2)',
           radius: 8,
           symbol: 'circle'
         }
@@ -88,15 +88,15 @@ export const prepareSeries = (
         priceSlice.push(close);
         rsSlice.push(rs);
         if (i > newHighPeriod - 1) {
-          maxRs = findMax(rsSlice);
-          newHigh = findMax(priceSlice);
+          rsNewHigh = findMax(rsSlice);
+          priceNewHigh = findMax(priceSlice);
           enoughPriceData = true;
           priceSlice.shift();
           rsSlice.shift();
         }
       } else {
-        maxRs = rs > maxRs ? rs : maxRs;
-        newHigh = close > newHigh ? close : newHigh;
+        rsNewHigh = rs > rsNewHigh ? rs : rsNewHigh;
+        priceNewHigh = close > priceNewHigh ? close : priceNewHigh;
         enoughPriceData = true;
       }
     }

@@ -132,7 +132,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
       enabled: false
     },
     chart: {
-      marginBottom: 16,
+      marginBottom: 0,
       marginTop: 0,
       animation: false,
       height: chartHeight,
@@ -152,11 +152,11 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
           }
           if (stock) {
             const pos = {
-              x: (rsSeries?.chart.plotLeft ?? 0) + this.plotWidth - 100,
-              y: (rsSeries?.chart.plotHeight ?? 0) + (rsSeries?.chart.plotTop ?? 0) - 15
+              x: (rsSeries?.chart.plotLeft ?? 0) + this.plotWidth - 90,
+              y: (rsSeries?.chart.plotHeight ?? 0) + (rsSeries?.chart.plotTop ?? 0) - 10
             };
             _this.rsRatingText = this.renderer
-              .text(`RS Rating: ${stock?.rsRating ?? 0}`, pos.x, pos.y)
+              .text(`RS Rating: ${stock?.rsRating ?? 0}`, pos.x, pos.y, true)
               .addClass('chart-rs-rating')
               .add();
           }
@@ -246,6 +246,9 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
               chart.chartWidth - width
             )
           );
+          if (chart.plotTop === 0) {
+            return { x: tmpX, y: point.plotY + 25 };
+          }
           return { x: tmpX, y: point.plotY - 8 };
         }
         return {
@@ -258,6 +261,12 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
       height: 1,
       trackBorderColor: 'transparent'
     },
+    xAxis: {
+      tickLength: 0,
+      labels: {
+        distance: 5
+      }
+    },
     yAxis: [
       {
         gridLineWidth: 1,
@@ -269,7 +278,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
         labels: {
           align: 'left'
         },
-        height: '60%',
+        height: '70%',
         crosshair: {
           label: {
             enabled: true,
@@ -288,8 +297,8 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
         labels: {
           enabled: false
         },
-        top: '60%',
-        height: '20%'
+        top: '70%',
+        height: '15%'
       },
       {
         gridLineWidth: 1,
@@ -298,8 +307,8 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
         labels: {
           enabled: false
         },
-        top: '80%',
-        height: '20%'
+        top: '85%',
+        height: '15%'
       }
     ],
     rangeSelector: {
@@ -327,13 +336,15 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
         }
       ]
     },
+    plotOptions: {
+      ohlc: { lineWidth: 2 }
+    },
     series: [
       {
         type: 'ohlc',
         id: 'stock-ohlc',
         name: 'Price',
         color: 'var(--chakra-colors-gray-500)',
-        lineWidth: 2,
         data: series.ohlc
       },
 
@@ -418,6 +429,27 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
           enabled: false
         }
       }
-    ]
+    ],
+    responsive: {
+      rules: [
+        {
+          condition: {
+            maxWidth: 500
+          },
+          chartOptions: {
+            plotOptions: { ohlc: { lineWidth: 1 } }
+          }
+        },
+        {
+          condition: {
+            maxHeight: 500
+          },
+          chartOptions: {
+            rangeSelector: { enabled: false },
+            plotOptions: { ohlc: { lineWidth: 1 } }
+          }
+        }
+      ]
+    }
   } as Highcharts.Options;
 };

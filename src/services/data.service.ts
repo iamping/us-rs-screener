@@ -1,7 +1,7 @@
 import { HistoricalData } from '../models/historical-data';
 import { Stock } from '../models/stock';
 
-const cacheKey = 'historical-' + new Date().toISOString().substring(0, 10);
+const cacheKey = 'historical-' + new Date().toISOString().substring(0, 13);
 
 export const fetchStockRsList = async (): Promise<Stock[]> => {
   const url = './api/us_rs_list.json';
@@ -32,7 +32,11 @@ const fetchOrRetrieve = async (url: string, cacheKey: string) => {
 };
 
 const clearCache = async (excludeKeys?: string[]) => {
-  for (const key of await caches.keys()) {
+  const keys = await caches.keys();
+  if (keys.length === 1) {
+    return;
+  }
+  for (const key of keys) {
     if (!excludeKeys?.includes(key)) {
       await caches.delete(key);
     }

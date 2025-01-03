@@ -55,7 +55,9 @@ export const prepareSeries = (
           ? 'var(--chakra-colors-blue-500)'
           : isGainer && isGreatVolume
             ? 'var(--chakra-colors-green-500)'
-            : 'var(--chakra-colors-gray-200)'
+            : !isGainer && isGreatVolume
+              ? 'var(--chakra-colors-red-500)'
+              : 'var(--chakra-colors-gray-200)'
       });
       volumeSlice.push({ volume, isGainer });
       if (i >= avgVolumePeriod - 1) {
@@ -164,16 +166,30 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
           // correct color of candlestick based on previous close
           const priceSeries = this.series.find((e) => e.name === 'Price') as CustomSeries;
           const volumeSeries = this.series.find((e) => e.name === 'Volume') as CustomSeries;
+          const avgVolumePeriod = 10; // 10 weeks
           priceSeries.points.forEach((point: SeriePoint, index) => {
             const currentClose = point.close ?? 0;
             const previousClose = index === 0 ? (point.open ?? 0) : (priceSeries.points[index - 1].y ?? 0);
             point.graphic?.css({
-              fill: currentClose >= previousClose ? 'var(--chakra-colors-white)' : 'var(--chakra-colors-black)'
+              fill: currentClose >= previousClose ? 'var(--chakra-colors-white)' : 'var(--chakra-colors-red-500)',
+              stroke: currentClose >= previousClose ? 'var(--chakra-colors-gray-500)' : 'var(--chakra-colors-red-500)'
             });
             if (volumeSeries?.currentDataGrouping?.unitName === 'week') {
               const volumePoint = volumeSeries.points[index];
+              const volumes = volumeSeries.points.map((e) => e.y ?? 0);
+              let avgVolume = 0;
+              if (index >= avgVolumePeriod) {
+                const volumeSlice = volumes.slice(index - avgVolumePeriod, index);
+                const sumVolume = volumeSlice.reduce((acc, e) => acc + e, 0);
+                avgVolume = sumVolume / avgVolumePeriod;
+              }
               volumePoint.graphic?.css({
-                fill: currentClose >= previousClose ? 'var(--chakra-colors-gray-200)' : 'var(--chakra-colors-black)'
+                fill:
+                  currentClose < previousClose && volumes[index] > avgVolume && avgVolume > 0
+                    ? 'var(--chakra-colors-red-500)'
+                    : currentClose >= previousClose && volumes[index] > avgVolume && avgVolume > 0
+                      ? 'var(--chakra-colors-green-500)'
+                      : 'var(--chakra-colors-gray-200)'
               });
             }
           });
@@ -315,16 +331,17 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
     },
     series: [
       {
-        type: 'candlestick',
-        id: 'stock-candlestick',
+        type: 'ohlc',
+        id: 'stock-ohlc',
         name: 'Price',
-        color: 'var(--chakra-colors-black)',
+        color: 'var(--chakra-colors-gray-500)',
+        lineWidth: 2,
         data: series.ohlc
       },
 
       {
         type: 'ema',
-        linkedTo: 'stock-candlestick',
+        linkedTo: 'stock-ohlc',
         color: 'var(--chakra-colors-gray-300)',
         lineWidth: 1,
         params: {
@@ -340,7 +357,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
       },
       {
         type: 'ema',
-        linkedTo: 'stock-candlestick',
+        linkedTo: 'stock-ohlc',
         color: 'var(--chakra-colors-gray-400)',
         lineWidth: 1,
         params: {
@@ -356,8 +373,8 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
       },
       {
         type: 'ema',
-        linkedTo: 'stock-candlestick',
-        color: 'var(--chakra-colors-red-400)',
+        linkedTo: 'stock-ohlc',
+        color: 'var(--chakra-colors-black)',
         lineWidth: 1,
         params: {
           period: 200
@@ -381,7 +398,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined) => {
         type: 'line',
         id: 'rs-line',
         name: 'Relative Strength',
-        color: 'var(--chakra-colors-black)',
+        color: 'var(--chakra-colors-gray-500)',
         data: series.rs,
         lineWidth: 1,
         yAxis: 2

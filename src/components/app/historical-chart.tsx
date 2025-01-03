@@ -62,8 +62,6 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
     return chartOptions(series, stock, dynamicHeight);
   }, [series, stock, dynamicHeight]);
 
-  console.log('re-render');
-
   return (
     <>
       <div ref={wrapperRef} style={{ height: 'var(--content-max-height)' }}>

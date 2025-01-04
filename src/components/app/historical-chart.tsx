@@ -58,8 +58,11 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
     return prepareSeries(historicalData, spyData, stock);
   }, [historicalData, spyData, stock]);
 
-  const options: Highcharts.Options = useMemo(() => {
-    return chartOptions(series, stock, dynamicHeight);
+  const options: Highcharts.Options | null = useMemo(() => {
+    if (series.ohlc.length > 0 && stock) {
+      return chartOptions(series, stock, dynamicHeight);
+    }
+    return null;
   }, [series, stock, dynamicHeight]);
 
   return (
@@ -73,7 +76,9 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
         </Heading>
         {isLoading && <Spinner position="absolute" top={2} right={12} />}
         {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
-        <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />
+        {options && (
+          <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />
+        )}
       </div>
     </>
   );

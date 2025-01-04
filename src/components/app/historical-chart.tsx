@@ -2,7 +2,7 @@ import { useAtomValue } from 'jotai';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { stockListAtom } from '../../state/atom';
 import { fetchHistoricalData } from '../../services/data.service';
-import { Heading, Spinner, Text } from '@chakra-ui/react';
+import { Spinner } from '@chakra-ui/react';
 import { HistoricalData } from '../../models/historical-data';
 import { chartGlobalOptions, chartOptions, prepareSeries } from '../../utils/chart.util';
 import Highcharts from 'highcharts/highstock';
@@ -20,7 +20,7 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   const [spyData, setSpyData] = useState<HistoricalData | null>(null);
   const chartRef = useRef<HighchartsReactRefObject>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [dynamicHeight, setDynamicHeight] = useState(0);
+  const [dynamicHeight, setDynamicHeight] = useState(window.innerHeight);
 
   const stock = useMemo(() => {
     return stockList.find((e) => e.ticker === ticker);
@@ -45,7 +45,7 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   }, [ticker]);
 
   const onResize = useDebounceCallback((size) => {
-    setDynamicHeight(size.height - 48);
+    setDynamicHeight(size.height);
   }, 200);
 
   useResizeObserver({
@@ -67,14 +67,8 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
 
   return (
     <>
-      <div ref={wrapperRef} style={{ height: 'var(--content-max-height)' }}>
-        <Heading size="md" padding={3}>
-          {ticker} -{' '}
-          <Text as={'span'} fontWeight={400} color="gray">
-            {stock?.companyName}
-          </Text>
-        </Heading>
-        {isLoading && <Spinner position="absolute" top={2} right={12} />}
+      <div ref={wrapperRef} style={{ height: '100%' }}>
+        {isLoading && <Spinner position="absolute" top={2} right={12} zIndex={1} />}
         {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
         {options && (
           <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />

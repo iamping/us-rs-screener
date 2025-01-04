@@ -133,7 +133,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
     },
     chart: {
       marginBottom: 0,
-      marginTop: 0,
+      marginTop: 10,
       animation: false,
       height: chartHeight,
       // panning: { enabled: false },
@@ -246,10 +246,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
               chart.chartWidth - width
             )
           );
-          if (chart.plotTop === 0) {
-            return { x: tmpX, y: point.plotY + 25 };
-          }
-          return { x: tmpX, y: point.plotY - 8 };
+          return { x: tmpX, y: chart.plotHeight + chart.plotTop };
         }
         return {
           x: point.series.chart.plotLeft,
@@ -323,7 +320,8 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
           dataGrouping: {
             forced: true,
             units: [['day', [1]]]
-          }
+          },
+          preserveDataGrouping: true
         },
         {
           type: 'all',
@@ -332,7 +330,8 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
           dataGrouping: {
             forced: true,
             units: [['week', [1]]]
-          }
+          },
+          preserveDataGrouping: true
         }
       ]
     },
@@ -445,7 +444,6 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
             maxHeight: 500
           },
           chartOptions: {
-            rangeSelector: { enabled: false },
             plotOptions: { ohlc: { lineWidth: 1 } }
           }
         }

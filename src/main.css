@@ -190,6 +190,7 @@ h6 {
   white-space: nowrap;
   background-color: var(--chakra-colors-black);
   padding: 4px;
+  margin-top: -6px;
 }
 
 .chart-rs-rating {

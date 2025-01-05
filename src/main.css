@@ -203,6 +203,6 @@ h6 {
 
 .chart-rs-rating {
   font-family: 'Outfit', serif !important;
-  font-size: 14px !important;
-  background-color: var(--chakra-colors-white);
+  font-size: 12px !important;
+  background-color: rgb(255, 255, 255, 0.8);
 }

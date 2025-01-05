@@ -152,7 +152,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
           }
           if (stock) {
             const pos = {
-              x: (rsSeries?.chart.plotLeft ?? 0) + this.plotWidth - 90,
+              x: (rsSeries?.chart.plotLeft ?? 0) + this.plotWidth - 80,
               y: (rsSeries?.chart.plotHeight ?? 0) + (rsSeries?.chart.plotTop ?? 0) - 10
             };
             _this.rsRatingText = this.renderer

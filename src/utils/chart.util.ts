@@ -220,7 +220,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
           change.push(close - previousClose, (close / previousClose - 1) * 100);
         }
         const date = `<p class="chart-date-tooltip">${Highcharts.dateFormat('%A, %e %b %Y', this.x)}</p>`;
-        const price = `<div class="chart-series-tooltip">
+        const price = `<div class="chart-price-tooltip chart-series-tooltip">
           <b>O</b>${Highcharts.numberFormat(pricePoint?.open ?? 0, 2)} 
           <b>H</b>${Highcharts.numberFormat(pricePoint?.high ?? 0, 2)}
           <b>L</b>${Highcharts.numberFormat(pricePoint?.low ?? 0, 2)}

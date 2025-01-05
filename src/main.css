@@ -177,12 +177,20 @@ h6 {
 }
 
 .chart-series-tooltip {
+  font-size: 12px !important;
+  font-family: 'Outfit', serif !important;
   white-space: nowrap;
   background-color: var(--chakra-colors-white);
 }
 
-.chart-series-tooltip span[class^='change-'] {
+.chart-series-tooltip span[class^='change-'],
+.current-stock-info span[class^='change-'] {
   color: var(--chakra-colors-red-500);
+}
+
+.chart-price-tooltip {
+  font-family: 'Outfit', serif !important;
+  margin-top: 36px;
 }
 
 .chart-date-tooltip {

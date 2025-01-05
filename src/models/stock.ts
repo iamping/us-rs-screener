@@ -12,6 +12,7 @@ export interface Stock {
   exchange: string;
   marketCap: number;
   close: number;
+  change: number;
   percentChange: number;
   volume: number;
   avgVolume: number;

@@ -1,8 +1,13 @@
 const decimalFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const decimalFormatterWithSign = new Intl.NumberFormat('en-us', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  signDisplay: 'exceptZero'
+});
 const numberFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-export const formatDecimal = (val: string | number) => {
-  return decimalFormatter.format(Number(val));
+export const formatDecimal = (val: string | number, signDisplay: boolean = false) => {
+  return signDisplay ? decimalFormatterWithSign.format(Number(val)) : decimalFormatter.format(Number(val));
 };
 
 export const formatNumber = (val: string | number) => {

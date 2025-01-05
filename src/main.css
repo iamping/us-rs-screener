@@ -184,7 +184,7 @@ h6 {
 }
 
 .chart-series-tooltip span[class^='change-'],
-.current-stock-info span[class^='change-'] {
+.chart-stock-info span[class^='change-'] {
   color: var(--chakra-colors-red-500);
 }
 

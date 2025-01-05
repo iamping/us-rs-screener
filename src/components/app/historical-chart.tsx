@@ -73,14 +73,21 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
         {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
         {options && stock && (
           <>
-            <Text fontSize="sm" position="absolute" whiteSpace="nowrap" zIndex={1} top={12} left="18px">
+            <Text
+              className="chart-stock-info"
+              fontSize="sm"
+              position="absolute"
+              whiteSpace="nowrap"
+              zIndex={1}
+              top={12}
+              left="18px">
               <Text as={'span'} fontWeight={500}>
                 {stock.ticker}
               </Text>
               <Text as={'span'} color="gray.500">
                 {` - ${stock.companyName}`}
               </Text>
-              <Text as={'span'} display="block" fontSize="xs" backgroundColor="white" className="current-stock-info">
+              <Text as={'span'} display="block" fontSize="xs" backgroundColor="white">
                 <b>C</b>
                 <span className={`change${stock.change}`}>
                   {stock.close} {formatDecimal(stock.change, true)} ({formatDecimal(stock.percentChange, true)}%){' '}

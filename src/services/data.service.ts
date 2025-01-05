@@ -2,6 +2,7 @@ import { HistoricalData } from '../models/historical-data';
 import { Stock } from '../models/stock';
 
 const cacheKey = 'historical-' + new Date().toISOString().substring(0, 13);
+const timeout = 5000;
 
 export const fetchStockRsList = async (): Promise<Stock[]> => {
   const url = './api/us_rs_list.json';
@@ -23,11 +24,11 @@ const fetchOrRetrieve = async (url: string, cacheKey: string) => {
       return cacheResponse.json();
     }
     await clearCache([cacheKey]);
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(timeout) });
     cache.put(url, response.clone());
     return response.clone().json();
   } else {
-    return fetch(url).then((response) => response.clone().json());
+    return fetch(url, { signal: AbortSignal.timeout(timeout) }).then((response) => response.clone().json());
   }
 };
 

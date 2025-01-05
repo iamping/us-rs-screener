@@ -30,7 +30,10 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   const rangeCurrentValue = (column.getFilterValue() ?? [min, max]) as number[];
 
   // variant select
-  const valueList = filterVariant === 'select' ? [...column.getFacetedUniqueValues().keys()].sort() : [];
+  const valueList =
+    filterVariant === 'select' || filterVariant === 'select-no-search'
+      ? [...column.getFacetedUniqueValues().keys()].sort()
+      : [];
   const selectCurrentValue = (column.getFilterValue() ?? []) as string[];
 
   // radio select
@@ -93,6 +96,15 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
                 initialValue={selectCurrentValue}
                 valueList={valueList}
                 enableSearch={true}
+                onChange={onChange}
+              />
+            </Show>
+            <Show when={filterVariant === 'select-no-search'}>
+              <CheckboxFilter
+                id={id}
+                initialValue={selectCurrentValue}
+                valueList={valueList}
+                enableSearch={false}
                 onChange={onChange}
               />
             </Show>
@@ -230,7 +242,7 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
           />
         </InputGroup>
       </Show>
-      <div style={{ height: '200px', overflowY: 'auto', width: '100%' }} className="scrollbar">
+      <div style={{ maxHeight: '200px', overflowY: 'auto', width: '100%' }} className="scrollbar">
         <Show when={selectList.length > 0}>
           {selectList.map((value, idx) => {
             return (

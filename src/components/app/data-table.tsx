@@ -188,13 +188,13 @@ const columns = [
   columnHelper.accessor('pocketPivot', {
     header: () => 'Pocket Pivot',
     cell: (cell) => cell.getValue(),
-    meta: { width: 150, filterVariant: 'select' },
+    meta: { width: 150, filterVariant: 'select-no-search' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('rsNewHigh', {
     header: () => 'RS New High',
     cell: (cell) => cell.getValue(),
-    meta: { width: 150, filterVariant: 'select' },
+    meta: { width: 150, filterVariant: 'select-no-search' },
     filterFn: 'arrIncludesSome'
   })
 ];

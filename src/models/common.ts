@@ -27,7 +27,7 @@ export interface CellProps<T> {
 export type ColumnVisibility = { [P in keyof Stock]?: boolean };
 
 // Filter
-export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
+export type FilterVariant = 'range' | 'select' | 'radio-select' | 'select-no-search' | undefined;
 
 export interface FilterProps<T> {
   id?: string;

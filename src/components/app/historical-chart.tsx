@@ -90,6 +90,7 @@ const ChartHeader: FC<{ stock: Stock }> = ({ stock }) => {
       fontSize="sm"
       position="absolute"
       whiteSpace="nowrap"
+      backgroundColor="white/50"
       zIndex={1}
       top={12}
       left="18px">
@@ -99,7 +100,7 @@ const ChartHeader: FC<{ stock: Stock }> = ({ stock }) => {
       <Text as={'span'} color="gray.500">
         {` - ${stock.companyName}`}
       </Text>
-      <Text as={'span'} display="block" fontSize="xs" backgroundColor="white">
+      <Text as={'span'} display="block" fontSize="xs">
         <b>C</b>
         <span className={`change${stockInfo.change}`}>
           {stock.close} {formatDecimal(stockInfo.change, true)} ({formatDecimal(stockInfo.percentChange, true)}%){' '}

@@ -246,3 +246,12 @@ export const viewOptions: SelectOption[] = [
     }
   }
 ];
+
+export const dataMapping = (stocks: Stock[]) => {
+  return stocks.map((e, i) => ({
+    ...e,
+    pocketPivot: e.pocketPivot ? 'Yes' : 'No',
+    rsNewHigh: e.rsNewHigh === 0 ? 'No' : e.rsNewHigh === 1 ? 'New High' : 'Before Price',
+    key: i + 1
+  }));
+};

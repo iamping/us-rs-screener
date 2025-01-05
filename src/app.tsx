@@ -6,6 +6,7 @@ import { DataTable } from './components/app/data-table';
 import { Topbar } from './components/app/topbar';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { filteredStockListAtom, stockListAtom } from './state/atom';
+import { dataMapping } from './utils/table.util';
 
 const App: FC = () => {
   const [error, setError] = useState<null | string>(null);
@@ -19,7 +20,7 @@ const App: FC = () => {
     setError(null);
     fetchStockRsList()
       .then((stocks: Stock[]) => {
-        setStockList(stocks.map((e, i) => ({ ...e, key: i + 1 })));
+        setStockList(dataMapping(stocks));
       })
       .catch((e) => {
         console.error(e);

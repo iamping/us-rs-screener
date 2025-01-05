@@ -30,6 +30,8 @@ export interface Stock {
   rsRating1Y: number;
   sectorRank: number;
   industryRank: number;
+  pocketPivot: boolean | string;
+  rsNewHigh: number | string;
 }
 
 export interface StockInfo {

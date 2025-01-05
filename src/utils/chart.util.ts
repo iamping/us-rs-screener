@@ -1,6 +1,6 @@
 import Highcharts from 'highcharts';
 import { ChartSeries, CustomPoint, CustomSeries, HistoricalData, SeriePoint } from '../models/historical-data';
-import { Stock } from '../models/stock';
+import { Stock, StockInfo } from '../models/stock';
 import { findMax } from './common.util';
 
 export const prepareSeries = (
@@ -125,7 +125,12 @@ export const chartGlobalOptions: Highcharts.Options = {
   }
 };
 
-export const chartOptions = (series: ChartSeries, stock: Stock | undefined, chartHeight: number) => {
+export const chartOptions = (
+  series: ChartSeries,
+  stock: Stock | undefined,
+  chartHeight: number,
+  setStockInfo: (stockInfo: StockInfo) => void
+) => {
   return {
     accessibility: { enabled: false },
     credits: {
@@ -162,6 +167,7 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
           }
 
           // correct color of candlestick based on previous close
+          const stockInfo = { change: 0, percentChange: 0, volume: 0 };
           const priceSeries = this.series.find((e) => e.name === 'Price') as CustomSeries;
           const volumeSeries = this.series.find((e) => e.name === 'Volume') as CustomSeries;
           const avgVolumePeriod = 10; // 10 weeks
@@ -190,7 +196,13 @@ export const chartOptions = (series: ChartSeries, stock: Stock | undefined, char
                       : 'var(--chakra-colors-gray-200)'
               });
             }
+
+            stockInfo.change = currentClose - previousClose;
+            stockInfo.percentChange = (currentClose / previousClose - 1) * 100;
+            stockInfo.volume = volumeSeries.points[index].y ?? 0;
           });
+
+          setStockInfo(stockInfo);
         }
       }
     },

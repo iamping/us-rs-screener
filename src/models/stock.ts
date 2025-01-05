@@ -31,3 +31,9 @@ export interface Stock {
   sectorRank: number;
   industryRank: number;
 }
+
+export interface StockInfo {
+  change: number;
+  percentChange: number;
+  volume: number;
+}

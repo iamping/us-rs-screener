@@ -10,7 +10,7 @@ import {
   defaultView,
   initialFilter
 } from '../utils/table.util';
-import { Stock } from '../models/stock';
+import { Stock, StockInfo } from '../models/stock';
 
 export const rowCountAtom = atom(-1);
 
@@ -50,3 +50,6 @@ export const appDropdownAtom = atomWithStorage('appDropdown', { preset: defaultP
 export const filterStateAtom = atomWithStorage('appFilterState', defaultFilterState);
 
 export const columnStateAtom = atomWithStorage('appColumnState', defaultColumnVisibility);
+
+// atom for chart
+export const stockInfoAtom = atom<StockInfo>({ change: 0, percentChange: 0, volume: 0 });

@@ -1,6 +1,6 @@
-import { useAtomValue } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { stockListAtom } from '../../state/atom';
+import { stockInfoAtom, stockListAtom } from '../../state/atom';
 import { fetchHistoricalData } from '../../services/data.service';
 import { Spinner, Text } from '@chakra-ui/react';
 import { HistoricalData } from '../../models/historical-data';
@@ -10,12 +10,14 @@ import HighchartsReact, { HighchartsReactRefObject } from 'highcharts-react-offi
 import 'highcharts/indicators/indicators';
 import { useDebounceCallback, useResizeObserver } from 'usehooks-ts';
 import { formatDecimal } from '../../utils/common.util';
+import { Stock } from '../../models/stock';
 
 // Set global options before creating the chart
 Highcharts.setOptions(chartGlobalOptions);
 
 export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
   const stockList = useAtomValue(stockListAtom);
+  const setStockInfo = useSetAtom(stockInfoAtom);
   const [isLoading, setIsLoading] = useState(false);
   const [historicalData, setHistoricalData] = useState<HistoricalData | null>(null);
   const [spyData, setSpyData] = useState<HistoricalData | null>(null);
@@ -59,10 +61,10 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
 
   const options: Highcharts.Options | null = useMemo(() => {
     if (series.ohlc.length > 0 && stock) {
-      return chartOptions(series, stock, dynamicHeight);
+      return chartOptions(series, stock, dynamicHeight, setStockInfo);
     }
     return null;
-  }, [series, stock, dynamicHeight]);
+  }, [series, stock, dynamicHeight, setStockInfo]);
 
   return (
     <>
@@ -71,33 +73,40 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
         {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
         {options && stock && !isLoading && (
           <>
-            <Text
-              className="chart-stock-info"
-              fontSize="sm"
-              position="absolute"
-              whiteSpace="nowrap"
-              zIndex={1}
-              top={12}
-              left="18px">
-              <Text as={'span'} fontWeight={500}>
-                {stock.ticker}
-              </Text>
-              <Text as={'span'} color="gray.500">
-                {` - ${stock.companyName}`}
-              </Text>
-              <Text as={'span'} display="block" fontSize="xs" backgroundColor="white">
-                <b>C</b>
-                <span className={`change${stock.change}`}>
-                  {stock.close} {formatDecimal(stock.change, true)} ({formatDecimal(stock.percentChange, true)}%){' '}
-                </span>
-                <b>Vol</b>
-                <span className={`change${stock.change}`}>{formatDecimal(stock!.volume / 1000000)}M</span>
-              </Text>
-            </Text>
+            <ChartHeader stock={stock} />
             <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />
           </>
         )}
       </div>
     </>
+  );
+};
+
+const ChartHeader: FC<{ stock: Stock }> = ({ stock }) => {
+  const stockInfo = useAtomValue(stockInfoAtom);
+  return (
+    <Text
+      className="chart-stock-info"
+      fontSize="sm"
+      position="absolute"
+      whiteSpace="nowrap"
+      zIndex={1}
+      top={12}
+      left="18px">
+      <Text as={'span'} fontWeight={500}>
+        {stock.ticker}
+      </Text>
+      <Text as={'span'} color="gray.500">
+        {` - ${stock.companyName}`}
+      </Text>
+      <Text as={'span'} display="block" fontSize="xs" backgroundColor="white">
+        <b>C</b>
+        <span className={`change${stockInfo.change}`}>
+          {stock.close} {formatDecimal(stockInfo.change, true)} ({formatDecimal(stockInfo.percentChange, true)}%){' '}
+        </span>
+        <b>Vol</b>
+        <span className={`change${stockInfo.change}`}>{formatDecimal(stockInfo.volume / 1000000)}M</span>
+      </Text>
+    </Text>
   );
 };

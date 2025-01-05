@@ -29,7 +29,6 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
 
   useEffect(() => {
     setIsLoading(true);
-    chartRef.current?.chart.showLoading();
     Promise.all([fetchHistoricalData(ticker), fetchHistoricalData('SPY')])
       .then((data: HistoricalData[]) => {
         setHistoricalData(data[0]);
@@ -41,7 +40,6 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
       })
       .finally(() => {
         setIsLoading(false);
-        chartRef.current?.chart.hideLoading();
       });
   }, [ticker]);
 
@@ -71,7 +69,7 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
       <div ref={wrapperRef} style={{ height: '100%', position: 'relative' }}>
         {isLoading && <Spinner position="absolute" top={2} right={12} zIndex={1} />}
         {historicalData && Object.keys(historicalData).length === 0 && 'Something wrong.'}
-        {options && stock && (
+        {options && stock && !isLoading && (
           <>
             <Text
               className="chart-stock-info"

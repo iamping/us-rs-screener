@@ -53,3 +53,5 @@ export const columnStateAtom = atomWithStorage('appColumnState', defaultColumnVi
 
 // atom for chart
 export const stockInfoAtom = atom<StockInfo>({ change: 0, percentChange: 0, volume: 0 });
+
+export const tickerAtom = atom('');

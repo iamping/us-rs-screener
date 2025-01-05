@@ -34,12 +34,6 @@ h6 {
   font-style: normal;
 }
 
-.chart-max-height {
-  min-height: var(--content-max-height);
-  max-height: var(--content-max-height);
-  position: relative;
-}
-
 .resize-handle {
   display: flex;
   align-items: center;
@@ -152,6 +146,10 @@ h6 {
 .grid-row.active > div:first-child {
   background-color: var(--chakra-colors-gray-600);
   color: var(--chakra-colors-white);
+  .highlight {
+    color: var(--chakra-colors-white);
+    font-weight: 500;
+  }
 }
 
 .grid-cell {
@@ -174,6 +172,12 @@ h6 {
 
 .sort-icon:has(~ .filter-icon:hover) {
   color: var(--chakra-colors-gray-300);
+}
+
+.chart-max-height {
+  min-height: var(--content-max-height);
+  max-height: var(--content-max-height);
+  position: relative;
 }
 
 .chart-series-tooltip {

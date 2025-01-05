@@ -5,7 +5,7 @@ import { InputGroup } from '../ui/input-group';
 import { useDebounceCallback, useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
 import { mobileMediaQuery } from '../../utils/common.util';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
-import { fuzzyListAtom, preFilteredListAtom, searchBoxOpenAtom } from '../../state/atom';
+import { fuzzyListAtom, preFilteredListAtom, searchBoxOpenAtom, tickerAtom } from '../../state/atom';
 import { Stock } from '../../models/stock';
 import fuzzysort from 'fuzzysort';
 
@@ -14,7 +14,8 @@ export const SearchBox = () => {
   const [keyword, setKeyword] = useState('');
 
   const preFilteredList = useAtomValue(preFilteredListAtom);
-  const setFuzzyList = useSetAtom(fuzzyListAtom);
+  const [fuzzyList, setFuzzyList] = useAtom(fuzzyListAtom);
+  const setTicker = useSetAtom(tickerAtom);
 
   const divRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -89,6 +90,14 @@ export const SearchBox = () => {
           setOpen(false);
         }
         setKeyword('');
+      }
+      if (event.key === 'Enter') {
+        setTimeout(() => {
+          if (keyword.length > 0 && fuzzyList.length > 0 && !fuzzyList.some((e) => e.fuzzySearchEmpty)) {
+            setTicker(fuzzyList[0].ticker);
+          }
+          inputRef.current?.select();
+        }, 50);
       }
       setTimeout(() => {
         inputRef.current?.focus();

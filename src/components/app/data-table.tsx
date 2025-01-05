@@ -33,7 +33,7 @@ import { CellProps, ColumnHeaderProps, DataTableProps } from '../../models/commo
 import { CloseButton } from '../ui/close-button';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
 import { useAtom, useSetAtom } from 'jotai';
-import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom } from '../../state/atom';
+import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerAtom } from '../../state/atom';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { HistoricalChart } from './historical-chart';
 
@@ -205,7 +205,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
   // app state
   const setRowCount = useSetAtom(rowCountAtom);
   const setDropdownFn = useSetAtom(dropdownFnAtom);
-  const [ticker, setTicker] = useState('');
+  const [ticker, setTicker] = useAtom(tickerAtom);
 
   // table state
   const [columnFilters, setColumnFilters] = useAtom(filterStateAtom);

@@ -20,6 +20,7 @@ import { FilterEmpty, Filter } from './filter';
 import {
   amountFilterFn,
   avgDollarVolOptions,
+  customArrIncludesSome,
   defaultPinnedColumns,
   fallBackData,
   marketCapOptions,
@@ -188,14 +189,14 @@ const columns = [
   columnHelper.accessor('pocketPivot', {
     header: () => 'Pocket Pivot',
     cell: (cell) => cell.getValue(),
-    meta: { width: 150, filterVariant: 'select-no-search' },
+    meta: { width: 150, filterVariant: 'select' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('rsNewHigh', {
     header: () => 'RS New High',
     cell: (cell) => cell.getValue(),
-    meta: { width: 150, filterVariant: 'select-no-search' },
-    filterFn: 'arrIncludesSome'
+    meta: { width: 150, filterVariant: 'select' },
+    filterFn: customArrIncludesSome
   })
 ];
 

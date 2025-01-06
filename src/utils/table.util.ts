@@ -190,6 +190,11 @@ export const amountFilterFn =
     return true;
   };
 
+export const customArrIncludesSome = <T>(row: Row<T>, columnId: string, filterValues: string[]) => {
+  return filterValues.includes(row.getValue(columnId));
+};
+customArrIncludesSome.autoRemove = (val: string[]) => !val?.length;
+
 export const initialFilter = (stockList: Stock[], settings: Settings) => {
   return stockList
     .filter((e) => {

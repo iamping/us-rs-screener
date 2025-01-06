@@ -30,10 +30,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   const rangeCurrentValue = (column.getFilterValue() ?? [min, max]) as number[];
 
   // variant select
-  const valueList =
-    filterVariant === 'select' || filterVariant === 'select-no-search'
-      ? [...column.getFacetedUniqueValues().keys()].sort()
-      : [];
+  const valueList = filterVariant === 'select' ? [...column.getFacetedUniqueValues().keys()].sort() : [];
   const selectCurrentValue = (column.getFilterValue() ?? []) as string[];
 
   // radio select
@@ -95,16 +92,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
                 id={id}
                 initialValue={selectCurrentValue}
                 valueList={valueList}
-                enableSearch={true}
-                onChange={onChange}
-              />
-            </Show>
-            <Show when={filterVariant === 'select-no-search'}>
-              <CheckboxFilter
-                id={id}
-                initialValue={selectCurrentValue}
-                valueList={valueList}
-                enableSearch={false}
+                enableSearch={valueList.length > 15}
                 onChange={onChange}
               />
             </Show>

@@ -25,6 +25,7 @@ import {
   fallBackData,
   marketCapOptions,
   percentChangeOptions,
+  priceOptions,
   relativeVolOptions,
   rsRatingOptions
 } from '../../utils/table.util';
@@ -59,12 +60,14 @@ const columns = [
     enableColumnFilter: false
   }),
   columnHelper.accessor('close', {
-    header: () => <Text textAlign="right">Close</Text>,
+    header: () => <Text textAlign="right">Price</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
     meta: {
-      width: 85
+      width: 85,
+      filterVariant: 'radio-select',
+      selectOptions: priceOptions
     },
-    enableColumnFilter: false
+    filterFn: amountFilterFn(priceOptions)
   }),
   columnHelper.accessor('percentChange', {
     header: () => <Text textAlign="right">Change %</Text>,

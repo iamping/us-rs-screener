@@ -32,6 +32,11 @@ export interface Stock {
   industryRank: number;
   pocketPivot: boolean | string;
   rsNewHigh: number | string;
+  ema21: number;
+  ema50: number;
+  ema150: number;
+  ema200: number;
+  ema2001M: number;
 }
 
 export interface StockInfo {

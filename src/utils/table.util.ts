@@ -1,6 +1,6 @@
 import { ColumnFiltersState, Row } from '@tanstack/react-table';
 import { Stock } from '../models/stock';
-import { ColumnVisibility, SelectOption, Settings } from '../models/common';
+import { ColumnVisibility, Operator, SelectOption, Settings, TRecord } from '../models/common';
 
 export const fallBackData: Stock[] = [];
 
@@ -130,7 +130,7 @@ export const percentChangeOptions: SelectOption[] = [
     value: '0to10',
     title: '0% to 10%',
     description: 'Modest momentum',
-    operator: '<>',
+    operator: 'between',
     compareNumber1: 0,
     compareNumber2: 10
   },
@@ -171,24 +171,87 @@ export const relativeVolOptions: SelectOption[] = [
   }
 ];
 
+export const priceOptions: SelectOption[] = [
+  {
+    value: 'gtEMA21',
+    title: 'Above EMA21',
+    operator: '>=',
+    compareFields: ['ema21']
+  },
+  {
+    value: 'gtEMA50',
+    title: 'Above EMA50',
+    operator: '>=',
+    compareFields: ['ema50']
+  },
+  {
+    value: 'gtEMA200',
+    title: 'Above EMA200',
+    operator: '>=',
+    compareFields: ['ema200']
+  },
+  {
+    value: 'markPriceTemplate',
+    title: 'Above EMA50,150,200',
+    operator: 'chain-gt',
+    compareFields: ['ema21', 'ema50', 'ema150', 'ema200', 'ema2001M']
+  }
+];
+
 export const amountFilterFn =
   (optionList: SelectOption[]) =>
   <T>(row: Row<T>, columnId: string, filterValue: string) => {
     const option = optionList.find((e) => e.value === filterValue);
-    const compareNumber1 = option?.compareNumber1 ?? 0;
-    const compareNumber2 = option?.compareNumber2 ?? 0;
-    switch (option?.operator) {
-      case '>=':
-        return Number(row.getValue(columnId)) >= compareNumber1;
-      case '<=':
-        return Number(row.getValue(columnId)) <= compareNumber1;
-      case '<':
-        return Number(row.getValue(columnId)) < compareNumber1;
-      case '<>':
-        return Number(row.getValue(columnId)) >= compareNumber1 && Number(row.getValue(columnId)) <= compareNumber2;
+    const operator = option?.operator ?? '';
+    const record = row as TRecord<T>;
+    const compareFields = option?.compareFields ?? [];
+    if (compareFields.length > 0) {
+      if (compareFields.length === 1) {
+        const compareNumber1 = record.original[compareFields[0]];
+        const compareNumber2 = 0;
+        if (compareNumber1 > 0) {
+          return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
+        }
+      } else {
+        const values = [Number(row.getValue(columnId)), ...compareFields.map((field) => record.original[field])];
+        return compareChainFn(operator, values);
+      }
+
+      return false;
+    } else {
+      const compareNumber1 = option?.compareNumber1 ?? 0;
+      const compareNumber2 = option?.compareNumber2 ?? 0;
+      return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
     }
-    return true;
   };
+
+const compareFn = (operator: Operator, source: number, number1: number, number2: number) => {
+  switch (operator) {
+    case '>=':
+      return source >= number1;
+    case '<=':
+      return source <= number1;
+    case '<':
+      return source < number1;
+    case '>':
+      return source > number1;
+    case 'between':
+      return source >= number1 && source <= number2;
+  }
+  return false;
+};
+
+const compareChainFn = (operator: Operator, values: number[]) => {
+  switch (operator) {
+    case 'chain-gt':
+      return values.every((val, idx, arr) => {
+        if (val === 0) return false;
+        if (idx === arr.length - 1) return true;
+        return val > arr[idx + 1];
+      });
+  }
+  return false;
+};
 
 export const customArrIncludesSome = <T>(row: Row<T>, columnId: string, filterValues: string[]) => {
   return filterValues.includes(row.getValue(columnId));

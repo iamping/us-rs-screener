@@ -1,4 +1,4 @@
-import { Cell, Column, ColumnFiltersState, Header, Table } from '@tanstack/react-table';
+import { Cell, Column, ColumnFiltersState, Header, Row, Table } from '@tanstack/react-table';
 import { RefObject } from 'react';
 import { Stock } from './stock';
 import { ViewportListRef } from 'react-viewport-list';
@@ -53,6 +53,7 @@ export interface CheckboxFilterProps {
   valueList: string[];
   onChange: (val: string[]) => void;
   enableSearch?: boolean;
+  hideSelectAll?: boolean;
 }
 
 export interface RadioFilterProps {
@@ -62,13 +63,15 @@ export interface RadioFilterProps {
   onChange: (val: string) => void;
 }
 
+export type Operator = '>=' | '<' | 'between' | '!==' | '<=' | '=' | '>' | 'chain-gt' | '';
 export interface SelectOption {
   value: string;
   title: string;
   description?: string;
-  operator?: '>=' | '<' | '<>' | '!==' | '<=' | '=';
+  operator?: Operator;
   compareNumber1?: number;
   compareNumber2?: number;
+  compareFields?: string[];
   presetStates?: ColumnFiltersState;
   columnVisibility?: ColumnVisibility;
 }

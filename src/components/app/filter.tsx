@@ -93,6 +93,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
                 initialValue={selectCurrentValue}
                 valueList={valueList}
                 enableSearch={valueList.length > 15}
+                hideSelectAll={valueList.length < 10}
                 onChange={onChange}
               />
             </Show>
@@ -147,7 +148,14 @@ export const RangeFilter: FC<RangeFilterProps> = ({ initialValue, min, max, onCh
 };
 
 // Chakra UI is too slow for this, just use HTML
-export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initialValue, enableSearch, onChange }) => {
+export const CheckboxFilter: FC<CheckboxFilterProps> = ({
+  id,
+  valueList,
+  initialValue,
+  enableSearch,
+  hideSelectAll,
+  onChange
+}) => {
   const selectAll = 'Select All';
   const [values, setValues] = useState<string[]>([]);
   const [keyword, setKeyword] = useState('');
@@ -158,11 +166,13 @@ export const CheckboxFilter: FC<CheckboxFilterProps> = ({ id, valueList, initial
     if (Object.keys(highlight).length === 0 && keyword.length > 0) {
       return [];
     } else if (Object.keys(highlight).length === 0) {
-      return [selectAll, ...valueList];
+      return hideSelectAll ? valueList : [selectAll, ...valueList];
     } else {
-      return [selectAll, ...valueList.filter((e) => highlight[e])];
+      return hideSelectAll
+        ? valueList.filter((e) => highlight[e])
+        : [selectAll, ...valueList.filter((e) => highlight[e])];
     }
-  }, [valueList, highlight, keyword]);
+  }, [valueList, highlight, keyword, hideSelectAll]);
 
   const onSelect = (event: ChangeEvent<HTMLInputElement>, value: string) => {
     let currentValues = [];

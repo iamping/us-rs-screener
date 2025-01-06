@@ -371,7 +371,7 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'pocketPivot',
-        value: 'Yes'
+        value: ['Yes']
       },
       {
         id: 'close',

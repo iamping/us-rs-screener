@@ -27,7 +27,7 @@ export interface CellProps<T> {
 export type ColumnVisibility = { [P in keyof Stock]?: boolean };
 
 // Filter
-export type FilterVariant = 'range' | 'select' | 'radio-select' | undefined;
+export type FilterVariant = 'range' | 'combo-box' | 'radio-select' | undefined;
 
 export type TRecord<T> = Row<T & Record<string, number>>;
 
@@ -47,7 +47,7 @@ export interface RangeFilterProps {
   onChange: (val: number[]) => void;
 }
 
-export interface CheckboxFilterProps {
+export interface ComboBoxFilterProps {
   id?: string;
   initialValue: string[];
   valueList: string[];

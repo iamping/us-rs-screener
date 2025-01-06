@@ -176,7 +176,7 @@ const columns = [
   columnHelper.accessor('sector', {
     header: () => 'Sector',
     cell: (cell) => cell.getValue(),
-    meta: { width: 200, filterVariant: 'select' },
+    meta: { width: 200, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('industry', {
@@ -186,19 +186,19 @@ const columns = [
         {cell.getValue()}
       </EllipsisText>
     ),
-    meta: { width: 250, filterVariant: 'select' },
+    meta: { width: 250, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('pocketPivot', {
     header: () => 'Pocket Pivot',
     cell: (cell) => cell.getValue(),
-    meta: { width: 150, filterVariant: 'select' },
+    meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('rsNewHigh', {
     header: () => 'RS New High',
     cell: (cell) => cell.getValue(),
-    meta: { width: 150, filterVariant: 'select' },
+    meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: customArrIncludesSome
   })
 ];

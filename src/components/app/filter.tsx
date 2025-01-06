@@ -4,7 +4,7 @@ import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/
 import { Slider } from '../ui/slider';
 import { PiFunnelBold, PiMagnifyingGlass, PiXDuotone } from 'react-icons/pi';
 import { useDebounceCallback } from 'usehooks-ts';
-import { FilterProps, RadioFilterProps, RangeFilterProps, CheckboxFilterProps } from '../../models/common';
+import { FilterProps, RadioFilterProps, RangeFilterProps, ComboBoxFilterProps } from '../../models/common';
 import { useSetAtom } from 'jotai';
 import { manualFilterAtom } from '../../state/atom';
 import { InputGroup } from '../ui/input-group';
@@ -25,12 +25,12 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
 
-  // variant range - handle filter current value
+  // variant range
   const [min, max] = column.getFacetedMinMaxValues() ?? [0, 100];
   const rangeCurrentValue = (column.getFilterValue() ?? [min, max]) as number[];
 
-  // variant select
-  const valueList = filterVariant === 'select' ? [...column.getFacetedUniqueValues().keys()].sort() : [];
+  // variant combo box
+  const valueList = filterVariant === 'combo-box' ? [...column.getFacetedUniqueValues().keys()].sort() : [];
   const selectCurrentValue = (column.getFilterValue() ?? []) as string[];
 
   // radio select
@@ -87,8 +87,8 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
             <Show when={filterVariant === 'range'}>
               <RangeFilter id={id} initialValue={rangeCurrentValue} min={min!} max={max!} onChange={onChange} />
             </Show>
-            <Show when={filterVariant === 'select'}>
-              <CheckboxFilter
+            <Show when={filterVariant === 'combo-box'}>
+              <ComboBoxFilter
                 id={id}
                 initialValue={selectCurrentValue}
                 valueList={valueList}
@@ -148,7 +148,7 @@ export const RangeFilter: FC<RangeFilterProps> = ({ initialValue, min, max, onCh
 };
 
 // Chakra UI is too slow for this, just use HTML
-export const CheckboxFilter: FC<CheckboxFilterProps> = ({
+export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
   id,
   valueList,
   initialValue,

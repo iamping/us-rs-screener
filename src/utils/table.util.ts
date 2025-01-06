@@ -198,7 +198,7 @@ export const priceOptions: SelectOption[] = [
     compareFields: ['ema21', 'ema50', 'ema150', 'ema200', 'ema2001M']
   },
   {
-    value: '%From52WLowGt30',
+    value: 'above52WLow',
     title: 'Above 52W Low',
     description: 'More than 30%',
     operator: '>',
@@ -206,7 +206,7 @@ export const priceOptions: SelectOption[] = [
     comparePercent: 0.3
   },
   {
-    value: 'Near 52W High',
+    value: 'near52WHigh',
     title: 'Near 52W High',
     description: 'Not lower than 25%',
     operator: '>=',
@@ -342,6 +342,51 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'avgDollarVolume',
         value: '20up'
+      }
+    ]
+  },
+  {
+    value: 'mark',
+    title: 'Mark Trend Template',
+    description: 'Legendary screener',
+    presetStates: [
+      {
+        id: 'rsRating',
+        value: '70up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '10up'
+      },
+      {
+        id: 'close',
+        value: ['markPriceTemplateMAs', 'above52WLow', 'near52WHigh']
+      }
+    ]
+  },
+  {
+    value: 'pocketPivot',
+    title: 'Pocket Pivot',
+    description: 'Pocket Pivot + EMA50',
+    presetStates: [
+      {
+        id: 'pocketPivot',
+        value: 'Yes'
+      },
+      {
+        id: 'close',
+        value: ['gtEMA50']
+      }
+    ]
+  },
+  {
+    value: 'rsNewHighBeforePrice',
+    title: 'RS NH Before Price',
+    description: 'Look for green dot',
+    presetStates: [
+      {
+        id: 'rsNewHigh',
+        value: ['Before Price']
       }
     ]
   }

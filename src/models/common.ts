@@ -27,7 +27,7 @@ export interface CellProps<T> {
 export type ColumnVisibility = { [P in keyof Stock]?: boolean };
 
 // Filter
-export type FilterVariant = 'range' | 'combo-box' | 'radio-select' | undefined;
+export type FilterVariant = 'range' | 'combo-box' | 'radio-select' | 'multi-select' | undefined;
 
 export type TRecord<T> = Row<T & Record<string, number>>;
 
@@ -61,6 +61,13 @@ export interface RadioFilterProps {
   initialValue: string;
   optionList: SelectOption[];
   onChange: (val: string) => void;
+}
+
+export interface MultiSelectFilterProps {
+  id?: string;
+  initialValue: string[];
+  optionList: SelectOption[];
+  onChange: (val: string[]) => void;
 }
 
 export type Operator = '>=' | '<' | 'between' | '!==' | '<=' | '=' | '>' | 'chain-gt' | '';

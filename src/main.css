@@ -69,6 +69,12 @@ h6 {
   cursor: pointer;
 }
 
+.checkbox-wrapper:has(.checkbox:checked),
+.checkbox-wrapper:hover {
+  background-color: var(--chakra-colors-gray-100);
+  cursor: pointer;
+}
+
 .filter-selection-item:hover {
   background-color: var(--chakra-colors-gray-100);
 }

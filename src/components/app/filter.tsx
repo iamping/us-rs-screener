@@ -2,9 +2,15 @@ import { Box, Button, Code, HStack, IconButton, Input, Separator, Show, Spacer, 
 import { ChangeEvent, FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
-import { PiFunnelBold, PiMagnifyingGlass, PiXDuotone } from 'react-icons/pi';
+import { PiFunnelBold, PiMagnifyingGlass, PiCheckBold, PiXDuotone } from 'react-icons/pi';
 import { useDebounceCallback } from 'usehooks-ts';
-import { FilterProps, RadioFilterProps, RangeFilterProps, ComboBoxFilterProps } from '../../models/common';
+import {
+  FilterProps,
+  RadioFilterProps,
+  RangeFilterProps,
+  ComboBoxFilterProps,
+  MultiSelectFilterProps
+} from '../../models/common';
 import { useSetAtom } from 'jotai';
 import { manualFilterAtom } from '../../state/atom';
 import { InputGroup } from '../ui/input-group';
@@ -30,7 +36,12 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   const rangeCurrentValue = (column.getFilterValue() ?? [min, max]) as number[];
 
   // variant combo box
-  const valueList = filterVariant === 'combo-box' ? [...column.getFacetedUniqueValues().keys()].sort() : [];
+  const valueList =
+    filterVariant === 'combo-box'
+      ? [...column.getFacetedUniqueValues().keys()].sort()
+      : filterVariant === 'multi-select'
+        ? (column.columnDef.meta?.selectOptions ?? [])
+        : [];
   const selectCurrentValue = (column.getFilterValue() ?? []) as string[];
 
   // radio select
@@ -99,6 +110,9 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
             </Show>
             <Show when={filterVariant === 'radio-select'}>
               <RadioFilter id={id} initialValue={radioCurrentValue} optionList={optionList} onChange={onChange} />
+            </Show>
+            <Show when={filterVariant === 'multi-select'}>
+              <MultiSelectFilter id={id} initialValue={selectCurrentValue} optionList={valueList} onChange={onChange} />
             </Show>
             <Separator margin={1} />
             <HStack justifyContent="space-between" width="100%">
@@ -327,6 +341,73 @@ export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList
                   id={`${id}-${e.value}-${idx}`}
                   checked={value === e.value}
                   onChange={() => debouncedOnSelect(e.value)}
+                />
+              </Box>
+            </HStack>
+            <Show when={!!e.description}>
+              <Text fontSize="sm" color="gray">
+                {e.description}
+              </Text>
+            </Show>
+          </VStack>
+        );
+      })}
+    </VStack>
+  );
+};
+
+export const MultiSelectFilter: FC<MultiSelectFilterProps> = ({ id, initialValue, optionList, onChange }) => {
+  const [values, setValues] = useState<string[]>([]);
+  const onSelect = (event: ChangeEvent<HTMLInputElement>, value: string) => {
+    let currentValues = [];
+    if (event.target.checked) {
+      currentValues = [...values, value];
+    } else {
+      currentValues = values.filter((e) => e !== value);
+    }
+    setValues(currentValues);
+    onChange(currentValues);
+  };
+
+  useEffect(() => {
+    setValues(initialValue);
+  }, [initialValue]);
+
+  return (
+    <VStack width="100%" gap={2}>
+      {optionList.map((e, idx) => {
+        return (
+          <VStack
+            as="label"
+            className="checkbox-wrapper"
+            key={idx}
+            width="100%"
+            alignItems="start"
+            gap={0}
+            padding="4px 4px 4px 8px"
+            borderRadius={5}>
+            <HStack justifyContent="space-between" width="100%">
+              <Text fontWeight={500}>{e.title}</Text>
+              <Box paddingTop={1} paddingRight={1} position="relative">
+                <input
+                  style={{ opacity: 0 }}
+                  className="checkbox"
+                  type="checkbox"
+                  value={e.value}
+                  name={`${id}`}
+                  id={`${id}-${e.value}-${idx}`}
+                  checked={values.includes(e.value)}
+                  onChange={(event) => onSelect(event, e.value)}
+                />
+                <PiCheckBold
+                  className="check-icon"
+                  size={16}
+                  style={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    display: values.includes(e.value) ? 'inherit' : 'none'
+                  }}
                 />
               </Box>
             </HStack>

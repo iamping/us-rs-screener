@@ -24,6 +24,7 @@ import {
   defaultPinnedColumns,
   fallBackData,
   marketCapOptions,
+  multiSelectFilterFn,
   percentChangeOptions,
   priceOptions,
   relativeVolOptions,
@@ -63,11 +64,11 @@ const columns = [
     header: () => <Text textAlign="right">Price</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
     meta: {
-      width: 85,
-      filterVariant: 'radio-select',
+      width: 100,
+      filterVariant: 'multi-select',
       selectOptions: priceOptions
     },
-    filterFn: amountFilterFn(priceOptions)
+    filterFn: multiSelectFilterFn(priceOptions)
   }),
   columnHelper.accessor('percentChange', {
     header: () => <Text textAlign="right">Change %</Text>,

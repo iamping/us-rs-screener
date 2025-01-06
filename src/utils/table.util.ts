@@ -192,7 +192,8 @@ export const priceOptions: SelectOption[] = [
   },
   {
     value: 'markPriceTemplate',
-    title: 'Above EMA50,150,200',
+    title: 'Mark EMAs',
+    description: 'Above common key EMAs',
     operator: 'chain-gt',
     compareFields: ['ema21', 'ema50', 'ema150', 'ema200', 'ema2001M']
   }
@@ -224,6 +225,37 @@ export const amountFilterFn =
       return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
     }
   };
+
+export const multiSelectFilterFn = (optionList: SelectOption[]) => {
+  const fn = <T>(row: Row<T>, columnId: string, filterValues: string[]) => {
+    return filterValues.some((filterValue) => {
+      const option = optionList.find((e) => e.value === filterValue);
+      const operator = option?.operator ?? '';
+      const record = row as TRecord<T>;
+      const compareFields = option?.compareFields ?? [];
+      if (compareFields.length > 0) {
+        if (compareFields.length === 1) {
+          const compareNumber1 = record.original[compareFields[0]];
+          const compareNumber2 = 0;
+          if (compareNumber1 > 0) {
+            return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
+          }
+        } else {
+          const values = [Number(row.getValue(columnId)), ...compareFields.map((field) => record.original[field])];
+          return compareChainFn(operator, values);
+        }
+
+        return false;
+      } else {
+        const compareNumber1 = option?.compareNumber1 ?? 0;
+        const compareNumber2 = option?.compareNumber2 ?? 0;
+        return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
+      }
+    });
+  };
+  fn.autoRemove = (val: string[]) => !val?.length;
+  return fn;
+};
 
 const compareFn = (operator: Operator, source: number, number1: number, number2: number) => {
   switch (operator) {

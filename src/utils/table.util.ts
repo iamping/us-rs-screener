@@ -191,11 +191,27 @@ export const priceOptions: SelectOption[] = [
     compareFields: ['ema200']
   },
   {
-    value: 'markPriceTemplate',
-    title: 'Mark EMAs',
-    description: 'Above common key EMAs',
+    value: 'markPriceTemplateMAs',
+    title: 'Mark MAs',
+    description: 'Above Key EMAs',
     operator: 'chain-gt',
     compareFields: ['ema21', 'ema50', 'ema150', 'ema200', 'ema2001M']
+  },
+  {
+    value: '%From52WLowGt30',
+    title: 'Above 52W Low',
+    description: 'More than 30%',
+    operator: '>',
+    compareFields: ['wk52Low'],
+    comparePercent: 0.3
+  },
+  {
+    value: 'Near 52W High',
+    title: 'Near 52W High',
+    description: 'Not lower than 25%',
+    operator: '>=',
+    compareFields: ['wk52High'],
+    comparePercent: -0.25
   }
 ];
 
@@ -228,14 +244,16 @@ export const amountFilterFn =
 
 export const multiSelectFilterFn = (optionList: SelectOption[]) => {
   const fn = <T>(row: Row<T>, columnId: string, filterValues: string[]) => {
-    return filterValues.some((filterValue) => {
+    return filterValues.every((filterValue) => {
       const option = optionList.find((e) => e.value === filterValue);
       const operator = option?.operator ?? '';
       const record = row as TRecord<T>;
       const compareFields = option?.compareFields ?? [];
       if (compareFields.length > 0) {
         if (compareFields.length === 1) {
-          const compareNumber1 = record.original[compareFields[0]];
+          const compareNumber1 = option?.comparePercent
+            ? (1 + option.comparePercent) * record.original[compareFields[0]]
+            : record.original[compareFields[0]];
           const compareNumber2 = 0;
           if (compareNumber1 > 0) {
             return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);

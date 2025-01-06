@@ -79,6 +79,7 @@ export interface SelectOption {
   compareNumber1?: number;
   compareNumber2?: number;
   compareFields?: string[];
+  comparePercent?: number;
   presetStates?: ColumnFiltersState;
   columnVisibility?: ColumnVisibility;
 }

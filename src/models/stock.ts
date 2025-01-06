@@ -37,6 +37,8 @@ export interface Stock {
   ema150: number;
   ema200: number;
   ema2001M: number;
+  wk52Low: number;
+  wk52High: number;
 }
 
 export interface StockInfo {

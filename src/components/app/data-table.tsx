@@ -122,6 +122,24 @@ const columns = [
     },
     filterFn: amountFilterFn(marketCapOptions)
   }),
+  columnHelper.accessor('wk52Low', {
+    header: () => <Text textAlign="right">52 Week High</Text>,
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
+    meta: {
+      width: 120
+    },
+    enableSorting: false,
+    enableColumnFilter: false
+  }),
+  columnHelper.accessor('wk52High', {
+    header: () => <Text textAlign="right">52 Week Low</Text>,
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
+    meta: {
+      width: 120
+    },
+    enableSorting: false,
+    enableColumnFilter: false
+  }),
   columnHelper.accessor('rsRating', {
     header: () => <Text textAlign="right">RS Rating</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,

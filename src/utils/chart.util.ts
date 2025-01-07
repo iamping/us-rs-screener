@@ -284,8 +284,10 @@ export const chartOptions = (
         type: 'logarithmic',
         endOnTick: false,
         startOnTick: false,
+        showLastLabel: true,
         labels: {
-          align: 'left'
+          align: 'left',
+          format: '{value:,.0f}'
         },
         height: '70%',
         crosshair: {

@@ -87,30 +87,57 @@ export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
 
 const ChartHeader: FC<{ stock: Stock }> = ({ stock }) => {
   const stockInfo = useAtomValue(stockInfoAtom);
+  const marqueeContent = (
+    <>
+      <p>
+        Market Cap: <span>{formatDecimal(stock.marketCap / 1000000000)}B</span>
+      </p>
+      <p>
+        Avg $ Vol: <span>{formatDecimal(stock.avgDollarVolume / 1000000)}M</span>
+      </p>
+      <p>
+        R.Vol: <span>{formatDecimal(stock.relativeVolume)}</span>
+      </p>
+      <p>
+        Industry: <span>{stock.industry}</span>
+      </p>
+      <p>
+        Industry Rank: <span>{stock.industryRank}</span>
+      </p>
+    </>
+  );
   return (
-    <Text
-      className="chart-stock-info"
-      fontSize="sm"
-      position="absolute"
-      whiteSpace="nowrap"
-      backgroundColor="white/50"
-      zIndex={1}
-      top={12}
-      left="18px">
-      <Text as={'span'} fontWeight={500}>
-        {stock.ticker}
+    <>
+      <div className="marquee-wrapper">
+        <div className="marquee">
+          {marqueeContent}
+          {marqueeContent}
+        </div>
+      </div>
+      <Text
+        className="chart-stock-info"
+        fontSize="sm"
+        position="absolute"
+        whiteSpace="nowrap"
+        backgroundColor="white/50"
+        zIndex={1}
+        top={12}
+        left="18px">
+        <Text as={'span'} fontWeight={500}>
+          {stock.ticker}
+        </Text>
+        <Text as={'span'} color="gray.500">
+          {` - ${stock.companyName}`}
+        </Text>
+        <Text as={'span'} display="block" fontSize="xs">
+          <b>C</b>
+          <span className={`change${stockInfo.change}`}>
+            {stock.close} {formatDecimal(stockInfo.change, true)} ({formatDecimal(stockInfo.percentChange, true)}%){' '}
+          </span>
+          <b>Vol</b>
+          <span className={`change${stockInfo.change}`}>{formatDecimal(stockInfo.volume / 1000000)}M</span>
+        </Text>
       </Text>
-      <Text as={'span'} color="gray.500">
-        {` - ${stock.companyName}`}
-      </Text>
-      <Text as={'span'} display="block" fontSize="xs">
-        <b>C</b>
-        <span className={`change${stockInfo.change}`}>
-          {stock.close} {formatDecimal(stockInfo.change, true)} ({formatDecimal(stockInfo.percentChange, true)}%){' '}
-        </span>
-        <b>Vol</b>
-        <span className={`change${stockInfo.change}`}>{formatDecimal(stockInfo.volume / 1000000)}M</span>
-      </Text>
-    </Text>
+    </>
   );
 };

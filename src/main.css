@@ -216,3 +216,40 @@ h6 {
   font-size: 12px !important;
   background-color: rgb(255, 255, 255, 0.8);
 }
+
+.marquee-wrapper {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  padding: 8px;
+  padding-top: 12px;
+  left: 90px;
+  right: 40px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.marquee {
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline-block;
+  animation: marquee 10s linear infinite;
+}
+
+.marquee p {
+  display: inline-block;
+  margin-left: 8px;
+  margin-right: 8px;
+  & span {
+    color: var(--chakra-colors-gray-500);
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}

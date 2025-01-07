@@ -361,6 +361,10 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'close',
         value: ['markPriceTemplateMAs', 'above52WLow', 'near52WHigh']
+      },
+      {
+        id: 'marketCap',
+        value: 'middle'
       }
     ]
   },
@@ -375,7 +379,11 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'close',
-        value: ['gtEMA50']
+        value: ['markPriceTemplateMAs']
+      },
+      {
+        id: 'marketCap',
+        value: 'middle'
       }
     ]
   },
@@ -387,6 +395,10 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'rsNewHigh',
         value: ['Before Price']
+      },
+      {
+        id: 'marketCap',
+        value: 'middle'
       }
     ]
   }

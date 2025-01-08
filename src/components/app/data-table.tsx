@@ -219,6 +219,18 @@ const columns = [
     cell: (cell) => cell.getValue(),
     meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: customArrIncludesSome
+  }),
+  columnHelper.accessor('tightRange', {
+    header: () => 'Tight Range',
+    cell: (cell) => cell.getValue(),
+    meta: { width: 150, filterVariant: 'combo-box' },
+    filterFn: 'arrIncludesSome'
+  }),
+  columnHelper.accessor('insideDay', {
+    header: () => 'Inside Day',
+    cell: (cell) => cell.getValue(),
+    meta: { width: 150, filterVariant: 'combo-box' },
+    filterFn: 'arrIncludesSome'
   })
 ];
 

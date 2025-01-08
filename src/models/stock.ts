@@ -30,8 +30,10 @@ export interface Stock {
   rsRating1Y: number;
   sectorRank: number;
   industryRank: number;
-  pocketPivot: boolean | string;
+  pocketPivot: number | string;
   rsNewHigh: number | string;
+  tightRange: number | string;
+  insideDay: number | string;
   ema21: number;
   ema50: number;
   ema150: number;

@@ -1,9 +1,9 @@
 import { Box, Button, Code, HStack, IconButton, Input, Separator, Show, Spacer, Text, VStack } from '@chakra-ui/react';
-import { ChangeEvent, FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, CSSProperties, FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
 import { PiFunnelBold, PiMagnifyingGlass, PiCheckBold, PiXDuotone } from 'react-icons/pi';
-import { useDebounceCallback } from 'usehooks-ts';
+import { useDebounceCallback, useMediaQuery } from 'usehooks-ts';
 import {
   FilterProps,
   RadioFilterProps,
@@ -16,6 +16,7 @@ import { manualFilterAtom } from '../../state/atom';
 import { InputGroup } from '../ui/input-group';
 import { EmptyState } from '../ui/empty-state';
 import fuzzysort from 'fuzzysort';
+import { mobileLandscapeQuery } from '../../utils/common.util';
 
 export const FilterEmpty = () => {
   return (
@@ -310,13 +311,15 @@ export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList
     onChange(value);
   };
   const debouncedOnSelect = useDebounceCallback(onSelect, 0);
+  const isMobileLandscape = useMediaQuery(mobileLandscapeQuery);
+  const style: CSSProperties = isMobileLandscape ? { maxHeight: 180, overflowY: 'auto' } : {};
 
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
 
   return (
-    <VStack width="100%" gap={2}>
+    <VStack width="100%" gap={2} style={style}>
       {optionList.map((e, idx) => {
         return (
           <VStack
@@ -373,8 +376,11 @@ export const MultiSelectFilter: FC<MultiSelectFilterProps> = ({ id, initialValue
     setValues(initialValue);
   }, [initialValue]);
 
+  const isMobileLandscape = useMediaQuery(mobileLandscapeQuery);
+  const style: CSSProperties = isMobileLandscape ? { maxHeight: 180, overflowY: 'auto' } : {};
+
   return (
-    <VStack width="100%" gap={2}>
+    <VStack width="100%" gap={2} style={style}>
       {optionList.map((e, idx) => {
         return (
           <VStack

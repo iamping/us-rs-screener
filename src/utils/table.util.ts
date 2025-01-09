@@ -401,6 +401,25 @@ export const presetOptions: SelectOption[] = [
         value: 'middle'
       }
     ]
+  },
+  {
+    value: 'tightRangePlus',
+    title: 'Tight Range Plus',
+    description: 'Tight + Inside Day',
+    presetStates: [
+      {
+        id: 'tightRange',
+        value: ['Yes']
+      },
+      {
+        id: 'insideDay',
+        value: ['Yes']
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '10up'
+      }
+    ]
   }
 ];
 

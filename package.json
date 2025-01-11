@@ -44,10 +44,5 @@
     "usehooks-ts": {
       "react": "^19"
     }
-  },
-  "msw": {
-    "workerDirectory": [
-      "./public"
-    ]
   }
 }

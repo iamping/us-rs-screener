@@ -140,6 +140,14 @@ const columns = [
     enableSorting: false,
     enableColumnFilter: false
   }),
+  columnHelper.accessor('rsScore', {
+    header: () => <Text textAlign="right">RS Score</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: {
+      width: 100,
+    },
+    enableColumnFilter: false
+  }),
   columnHelper.accessor('rsRating', {
     header: () => <Text textAlign="right">RS Rating</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,

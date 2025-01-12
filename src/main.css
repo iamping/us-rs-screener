@@ -180,6 +180,19 @@ h6 {
   color: var(--chakra-colors-gray-300);
 }
 
+.week-range-wrapper {
+  height: 4px;
+  background-color: var(--chakra-colors-gray-200);
+  position: relative;
+  margin-top: 2px;
+}
+
+.week-range {
+  height: 4px;
+  width: 4px;
+  background-color: var(--chakra-colors-black);
+}
+
 .chart-max-height {
   min-height: var(--content-max-height);
   max-height: var(--content-max-height);

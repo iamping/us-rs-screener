@@ -1,6 +1,6 @@
 import { CSSProperties, FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { Show, Text } from '@chakra-ui/react';
+import { HStack, Show, Text } from '@chakra-ui/react';
 import {
   ColumnPinningState,
   createColumnHelper,
@@ -106,7 +106,7 @@ const columns = [
     header: () => <Text textAlign="right">Avg $ Vol (M)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000)}</Text>,
     meta: {
-      width: 170,
+      width: 150,
       filterVariant: 'radio-select',
       selectOptions: avgDollarVolOptions
     },
@@ -116,24 +116,42 @@ const columns = [
     header: () => <Text textAlign="right">Market Cap (B)</Text>,
     cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue() / 1000000000)}</Text>,
     meta: {
-      width: 170,
+      width: 160,
       filterVariant: 'radio-select',
       selectOptions: marketCapOptions
     },
     filterFn: amountFilterFn(marketCapOptions)
   }),
-  columnHelper.accessor('wk52Low', {
-    header: () => <Text textAlign="right">52 Week High</Text>,
-    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
-    meta: {
-      width: 120
+  columnHelper.accessor((original) => original.close, {
+    id: '52wkRange',
+    header: () => '52 Week Range',
+    cell: (cell) => {
+      const position =
+        (100 * (cell.getValue() - cell.row.original.wk52Low)) /
+        (cell.row.original.wk52High - cell.row.original.wk52Low);
+      return (
+        <>
+          <div className="week-range-wrapper">
+            <div
+              className="week-range"
+              style={{
+                // marginLeft: `${position >= 98 ? 96 : position}%`,
+                marginLeft: position < 95 ? `${position}%` : `calc(${position}% - 4px)`,
+                backgroundColor:
+                  position >= 75
+                    ? 'var(--chakra-colors-blue-500)'
+                    : position < 30
+                      ? 'var(--chakra-colors-red-500)'
+                      : 'var(--chakra-colors-black)'
+              }}></div>
+          </div>
+          <HStack justifyContent="space-between">
+            <Text fontSize="2xs">{formatDecimal(cell.row.original.wk52Low)}</Text>
+            <Text fontSize="2xs">{formatDecimal(cell.row.original.wk52High)}</Text>
+          </HStack>
+        </>
+      );
     },
-    enableSorting: false,
-    enableColumnFilter: false
-  }),
-  columnHelper.accessor('wk52High', {
-    header: () => <Text textAlign="right">52 Week Low</Text>,
-    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
     meta: {
       width: 120
     },

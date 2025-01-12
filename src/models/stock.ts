@@ -24,6 +24,7 @@ export interface Stock {
   rsScore3M: number;
   rsScore6M: number;
   rsScore1Y: number;
+  rsSts: number;
   rsRating: number;
   rsRating3M: number;
   rsRating6M: number;

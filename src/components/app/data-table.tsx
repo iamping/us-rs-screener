@@ -140,11 +140,11 @@ const columns = [
     enableSorting: false,
     enableColumnFilter: false
   }),
-  columnHelper.accessor('rsScore', {
-    header: () => <Text textAlign="right">RS Score</Text>,
+  columnHelper.accessor('rsSts', {
+    header: () => <Text textAlign="right">RS STS %</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
     meta: {
-      width: 100,
+      width: 100
     },
     enableColumnFilter: false
   }),

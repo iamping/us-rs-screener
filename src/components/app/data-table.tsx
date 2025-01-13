@@ -135,8 +135,7 @@ const columns = [
             <div
               className="week-range"
               style={{
-                // marginLeft: `${position >= 98 ? 96 : position}%`,
-                marginLeft: position < 95 ? `${position}%` : `calc(${position}% - 4px)`,
+                marginLeft: `${position}%`,
                 backgroundColor:
                   position >= 75
                     ? 'var(--chakra-colors-blue-500)'

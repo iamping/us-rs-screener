@@ -328,7 +328,7 @@ export const chartOptions = (
       buttons: [
         {
           type: 'month',
-          count: 6,
+          count: 8,
           text: 'D',
           title: 'Day',
           dataGrouping: {

@@ -185,6 +185,7 @@ h6 {
   background-color: var(--chakra-colors-gray-200);
   position: relative;
   margin-top: 2px;
+  padding-right: 4px;
 }
 
 .week-range {

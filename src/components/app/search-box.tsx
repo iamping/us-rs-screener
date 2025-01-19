@@ -99,6 +99,11 @@ export const SearchBox = () => {
           inputRef.current?.select();
         }, 50);
       }
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        setTimeout(() => {
+          inputRef.current?.select();
+        }, 50);
+      }
       setTimeout(() => {
         inputRef.current?.focus();
       }, 0);

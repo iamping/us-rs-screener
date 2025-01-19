@@ -39,6 +39,7 @@ import { useAtom, useSetAtom } from 'jotai';
 import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerAtom } from '../../state/atom';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { HistoricalChart } from './historical-chart';
+import { useEventListener } from 'usehooks-ts';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -301,7 +302,8 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
 
   const resetPageIndex = useCallback(() => {
     listRef.current?.scrollToIndex({
-      index: 0
+      index: 0,
+      offset: -100
     });
   }, []);
 
@@ -326,6 +328,30 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
   };
   const gridTemplateColumnsStyle: CSSProperties = { gridTemplateColumns: `repeat(${numColumns}, auto)` };
   const gridColumnStyle: CSSProperties = { gridColumn: `1 / ${numColumns + 1}` };
+
+  useEventListener('keydown', (event) => {
+    const availableRowsLength = table.getRowModel().rows.length;
+    if (ticker.length > 0) {
+      switch (event.key) {
+        case 'ArrowUp': {
+          const activeRowIndex = table.getRowModel().rows.findIndex((item) => item.original.ticker === ticker);
+          if (activeRowIndex > 0) {
+            const previousTicker = table.getRowModel().rows[activeRowIndex - 1].original.ticker;
+            setTicker(previousTicker);
+          }
+          break;
+        }
+        case 'ArrowDown': {
+          const activeRowIndex = table.getRowModel().rows.findIndex((item) => item.original.ticker === ticker);
+          if (activeRowIndex < availableRowsLength - 1) {
+            const nextTicker = table.getRowModel().rows[activeRowIndex + 1].original.ticker;
+            setTicker(nextTicker);
+          }
+          break;
+        }
+      }
+    }
+  });
 
   return (
     <>
@@ -359,6 +385,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
               <Show when={numRows > 0}>
                 <ViewportList
                   initialPrerender={50}
+                  itemSize={30}
                   ref={listRef}
                   viewportRef={parentRef}
                   items={table.getRowModel().rows}>

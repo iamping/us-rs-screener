@@ -339,6 +339,16 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
             const previousTicker = table.getRowModel().rows[activeRowIndex - 1].original.ticker;
             setTicker(previousTicker);
           }
+          event.preventDefault();
+          const { y } = document.querySelector('.grid-row.active')?.getBoundingClientRect() ?? { y: 0 };
+          if (Math.round(y) <= 0) {
+            listRef.current?.scrollToIndex({
+              index: activeRowIndex - 1,
+              offset: -40
+            });
+          } else if (Math.round(y) < 120) {
+            parentRef.current?.scrollBy(0, -30);
+          }
           break;
         }
         case 'ArrowDown': {
@@ -346,6 +356,18 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
           if (activeRowIndex < availableRowsLength - 1) {
             const nextTicker = table.getRowModel().rows[activeRowIndex + 1].original.ticker;
             setTicker(nextTicker);
+          }
+          event.preventDefault();
+          const { y } = document.querySelector('.grid-row.active')?.getBoundingClientRect() ?? { y: 0 };
+          const { height } = parentRef.current?.getBoundingClientRect() ?? { height: 0 };
+          if (Math.round(y) - Math.round(height) > -10) {
+            parentRef.current?.scrollBy(0, 30 + (y - height));
+          }
+          if (Math.round(y) <= 0) {
+            listRef.current?.scrollToIndex({
+              index: activeRowIndex + 1,
+              offset: -height + 50
+            });
           }
           break;
         }

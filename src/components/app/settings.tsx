@@ -32,12 +32,12 @@ export const Settings: FC<SettingsProps> = () => {
           <VStack alignItems="start">
             <Heading size="sm">Settings</Heading>
             <Separator marginY={1} />
-            <Switch
+            {/* <Switch
               size="sm"
               checked={currentSettings.includeOtc}
               onCheckedChange={(e) => onSave('includeOtc', e.checked)}>
               <Text fontWeight={400}>Include OTC</Text>
-            </Switch>
+            </Switch> */}
             <Switch
               size="sm"
               checked={currentSettings.includeBiotechnology}

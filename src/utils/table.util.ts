@@ -309,14 +309,16 @@ export const customArrIncludesSome = <T>(row: Row<T>, columnId: string, filterVa
 customArrIncludesSome.autoRemove = (val: string[]) => !val?.length;
 
 export const initialFilter = (stockList: Stock[], settings: Settings) => {
-  return stockList
-    .filter((e) => {
-      return settings.includeOtc ? true : includeExchanges.includes(e.exchange);
-    })
-    .filter((e) => {
-      return settings.includeBiotechnology ? true : !excludeIndustry.includes(e.industry);
-    })
-    .map((e, i) => ({ ...e, key: i + 1 }));
+  return (
+    stockList
+      // .filter((e) => {
+      //   return settings.includeOtc ? true : includeExchanges.includes(e.exchange);
+      // })
+      .filter((e) => {
+        return settings.includeBiotechnology ? true : !excludeIndustry.includes(e.industry);
+      })
+      .map((e, i) => ({ ...e, key: i + 1 }))
+  );
 };
 
 export const presetOptions: SelectOption[] = [

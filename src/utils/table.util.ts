@@ -37,6 +37,13 @@ export const marketCapOptions: SelectOption[] = [
     compareNumber1: 200000000000
   },
   {
+    value: 'large',
+    title: '5B and above',
+    description: 'Large caps+',
+    operator: '>=',
+    compareNumber1: 5000000000
+  },
+  {
     value: 'middle',
     title: '2B and above',
     description: 'Middlers+',
@@ -358,7 +365,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'avgDollarVolume',
-        value: '10up'
+        value: '20up'
       },
       {
         id: 'close',
@@ -366,7 +373,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'marketCap',
-        value: 'middle'
+        value: 'large'
       }
     ]
   },

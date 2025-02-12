@@ -205,6 +205,13 @@ export const priceOptions: SelectOption[] = [
     compareFields: ['ema21', 'ema50', 'ema150', 'ema200', 'ema2001M']
   },
   {
+    value: 'markMAsLoose',
+    title: 'Mark MAs 150/200',
+    description: 'Above 150/200 EMAs',
+    operator: 'chain-gt',
+    compareFields: ['ema150', 'ema200', 'ema2001M']
+  },
+  {
     value: 'above52WLow',
     title: 'Above 52W Low',
     description: 'More than 30%',
@@ -370,6 +377,29 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'close',
         value: ['markPriceTemplateMAs', 'above52WLow', 'near52WHigh']
+      },
+      {
+        id: 'marketCap',
+        value: 'large'
+      }
+    ]
+  },
+  {
+    value: 'markLoose',
+    title: 'Mark Loose Template',
+    description: 'Loose screener',
+    presetStates: [
+      {
+        id: 'rsRating',
+        value: '70up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '20up'
+      },
+      {
+        id: 'close',
+        value: ['markMAsLoose', 'above52WLow', 'near52WHigh']
       },
       {
         id: 'marketCap',

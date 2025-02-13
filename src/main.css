@@ -176,7 +176,12 @@ h6 {
   color: var(--chakra-colors-black);
 }
 
-.sort-icon:has(~ .filter-icon:hover) {
+.export-icon:hover {
+  color: var(--chakra-colors-black);
+}
+
+.sort-icon:has(~ .filter-icon:hover),
+.sort-icon:has(~ .export-icon:hover) {
   color: var(--chakra-colors-gray-300);
 }
 

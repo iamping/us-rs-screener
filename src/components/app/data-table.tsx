@@ -1,6 +1,6 @@
 import { CSSProperties, FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Stock } from '../../models/stock';
-import { HStack, Show, Text } from '@chakra-ui/react';
+import { HStack, IconButton, Show, Text } from '@chakra-ui/react';
 import {
   ColumnPinningState,
   createColumnHelper,
@@ -40,6 +40,7 @@ import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerA
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { HistoricalChart } from './historical-chart';
 import { useEventListener } from 'usehooks-ts';
+import { PiExportDuotone } from 'react-icons/pi';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -57,7 +58,7 @@ const columns = [
         {cell.row.original.highlightedCompanyName ?? cell.getValue()}
       </EllipsisText>
     ),
-    meta: { width: 200 },
+    meta: { width: 200, showExportIcon: true },
     enableSorting: false,
     enableColumnFilter: false
   }),
@@ -375,6 +376,24 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
     }
   });
 
+  const exportTickerList = () => {
+    // Prepare data
+    const currentTickers = table
+      .getRowModel()
+      .rows.map((row) => `${row.original.ticker}`)
+      .join(',');
+
+    // Create a blob
+    const blob = new Blob([currentTickers], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    // Create a link to download it
+    const pom = document.createElement('a');
+    pom.href = url;
+    pom.setAttribute('download', 'ticker-list.csv');
+    pom.click();
+  };
+
   return (
     <>
       <PanelGroup autoSaveId="panel-group" direction="horizontal">
@@ -400,7 +419,14 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
               {table.getHeaderGroups().map((headerGroup) => (
                 <div key={headerGroup.id} className="grid-row-header" style={gridColumnStyle}>
                   {headerGroup.headers.map((header) => {
-                    return <GridHeaderCell key={header.id} header={header} resetPageIndex={resetPageIndex} />;
+                    return (
+                      <GridHeaderCell
+                        key={header.id}
+                        header={header}
+                        exportData={exportTickerList}
+                        resetPageIndex={resetPageIndex}
+                      />
+                    );
                   })}
                 </div>
               ))}
@@ -443,13 +469,21 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
   );
 };
 
-const GridHeaderCell = <T,>({ header, resetPageIndex }: ColumnHeaderProps<T>) => {
+const GridHeaderCell = <T,>({ header, exportData, resetPageIndex }: ColumnHeaderProps<T>) => {
   const canSort = header.column.getCanSort();
   const isFilterNotReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length === 0;
   const isFilterReady = header.column.getCanFilter() && header.column.getFacetedRowModel().rows.length > 0;
   const width = header.column.columnDef.meta?.width ?? 'auto';
   const filterVariant = header.column.columnDef.meta?.filterVariant;
   const isPinned = header.column.getIsPinned();
+  const showExportIcon = header.column.columnDef.meta?.showExportIcon;
+
+  const exportTickerList = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    if (exportData) {
+      exportData();
+    }
+  };
 
   return (
     <div
@@ -464,6 +498,11 @@ const GridHeaderCell = <T,>({ header, resetPageIndex }: ColumnHeaderProps<T>) =>
           {flexRender(header.column.columnDef.header, header.getContext())}
         </div>
         {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
+        {showExportIcon && (
+          <IconButton size="2xs" variant="plain" className="export-icon" color="gray.300" onClick={exportTickerList}>
+            <PiExportDuotone title="Export ticker list" />
+          </IconButton>
+        )}
         {isFilterNotReady && <FilterEmpty />}
         {isFilterReady && (
           <Filter

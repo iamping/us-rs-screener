@@ -11,5 +11,6 @@ declare module '@tanstack/react-table' {
     filterNote?: string;
     sticky?: boolean;
     selectOptions?: SelectOption[];
+    showExportIcon?: boolean;
   }
 }

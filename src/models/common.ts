@@ -17,6 +17,7 @@ export interface DataTableState {
 export interface ColumnHeaderProps<T> {
   header: Header<T, unknown>;
   resetPageIndex: () => void;
+  exportData?: () => void;
 }
 
 // Table Cell

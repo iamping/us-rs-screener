@@ -28,7 +28,8 @@ import {
   percentChangeOptions,
   priceOptions,
   relativeVolOptions,
-  rsRatingOptions
+  rsRatingOptions,
+  tableGlobal
 } from '../../utils/table.util';
 import { EmptyState } from '../ui/empty-state';
 import { AiOutlineStock } from 'react-icons/ai';
@@ -58,7 +59,7 @@ const columns = [
         {cell.row.original.highlightedCompanyName ?? cell.getValue()}
       </EllipsisText>
     ),
-    meta: { width: 200, showExportIcon: true },
+    meta: { width: 200 },
     enableSorting: false,
     enableColumnFilter: false
   }),
@@ -207,6 +208,46 @@ const columns = [
     },
     filterFn: amountFilterFn(rsRatingOptions)
   }),
+  columnHelper.accessor('asRating1M', {
+    header: () => <Text textAlign="right">AS 1M</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: rsRatingOptions
+    },
+    filterFn: amountFilterFn(rsRatingOptions)
+  }),
+  columnHelper.accessor('asRating3M', {
+    header: () => <Text textAlign="right">AS 3M</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: rsRatingOptions
+    },
+    filterFn: amountFilterFn(rsRatingOptions)
+  }),
+  columnHelper.accessor('asRating6M', {
+    header: () => <Text textAlign="right">AS 6M</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: rsRatingOptions
+    },
+    filterFn: amountFilterFn(rsRatingOptions)
+  }),
+  columnHelper.accessor('asRating1Y', {
+    header: () => <Text textAlign="right">AS 1Y</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: rsRatingOptions
+    },
+    filterFn: amountFilterFn(rsRatingOptions)
+  }),
   columnHelper.accessor('sectorRank', {
     header: () => <Text textAlign="right">Sector Rank</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
@@ -301,6 +342,9 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
     autoResetExpanded: false
   });
 
+  // set table instance in global state
+  tableGlobal.table = table;
+
   const resetPageIndex = useCallback(() => {
     listRef.current?.scrollToIndex({
       index: 0,
@@ -376,24 +420,6 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
     }
   });
 
-  const exportTickerList = () => {
-    // Prepare data
-    const currentTickers = table
-      .getRowModel()
-      .rows.map((row) => `${row.original.ticker}`)
-      .join(',');
-
-    // Create a blob
-    const blob = new Blob([currentTickers], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-
-    // Create a link to download it
-    const pom = document.createElement('a');
-    pom.href = url;
-    pom.setAttribute('download', 'ticker-list.csv');
-    pom.click();
-  };
-
   return (
     <>
       <PanelGroup autoSaveId="panel-group" direction="horizontal">
@@ -419,14 +445,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
               {table.getHeaderGroups().map((headerGroup) => (
                 <div key={headerGroup.id} className="grid-row-header" style={gridColumnStyle}>
                   {headerGroup.headers.map((header) => {
-                    return (
-                      <GridHeaderCell
-                        key={header.id}
-                        header={header}
-                        exportData={exportTickerList}
-                        resetPageIndex={resetPageIndex}
-                      />
-                    );
+                    return <GridHeaderCell key={header.id} header={header} resetPageIndex={resetPageIndex} />;
                   })}
                 </div>
               ))}

@@ -8,6 +8,7 @@ import { useMediaQuery } from 'usehooks-ts';
 import { useMemo } from 'react';
 import { SearchBox } from './search-box';
 import { mobileMediaQuery } from '../../utils/common.util';
+import { ExportData } from './export-data';
 
 export const Topbar = () => {
   const rowCount = useAtomValue(rowCountAtom);
@@ -55,6 +56,7 @@ export const Topbar = () => {
         <Spacer />
       </Show>
       <SearchBox />
+      <ExportData />
       <Settings />
     </HStack>
   );

@@ -7,7 +7,7 @@ import { DropdownProps, SelectOption } from '../../models/common';
 import { useAtom, useAtomValue } from 'jotai';
 import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '../../state/atom';
 import { useMediaQuery } from 'usehooks-ts';
-import { mobileMediaQuery } from '../../utils/common.util';
+import { getAbbreviation, mobileMediaQuery } from '../../utils/common.util';
 
 export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
   const filterChanged = useAtomValue(manualFilterAtom);
@@ -59,9 +59,9 @@ export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
       <PopoverTrigger asChild>
         <Button as={'div'} size="xs" variant="outline" border={0} paddingRight={1}>
           <Text color="gray.500">
-            {isMobile && type === 'View' ? `` : `${type}: `}
+            {isMobile ? `` : `${type}: `}
             <Text as="span" color="black">
-              {value.title}
+              {isMobile && type === 'Preset' ? getAbbreviation(value.title) : value.title}
             </Text>
           </Text>
           <IconButton size="2xs" variant="plain">

@@ -1,4 +1,4 @@
-import { ColumnFiltersState, Row } from '@tanstack/react-table';
+import { ColumnFiltersState, Row, Table } from '@tanstack/react-table';
 import { Stock } from '../models/stock';
 import { ColumnVisibility, Operator, SelectOption, Settings, TRecord } from '../models/common';
 
@@ -489,4 +489,8 @@ export const dataMapping = (stocks: Stock[]) => {
     insideDay: e.insideDay === 0 ? 'No' : 'Yes',
     key: i + 1
   }));
+};
+
+export const tableGlobal: { table: Table<Stock> | null } = {
+  table: null
 };

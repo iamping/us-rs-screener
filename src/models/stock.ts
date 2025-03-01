@@ -29,6 +29,10 @@ export interface Stock {
   rsRating3M: number;
   rsRating6M: number;
   rsRating1Y: number;
+  asRating1M: number;
+  asRating3M: number;
+  asRating6M: number;
+  asRating1Y: number;
   sectorRank: number;
   industryRank: number;
   pocketPivot: number | string;

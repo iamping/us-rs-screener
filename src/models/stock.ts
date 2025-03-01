@@ -35,6 +35,7 @@ export interface Stock {
   asRating1Y: number;
   sectorRank: number;
   industryRank: number;
+  industryRankByAs: number;
   pocketPivot: number | string;
   rsNewHigh: number | string;
   tightRange: number | string;

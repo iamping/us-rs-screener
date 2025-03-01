@@ -248,23 +248,17 @@ const columns = [
     },
     filterFn: amountFilterFn(rsRatingOptions)
   }),
-  columnHelper.accessor('sectorRank', {
-    header: () => <Text textAlign="right">Sector Rank</Text>,
-    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 150, filterVariant: 'range' },
-    filterFn: 'inNumberRange'
-  }),
-  columnHelper.accessor('industryRank', {
-    header: () => <Text textAlign="right">Industry Rank</Text>,
-    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
-    meta: { width: 160, filterVariant: 'range' },
-    filterFn: 'inNumberRange'
-  }),
   columnHelper.accessor('sector', {
     header: () => 'Sector',
     cell: (cell) => cell.getValue(),
     meta: { width: 200, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
+  }),
+  columnHelper.accessor('sectorRank', {
+    header: () => <Text textAlign="right">Sector Rank</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: { width: 150, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('industry', {
     header: () => 'Industry',
@@ -275,6 +269,18 @@ const columns = [
     ),
     meta: { width: 250, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
+  }),
+  columnHelper.accessor('industryRank', {
+    header: () => <Text textAlign="right">Industry Rank by RS</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: { width: 200, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
+  }),
+  columnHelper.accessor('industryRankByAs', {
+    header: () => <Text textAlign="right">Industry Rank by AS</Text>,
+    cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
+    meta: { width: 200, filterVariant: 'range' },
+    filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('pocketPivot', {
     header: () => 'Pocket Pivot',

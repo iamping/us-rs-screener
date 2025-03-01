@@ -35,7 +35,7 @@ export const ExportData = () => {
   return (
     <>
       <IconButton
-        title="Settings"
+        title="Export ticker list"
         size="xs"
         variant="outline"
         border={0}

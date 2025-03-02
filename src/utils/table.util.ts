@@ -33,29 +33,57 @@ export const marketCapOptions: SelectOption[] = [
     value: 'titan',
     title: '200B and above',
     description: 'Titans',
-    operator: '>=',
-    compareNumber1: 200000000000
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 200000000000
+        }
+      ]
+    }
   },
   {
     value: 'large',
     title: '5B and above',
     description: 'Large caps+',
-    operator: '>=',
-    compareNumber1: 5000000000
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 5000000000
+        }
+      ]
+    }
   },
   {
     value: 'middle',
     title: '2B and above',
     description: 'Middlers+',
-    operator: '>=',
-    compareNumber1: 2000000000
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 2000000000
+        }
+      ]
+    }
   },
   {
     value: 'small',
     title: 'Under 2B',
     description: 'Small caps',
-    operator: '<',
-    compareNumber1: 2000000000
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '<',
+          compareNumber: 2000000000
+        }
+      ]
+    }
   }
 ];
 
@@ -63,20 +91,41 @@ export const avgDollarVolOptions: SelectOption[] = [
   {
     value: '20up',
     title: '20M and above',
-    operator: '>=',
-    compareNumber1: 20000000
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 20000000
+        }
+      ]
+    }
   },
   {
     value: '10up',
     title: '10M and above',
-    operator: '>=',
-    compareNumber1: 10000000
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 10000000
+        }
+      ]
+    }
   },
   {
     value: 'under10',
     title: 'Under 10M',
-    operator: '<',
-    compareNumber1: 10000000
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '<',
+          compareNumber: 10000000
+        }
+      ]
+    }
   }
 ];
 
@@ -85,29 +134,57 @@ export const rsRatingOptions: SelectOption[] = [
     value: '90up',
     title: '90 and above',
     description: 'Pack your spacesuit',
-    operator: '>=',
-    compareNumber1: 90
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 90
+        }
+      ]
+    }
   },
   {
     value: '80up',
     title: '80 and above',
     description: 'Heading somewhere',
-    operator: '>=',
-    compareNumber1: 80
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 80
+        }
+      ]
+    }
   },
   {
     value: '70up',
     title: '70 and above',
     description: "It's something",
-    operator: '>=',
-    compareNumber1: 70
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 70
+        }
+      ]
+    }
   },
   {
     value: 'under70',
     title: 'Under 70',
     description: 'No expectation',
-    operator: '<',
-    compareNumber1: 70
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '<',
+          compareNumber: 70
+        }
+      ]
+    }
   }
 ];
 
@@ -116,44 +193,86 @@ export const percentChangeOptions: SelectOption[] = [
     value: '30up',
     title: '30% and above',
     description: 'To the moon',
-    operator: '>=',
-    compareNumber1: 30
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 30
+        }
+      ]
+    }
   },
   {
     value: '20up',
     title: '20% and above',
     description: 'A fistful of dollars',
-    operator: '>=',
-    compareNumber1: 20
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 20
+        }
+      ]
+    }
   },
   {
     value: '10up',
     title: '10% and above',
     description: 'Heading somewhere',
-    operator: '>=',
-    compareNumber1: 10
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 10
+        }
+      ]
+    }
   },
   {
     value: '0to10',
     title: '0% to 10%',
     description: 'Modest momentum',
-    operator: 'between',
-    compareNumber1: 0,
-    compareNumber2: 10
+    compareOption: {
+      type: 'bound-fixed',
+      params: [
+        {
+          operator: 'bound-inclusive',
+          lowerBound: 0,
+          upperBound: 10
+        }
+      ]
+    }
   },
   {
     value: '0up',
     title: '0% and above',
     description: 'In the green',
-    operator: '>=',
-    compareNumber1: 0
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 0
+        }
+      ]
+    }
   },
   {
     value: 'under0',
     title: 'Under 0%',
     description: 'In the red',
-    operator: '<',
-    compareNumber1: 0
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '<',
+          compareNumber: 0
+        }
+      ]
+    }
   }
 ];
 
@@ -161,20 +280,41 @@ export const relativeVolOptions: SelectOption[] = [
   {
     value: '2up',
     title: '2.0 and above',
-    operator: '>=',
-    compareNumber1: 2
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 2
+        }
+      ]
+    }
   },
   {
     value: '1up',
     title: '1.0 and above',
-    operator: '>=',
-    compareNumber1: 1
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 1
+        }
+      ]
+    }
   },
   {
     value: 'under1',
     title: 'Under 1.0',
-    operator: '<',
-    compareNumber1: 1
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '<',
+          compareNumber: 1
+        }
+      ]
+    }
   }
 ];
 
@@ -182,136 +322,180 @@ export const priceOptions: SelectOption[] = [
   {
     value: 'gtEMA21',
     title: 'Above EMA21',
-    operator: '>=',
-    compareFields: ['ema21']
+    compareOption: {
+      type: 'compare-field',
+      params: [{ operator: '>=', compareField: 'ema21' }]
+    }
   },
   {
     value: 'gtEMA50',
     title: 'Above EMA50',
-    operator: '>=',
-    compareFields: ['ema50']
+    compareOption: {
+      type: 'compare-field',
+      params: [{ operator: '>=', compareField: 'ema50' }]
+    }
   },
   {
     value: 'gtEMA200',
     title: 'Above EMA200',
-    operator: '>=',
-    compareFields: ['ema200']
+    compareOption: {
+      type: 'compare-field',
+      params: [{ operator: '>=', compareField: 'ema200' }]
+    }
   },
   {
     value: 'markPriceTemplateMAs',
     title: 'Mark MAs',
     description: 'Above Key EMAs',
-    operator: 'chain-gt',
-    compareFields: ['ema21', 'ema50', 'ema150', 'ema200', 'ema2001M']
+    compareOption: {
+      type: 'chain',
+      params: [{ operator: 'chain-gt-exclusive', compareFields: ['ema21', 'ema50', 'ema150', 'ema200', 'ema2001M'] }]
+    }
   },
   {
-    value: 'markMAsLoose',
+    value: 'markMAs150-200',
     title: 'Mark MAs 150/200',
     description: 'Above 150/200 EMAs',
-    operator: 'chain-gt',
-    compareFields: ['ema150', 'ema200', 'ema2001M']
+    compareOption: {
+      type: 'chain',
+      params: [{ operator: 'chain-gt-exclusive', compareFields: ['ema150', 'ema200', 'ema2001M'] }]
+    }
+  },
+  {
+    value: 'near21/50EMA',
+    title: 'Near 21/50 EMA',
+    description: '-5% to 5%',
+    compareOption: {
+      type: 'bound-percent',
+      params: [
+        {
+          operator: 'bound-exclusive',
+          compareField: 'ema21',
+          comparePercent: 5
+        },
+        {
+          operator: 'bound-exclusive',
+          compareField: 'ema50',
+          comparePercent: 5
+        }
+      ]
+    }
   },
   {
     value: 'above52WLow',
     title: 'Above 52W Low',
     description: 'More than 30%',
-    operator: '>',
-    compareFields: ['wk52Low'],
-    comparePercent: 0.3
+    compareOption: {
+      type: 'compare-field-percent',
+      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: 30 }]
+    }
   },
   {
     value: 'near52WHigh',
     title: 'Near 52W High',
     description: 'Not lower than 25%',
-    operator: '>=',
-    compareFields: ['wk52High'],
-    comparePercent: -0.25
+    compareOption: {
+      type: 'compare-field-percent',
+      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: -25 }]
+    }
   }
 ];
 
 export const amountFilterFn =
   (optionList: SelectOption[]) =>
   <T>(row: Row<T>, columnId: string, filterValue: string) => {
-    const option = optionList.find((e) => e.value === filterValue);
-    const operator = option?.operator ?? '';
+    const option = optionList.find((e) => e.value === filterValue)!;
+    if (!option) return false;
+    const compareOption = option.compareOption!;
+    const compareType = compareOption.type;
     const record = row as TRecord<T>;
-    const compareFields = option?.compareFields ?? [];
-    if (compareFields.length > 0) {
-      if (compareFields.length === 1) {
-        const compareNumber1 = record.original[compareFields[0]];
-        const compareNumber2 = 0;
-        if (compareNumber1 > 0) {
-          return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
-        }
-      } else {
-        const values = [Number(row.getValue(columnId)), ...compareFields.map((field) => record.original[field])];
-        return compareChainFn(operator, values);
+    switch (compareType) {
+      case 'fixed':
+        return compareOption.params.every((param) => {
+          return compareFn(param.operator, Number(row.getValue(columnId)), param.compareNumber);
+        });
+      case 'compare-field':
+        return compareOption.params.every((param) => {
+          return compareFn(param.operator, Number(row.getValue(columnId)), record.original[param.compareField]);
+        });
+      case 'compare-field-percent':
+        return compareOption.params.every((param) => {
+          const compareNumber = (1 + param.comparePercent / 100) * record.original[param.compareField];
+          return compareFn(param.operator, Number(row.getValue(columnId)), compareNumber);
+        });
+      case 'bound-fixed':
+        return compareOption.params.every((param) => {
+          return boundFn(param.operator, Number(row.getValue(columnId)), param.lowerBound, param.upperBound);
+        });
+      case 'bound-percent':
+        return compareOption.params.every((param) => {
+          const upperBound = (1 + param.comparePercent / 100) * record.original[param.compareField];
+          const lowerBound = (1 - param.comparePercent / 100) * record.original[param.compareField];
+          return boundFn(param.operator, Number(row.getValue(columnId)), lowerBound, upperBound);
+        });
+      case 'chain': {
+        return compareOption.params.every((param) => {
+          const compareValues = param.compareFields.map((field) => record.original[field]);
+          const values = [Number(row.getValue(columnId)), ...compareValues];
+          return compareChainFn(param.operator, values);
+        });
       }
-
-      return false;
-    } else {
-      const compareNumber1 = option?.compareNumber1 ?? 0;
-      const compareNumber2 = option?.compareNumber2 ?? 0;
-      return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
+      default:
+        return false;
     }
   };
 
 export const multiSelectFilterFn = (optionList: SelectOption[]) => {
   const fn = <T>(row: Row<T>, columnId: string, filterValues: string[]) => {
     return filterValues.every((filterValue) => {
-      const option = optionList.find((e) => e.value === filterValue);
-      const operator = option?.operator ?? '';
-      const record = row as TRecord<T>;
-      const compareFields = option?.compareFields ?? [];
-      if (compareFields.length > 0) {
-        if (compareFields.length === 1) {
-          const compareNumber1 = option?.comparePercent
-            ? (1 + option.comparePercent) * record.original[compareFields[0]]
-            : record.original[compareFields[0]];
-          const compareNumber2 = 0;
-          if (compareNumber1 > 0) {
-            return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
-          }
-        } else {
-          const values = [Number(row.getValue(columnId)), ...compareFields.map((field) => record.original[field])];
-          return compareChainFn(operator, values);
-        }
-
-        return false;
-      } else {
-        const compareNumber1 = option?.compareNumber1 ?? 0;
-        const compareNumber2 = option?.compareNumber2 ?? 0;
-        return compareFn(operator, Number(row.getValue(columnId)), compareNumber1, compareNumber2);
-      }
+      return amountFilterFn(optionList)(row, columnId, filterValue);
     });
   };
   fn.autoRemove = (val: string[]) => !val?.length;
   return fn;
 };
 
-const compareFn = (operator: Operator, source: number, number1: number, number2: number) => {
+const compareFn = (operator: Operator, source: number, compareNumber: number) => {
   switch (operator) {
     case '>=':
-      return source >= number1;
+      return source >= compareNumber;
     case '<=':
-      return source <= number1;
+      return source <= compareNumber;
     case '<':
-      return source < number1;
+      return source < compareNumber;
     case '>':
-      return source > number1;
-    case 'between':
-      return source >= number1 && source <= number2;
+      return source > compareNumber;
+    case '=':
+      return source === compareNumber;
+    case '<>':
+      return source !== compareNumber;
+  }
+  return false;
+};
+
+const boundFn = (operator: Operator, source: number, lowerBound: number, upperBound: number) => {
+  switch (operator) {
+    case 'bound-inclusive':
+      return source >= lowerBound && source <= upperBound;
+    case 'bound-exclusive':
+      return source > lowerBound && source < upperBound;
   }
   return false;
 };
 
 const compareChainFn = (operator: Operator, values: number[]) => {
   switch (operator) {
-    case 'chain-gt':
+    case 'chain-gt-exclusive':
       return values.every((val, idx, arr) => {
         if (val === 0) return false;
         if (idx === arr.length - 1) return true;
         return val > arr[idx + 1];
+      });
+    case 'chain-gt-inclusive':
+      return values.every((val, idx, arr) => {
+        if (val === 0) return false;
+        if (idx === arr.length - 1) return true;
+        return val >= arr[idx + 1];
       });
   }
   return false;
@@ -399,7 +583,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'close',
-        value: ['markMAsLoose', 'above52WLow', 'near52WHigh']
+        value: ['markMAs150-200', 'above52WLow', 'near52WHigh']
       },
       {
         id: 'marketCap',

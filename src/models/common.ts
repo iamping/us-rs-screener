@@ -71,16 +71,63 @@ export interface MultiSelectFilterProps {
   onChange: (val: string[]) => void;
 }
 
-export type Operator = '>=' | '<' | 'between' | '!==' | '<=' | '=' | '>' | 'chain-gt' | '';
+export type CompareOperator = '>=' | '>' | '<>' | '<=' | '<' | '=';
+export type BoundOperator = 'bound-inclusive' | 'bound-exclusive';
+export type ChainOperator = 'chain-gt-exclusive' | 'chain-gt-inclusive';
+export type Operator = CompareOperator | BoundOperator | ChainOperator;
+
+export type CompareOption =
+  | {
+      type: 'fixed';
+      params: Array<{
+        operator: CompareOperator;
+        compareNumber: number;
+      }>;
+    }
+  | {
+      type: 'compare-field';
+      params: Array<{
+        operator: CompareOperator;
+        compareField: string;
+      }>;
+    }
+  | {
+      type: 'compare-field-percent';
+      params: Array<{
+        operator: CompareOperator;
+        compareField: string;
+        comparePercent: number;
+      }>;
+    }
+  | {
+      type: 'bound-fixed';
+      params: Array<{
+        operator: BoundOperator;
+        lowerBound: number;
+        upperBound: number;
+      }>;
+    }
+  | {
+      type: 'bound-percent';
+      params: Array<{
+        operator: BoundOperator;
+        compareField: string;
+        comparePercent: number;
+      }>;
+    }
+  | {
+      type: 'chain';
+      params: Array<{
+        operator: ChainOperator;
+        compareFields: string[];
+      }>;
+    };
+
 export interface SelectOption {
   value: string;
   title: string;
   description?: string;
-  operator?: Operator;
-  compareNumber1?: number;
-  compareNumber2?: number;
-  compareFields?: string[];
-  comparePercent?: number;
+  compareOption?: CompareOption;
   presetStates?: ColumnFiltersState;
   columnVisibility?: ColumnVisibility;
 }

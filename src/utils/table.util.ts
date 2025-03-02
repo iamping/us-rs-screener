@@ -344,6 +344,14 @@ export const priceOptions: SelectOption[] = [
     }
   },
   {
+    value: 'gtEMA150/200',
+    title: 'Above EMA150/200',
+    compareOption: {
+      type: 'chain',
+      params: [{ operator: 'chain-gt-exclusive', compareFields: ['ema150', 'ema200', 'ema2001M'] }]
+    }
+  },
+  {
     value: 'markPriceTemplateMAs',
     title: 'Mark MAs',
     description: 'Above Key EMAs',
@@ -353,12 +361,21 @@ export const priceOptions: SelectOption[] = [
     }
   },
   {
-    value: 'markMAs150-200',
-    title: 'Mark MAs 150/200',
-    description: 'Above 150/200 EMAs',
+    value: 'above52WLow',
+    title: 'Above 52W Low',
+    description: 'More than 30%',
     compareOption: {
-      type: 'chain',
-      params: [{ operator: 'chain-gt-exclusive', compareFields: ['ema150', 'ema200', 'ema2001M'] }]
+      type: 'compare-field-percent',
+      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: 30 }]
+    }
+  },
+  {
+    value: 'near52WHigh',
+    title: 'Near 52W High',
+    description: 'Not lower than 25%',
+    compareOption: {
+      type: 'compare-field-percent',
+      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: -25 }]
     }
   },
   {
@@ -379,24 +396,6 @@ export const priceOptions: SelectOption[] = [
           comparePercent: 5
         }
       ]
-    }
-  },
-  {
-    value: 'above52WLow',
-    title: 'Above 52W Low',
-    description: 'More than 30%',
-    compareOption: {
-      type: 'compare-field-percent',
-      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: 30 }]
-    }
-  },
-  {
-    value: 'near52WHigh',
-    title: 'Near 52W High',
-    description: 'Not lower than 25%',
-    compareOption: {
-      type: 'compare-field-percent',
-      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: -25 }]
     }
   }
 ];
@@ -569,9 +568,9 @@ export const presetOptions: SelectOption[] = [
     ]
   },
   {
-    value: 'markLoose',
-    title: 'Mark Loose Template',
-    description: 'Loose screener',
+    value: 'uptrend',
+    title: 'Uptrend',
+    description: 'Probably uptrend',
     presetStates: [
       {
         id: 'rsRating',
@@ -583,7 +582,30 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'close',
-        value: ['markMAs150-200', 'above52WLow', 'near52WHigh']
+        value: ['gtEMA150/200', 'above52WLow', 'near52WHigh']
+      },
+      {
+        id: 'marketCap',
+        value: 'large'
+      }
+    ]
+  },
+  {
+    value: 'uptrend+',
+    title: 'Uptrend + Near 21/50',
+    description: 'Near EMA21/50',
+    presetStates: [
+      {
+        id: 'rsRating',
+        value: '70up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '20up'
+      },
+      {
+        id: 'close',
+        value: ['gtEMA150/200', 'above52WLow', 'near52WHigh', 'near21/50EMA']
       },
       {
         id: 'marketCap',

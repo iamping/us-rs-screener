@@ -6,7 +6,6 @@ import { IconButton } from '@chakra-ui/react';
 export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) => {
   let icon = null;
   let color = null;
-  const sortDirection = props.sortDirection || '';
   switch (props.sortDirection) {
     case 'asc':
       icon = <PiSortDescendingBold title="Sort asc" />;
@@ -23,7 +22,7 @@ export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) =>
   }
 
   return (
-    <IconButton className={`sort-icon${sortDirection}`} size="2xs" variant="plain" color={color}>
+    <IconButton className={`sort-icon`} size="2xs" variant="plain" color={color} minWidth={'fit-content'}>
       {icon}
     </IconButton>
   );

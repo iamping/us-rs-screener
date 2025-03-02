@@ -114,10 +114,7 @@ h6 {
   background: var(--chakra-colors-white);
   font-weight: 500;
   text-align: left;
-  padding: 8px 4px 8px 8px;
-  &:last-child {
-    padding-right: 8px;
-  }
+  padding: 8px;
   &.sort {
     cursor: pointer;
   }

@@ -518,10 +518,8 @@ const GridHeaderCell = <T,>({ header, exportData, resetPageIndex }: ColumnHeader
         minWidth: `${width}px`
       }}
       onClick={header.column.getToggleSortingHandler()}>
-      <div style={{ display: 'flex', gap: 0 }}>
-        <div style={{ flexGrow: 1, marginRight: '4px' }}>
-          {flexRender(header.column.columnDef.header, header.getContext())}
-        </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ flexGrow: 1 }}>{flexRender(header.column.columnDef.header, header.getContext())}</div>
         {canSort && <SortIcon sortDirection={header.column.getIsSorted()} />}
         {showExportIcon && (
           <IconButton size="2xs" variant="plain" className="export-icon" color="gray.300" onClick={exportTickerList}>

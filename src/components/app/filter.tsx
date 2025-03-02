@@ -20,7 +20,12 @@ import { mobileLandscapeQuery } from '../../utils/common.util';
 
 export const FilterEmpty = () => {
   return (
-    <IconButton size="2xs" color="gray.300" variant="ghost" onClick={(e) => e.stopPropagation()}>
+    <IconButton
+      minWidth={'fit-content'}
+      size="2xs"
+      color="gray.300"
+      variant="ghost"
+      onClick={(e) => e.stopPropagation()}>
       <PiFunnelBold />
     </IconButton>
   );
@@ -84,6 +89,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
           size="2xs"
           color={column.getIsFiltered() ? 'black' : 'gray.300'}
           variant="plain"
+          minWidth={'fit-content'}
           onClick={(e) => e.stopPropagation()}>
           <PiFunnelBold />
         </IconButton>

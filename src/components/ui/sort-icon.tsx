@@ -4,26 +4,34 @@ import { PiListBold, PiSortAscendingBold, PiSortDescendingBold } from 'react-ico
 import { IconButton } from '@chakra-ui/react';
 
 export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) => {
+  const { icon, color, direction } = getSortDirectionIcon(props.sortDirection);
+  return (
+    <IconButton className={`sort-icon${direction}`} size="2xs" variant="plain" color={color} minWidth={'fit-content'}>
+      {icon}
+    </IconButton>
+  );
+};
+
+const getSortDirectionIcon = (sortDirection: false | SortDirection) => {
   let icon = null;
   let color = null;
-  switch (props.sortDirection) {
+  let direction = null;
+  switch (sortDirection) {
     case 'asc':
       icon = <PiSortDescendingBold title="Sort asc" />;
       color = 'black';
+      direction = 'asc';
       break;
     case 'desc':
       icon = <PiSortAscendingBold title="Sort desc" />;
       color = 'black';
+      direction = 'desc';
       break;
     default:
       icon = <PiListBold title="Original order" />;
       color = 'gray.300';
+      direction = '';
       break;
   }
-
-  return (
-    <IconButton className={`sort-icon`} size="2xs" variant="plain" color={color} minWidth={'fit-content'}>
-      {icon}
-    </IconButton>
-  );
+  return { icon, color, direction };
 };

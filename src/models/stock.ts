@@ -40,6 +40,7 @@ export interface Stock {
   rsNewHigh: number | string;
   tightRange: number | string;
   insideDay: number | string;
+  think40: number | string;
   ema21: number;
   ema50: number;
   ema150: number;

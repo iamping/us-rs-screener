@@ -303,7 +303,13 @@ const columns = [
   columnHelper.accessor('insideDay', {
     header: () => 'Inside Day',
     cell: (cell) => cell.getValue(),
-    meta: { width: 150, filterVariant: 'combo-box' },
+    meta: { width: 130, filterVariant: 'combo-box' },
+    filterFn: 'arrIncludesSome'
+  }),
+  columnHelper.accessor('think40', {
+    header: () => 'Think 40',
+    cell: (cell) => cell.getValue(),
+    meta: { width: 130, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   })
 ];

@@ -545,6 +545,29 @@ export const presetOptions: SelectOption[] = [
     ]
   },
   {
+    value: 'gainingAttraction',
+    title: 'Gaining Attraction',
+    description: 'Absolute Strength',
+    presetStates: [
+      {
+        id: 'asRating1M',
+        value: '80up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '20up'
+      },
+      {
+        id: 'close',
+        value: ['gtEMA150/200']
+      },
+      {
+        id: 'marketCap',
+        value: 'large'
+      }
+    ]
+  },
+  {
     value: 'mark',
     title: 'Mark Trend Template',
     description: 'Legendary screener',

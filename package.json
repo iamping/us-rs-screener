@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "production": "tsc -b && vite build && vite preview"
+    "production": "tsc -b && vite build && vite preview",
+    "build:cf": "tsc -b && vite build --base=/ && bash copyfile.sh"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.2.3",

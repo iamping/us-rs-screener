@@ -409,7 +409,7 @@ export const priceOptions: SelectOption[] = [
     description: 'Above Key EMAs',
     compareOption: {
       type: 'chain',
-      params: [{ operator: 'chain-gt-exclusive', compareFields: ['ema21', 'ema50', 'ema150', 'ema200', 'ema2001M'] }]
+      params: [{ operator: 'chain-gt-exclusive', compareFields: ['ema50', 'ema150', 'ema200', 'ema2001M'] }]
     }
   },
   {

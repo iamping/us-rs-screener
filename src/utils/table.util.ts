@@ -320,8 +320,57 @@ export const relativeVolOptions: SelectOption[] = [
 
 export const priceOptions: SelectOption[] = [
   {
+    value: 'above100',
+    title: '100 and above',
+    description: 'Fractional shares time',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 100
+        }
+      ]
+    }
+  },
+  {
+    value: 'above20',
+    title: '20 and above',
+    description: 'Mid-priced up',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 20
+        }
+      ]
+    }
+  },
+  {
+    value: '0to20',
+    title: '0 to 20',
+    description: 'Penny to mid-priced',
+    compareOption: {
+      type: 'bound-fixed',
+      params: [
+        {
+          operator: 'bound-inclusive',
+          lowerBound: 0,
+          upperBound: 10
+        }
+      ]
+    }
+  },
+  {
+    value: '',
+    title: '',
+    isSeparator: true
+  },
+  {
     value: 'gtEMA21',
     title: 'Above EMA21',
+    description: 'Price above EMA21',
     compareOption: {
       type: 'compare-field',
       params: [{ operator: '>=', compareField: 'ema21' }]
@@ -330,6 +379,7 @@ export const priceOptions: SelectOption[] = [
   {
     value: 'gtEMA50',
     title: 'Above EMA50',
+    description: 'Price above EMA50',
     compareOption: {
       type: 'compare-field',
       params: [{ operator: '>=', compareField: 'ema50' }]
@@ -338,6 +388,7 @@ export const priceOptions: SelectOption[] = [
   {
     value: 'gtEMA200',
     title: 'Above EMA200',
+    description: 'Price above EMA200',
     compareOption: {
       type: 'compare-field',
       params: [{ operator: '>=', compareField: 'ema200' }]
@@ -346,6 +397,7 @@ export const priceOptions: SelectOption[] = [
   {
     value: 'gtEMA150/200',
     title: 'Above EMA150/200',
+    description: 'Long-term uptrend',
     compareOption: {
       type: 'chain',
       params: [{ operator: 'chain-gt-exclusive', compareFields: ['ema150', 'ema200', 'ema2001M'] }]
@@ -560,10 +612,6 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'close',
         value: ['gtEMA150/200']
-      },
-      {
-        id: 'marketCap',
-        value: 'large'
       }
     ]
   },
@@ -577,16 +625,8 @@ export const presetOptions: SelectOption[] = [
         value: '70up'
       },
       {
-        id: 'avgDollarVolume',
-        value: '20up'
-      },
-      {
         id: 'close',
-        value: ['markPriceTemplateMAs', 'above52WLow', 'near52WHigh']
-      },
-      {
-        id: 'marketCap',
-        value: 'large'
+        value: ['markPriceTemplateMAs', 'above52WLow', 'near52WHigh', 'above20']
       }
     ]
   },
@@ -600,16 +640,8 @@ export const presetOptions: SelectOption[] = [
         value: '70up'
       },
       {
-        id: 'avgDollarVolume',
-        value: '20up'
-      },
-      {
         id: 'close',
         value: ['gtEMA150/200', 'above52WLow', 'near52WHigh']
-      },
-      {
-        id: 'marketCap',
-        value: 'large'
       }
     ]
   },
@@ -623,16 +655,8 @@ export const presetOptions: SelectOption[] = [
         value: '70up'
       },
       {
-        id: 'avgDollarVolume',
-        value: '20up'
-      },
-      {
         id: 'close',
         value: ['gtEMA150/200', 'above52WLow', 'near52WHigh', 'near21/50EMA']
-      },
-      {
-        id: 'marketCap',
-        value: 'large'
       }
     ]
   },
@@ -651,7 +675,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'marketCap',
-        value: 'large'
+        value: 'middle'
       },
       {
         id: 'think40',

@@ -2,6 +2,7 @@
 
 :root {
   --content-max-height: calc(100svh - 48px);
+  --select-filter-max-height: calc(100svh - 200px);
 }
 
 body {

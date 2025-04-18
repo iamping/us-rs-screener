@@ -3,7 +3,7 @@ import { ChangeEvent, CSSProperties, FC, ReactNode, useCallback, useEffect, useM
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
 import { PiFunnelBold, PiMagnifyingGlass, PiCheckBold, PiXDuotone } from 'react-icons/pi';
-import { useDebounceCallback, useMediaQuery } from 'usehooks-ts';
+import { useDebounceCallback } from 'usehooks-ts';
 import {
   FilterProps,
   RadioFilterProps,
@@ -16,7 +16,6 @@ import { manualFilterAtom } from '../../state/atom';
 import { InputGroup } from '../ui/input-group';
 import { EmptyState } from '../ui/empty-state';
 import fuzzysort from 'fuzzysort';
-import { mobileLandscapeQuery } from '../../utils/common.util';
 
 export const FilterEmpty = () => {
   return (
@@ -137,7 +136,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   );
 };
 
-export const RangeFilter: FC<RangeFilterProps> = ({ initialValue, min, max, onChange }) => {
+export const RangeFilter: FC<RangeFilterProps> = ({ id, initialValue, min, max, onChange }) => {
   const [value, setValue] = useState([min, max]);
   const debouncedChange = useDebounceCallback(onChange, 500);
   const onValueChange = (values: number[]) => {
@@ -150,7 +149,7 @@ export const RangeFilter: FC<RangeFilterProps> = ({ initialValue, min, max, onCh
   }, [initialValue]);
 
   return (
-    <>
+    <VStack id={`range-filter-${id}`} width="100%" gap={3}>
       <Slider
         size="md"
         width="90%"
@@ -164,7 +163,7 @@ export const RangeFilter: FC<RangeFilterProps> = ({ initialValue, min, max, onCh
         <Spacer />
         <Code>to: {value?.[1]}</Code>
       </HStack>
-    </>
+    </VStack>
   );
 };
 
@@ -243,67 +242,71 @@ export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
 
   return (
     <>
-      <Show when={enableSearch}>
-        <InputGroup
-          flex="1"
-          endElement={keyword.length === 0 ? <PiMagnifyingGlass /> : <PiXDuotone color="black" onClick={onClear} />}
-          endElementProps={{ paddingRight: 2 }}
-          width="100%">
-          <Input
-            ref={inputRef}
-            id={`${id}-checkbox-search`}
-            placeholder="Search items"
-            value={keyword}
-            size="xs"
-            focusRing="none"
-            _focus={{ borderColor: 'gray.300' }}
-            onChange={onInputChange}
-          />
-        </InputGroup>
-      </Show>
-      <div style={{ maxHeight: '200px', overflowY: 'auto', width: '100%' }} className="scrollbar">
-        <Show when={selectList.length > 0}>
-          {selectList.map((value, idx) => {
-            return (
-              <div
-                key={idx}
-                className="filter-selection-item"
-                style={{
-                  display: 'flex',
-                  gap: '8px',
-                  position: 'relative',
-                  padding: '4px',
-                  paddingLeft: '6px',
-                  background: idx === 0 ? 'var(--chakra-colors-gray-100)' : '',
-                  borderRadius: 4,
-                  alignItems: 'center'
-                }}>
-                <input
-                  id={`${id}-${value}`}
-                  type="checkbox"
-                  name={value}
-                  checked={values.includes(value)}
-                  onChange={(event) => onSelect(event, value)}
-                />
-                <label
-                  title={value}
-                  htmlFor={`${id}-${value}`}
+      <div id={`combo-box-filter-${id}`} style={{ width: '100%' }}>
+        <Show when={enableSearch}>
+          <InputGroup
+            flex="1"
+            marginBottom={2}
+            endElement={keyword.length === 0 ? <PiMagnifyingGlass /> : <PiXDuotone color="black" onClick={onClear} />}
+            endElementProps={{ paddingRight: 2 }}
+            width="100%">
+            <Input
+              ref={inputRef}
+              id={`${id}-checkbox-search`}
+              placeholder="Search items"
+              value={keyword}
+              size="xs"
+              focusRing="none"
+              _focus={{ borderColor: 'gray.300' }}
+              onChange={onInputChange}
+            />
+          </InputGroup>
+        </Show>
+        <div style={{ maxHeight: '200px', overflowY: 'auto', width: '100%' }} className="scrollbar">
+          <Show when={selectList.length > 0}>
+            {selectList.map((value, idx) => {
+              return (
+                <div
+                  key={idx}
+                  className="filter-selection-item"
                   style={{
-                    width: '85%',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    fontWeight: idx === 0 ? 500 : ''
+                    display: 'flex',
+                    gap: '8px',
+                    position: 'relative',
+                    padding: '4px',
+                    paddingLeft: '6px',
+                    background: idx === 0 ? 'var(--chakra-colors-gray-100)' : '',
+                    borderRadius: 4,
+                    alignItems: 'center',
+                    marginBottom: 4
                   }}>
-                  {highlight[value] ?? value}
-                </label>
-              </div>
-            );
-          })}
-        </Show>
-        <Show when={selectList.length === 0}>
-          <EmptyState width="100%" marginTop={4} title="No results found" description="Try adjusting keyword" />
-        </Show>
+                  <input
+                    id={`${id}-${value}`}
+                    type="checkbox"
+                    name={value}
+                    checked={values.includes(value)}
+                    onChange={(event) => onSelect(event, value)}
+                  />
+                  <label
+                    title={value}
+                    htmlFor={`${id}-${value}`}
+                    style={{
+                      width: '85%',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      fontWeight: idx === 0 ? 500 : ''
+                    }}>
+                    {highlight[value] ?? value}
+                  </label>
+                </div>
+              );
+            })}
+          </Show>
+          <Show when={selectList.length === 0}>
+            <EmptyState width="100%" marginTop={4} title="No results found" description="Try adjusting keyword" />
+          </Show>
+        </div>
       </div>
     </>
   );
@@ -317,15 +320,14 @@ export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList
     onChange(value);
   };
   const debouncedOnSelect = useDebounceCallback(onSelect, 0);
-  const isMobileLandscape = useMediaQuery(mobileLandscapeQuery);
-  const style: CSSProperties = isMobileLandscape ? { maxHeight: 180, overflowY: 'auto' } : {};
+  const style: CSSProperties = { maxHeight: 'var(--select-filter-max-height)', overflowY: 'auto' };
 
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
 
   return (
-    <VStack width="100%" gap={2} style={style}>
+    <VStack id={`radio-filter-${id}`} width="100%" gap={2} style={style} className="scrollbar">
       {optionList.map((e, idx) => {
         return (
           <VStack
@@ -382,53 +384,59 @@ export const MultiSelectFilter: FC<MultiSelectFilterProps> = ({ id, initialValue
     setValues(initialValue);
   }, [initialValue]);
 
-  const isMobileLandscape = useMediaQuery(mobileLandscapeQuery);
-  const style: CSSProperties = isMobileLandscape ? { maxHeight: 180, overflowY: 'auto' } : {};
+  const style: CSSProperties = { maxHeight: 'var(--select-filter-max-height)', overflowY: 'auto' };
 
   return (
-    <VStack width="100%" gap={2} style={style}>
+    <VStack id={`multi-select-filter-${id}`} width="100%" gap={2} style={style} className="scrollbar">
       {optionList.map((e, idx) => {
         return (
-          <VStack
-            as="label"
-            className="checkbox-wrapper"
-            key={idx}
-            width="100%"
-            alignItems="start"
-            gap={0}
-            padding="4px 4px 4px 8px"
-            borderRadius={5}>
-            <HStack justifyContent="space-between" width="100%">
-              <Text fontWeight={500}>{e.title}</Text>
-              <Box paddingTop={1} paddingRight={1} position="relative">
-                <input
-                  style={{ opacity: 0 }}
-                  className="checkbox"
-                  type="checkbox"
-                  value={e.value}
-                  name={`${id}`}
-                  id={`${id}-${e.value}-${idx}`}
-                  checked={values.includes(e.value)}
-                  onChange={(event) => onSelect(event, e.value)}
-                />
-                <PiCheckBold
-                  className="check-icon"
-                  size={16}
-                  style={{
-                    position: 'absolute',
-                    top: 4,
-                    right: 4,
-                    display: values.includes(e.value) ? 'inherit' : 'none'
-                  }}
-                />
-              </Box>
-            </HStack>
-            <Show when={!!e.description}>
-              <Text fontSize="sm" color="gray">
-                {e.description}
-              </Text>
+          <>
+            <Show when={!e.isSeparator}>
+              <VStack
+                as="label"
+                className="checkbox-wrapper"
+                key={idx}
+                width="100%"
+                alignItems="start"
+                gap={0}
+                padding="4px 4px 4px 8px"
+                borderRadius={5}>
+                <HStack justifyContent="space-between" width="100%">
+                  <Text fontWeight={500}>{e.title}</Text>
+                  <Box paddingTop={1} paddingRight={1} position="relative">
+                    <input
+                      style={{ opacity: 0 }}
+                      className="checkbox"
+                      type="checkbox"
+                      value={e.value}
+                      name={`${id}`}
+                      id={`${id}-${e.value}-${idx}`}
+                      checked={values.includes(e.value)}
+                      onChange={(event) => onSelect(event, e.value)}
+                    />
+                    <PiCheckBold
+                      className="check-icon"
+                      size={16}
+                      style={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        display: values.includes(e.value) ? 'inherit' : 'none'
+                      }}
+                    />
+                  </Box>
+                </HStack>
+                <Show when={!!e.description}>
+                  <Text fontSize="sm" color="gray">
+                    {e.description}
+                  </Text>
+                </Show>
+              </VStack>
             </Show>
-          </VStack>
+            <Show when={e.isSeparator}>
+              <Separator key={idx} />
+            </Show>
+          </>
         );
       })}
     </VStack>

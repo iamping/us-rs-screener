@@ -130,6 +130,7 @@ export interface SelectOption {
   compareOption?: CompareOption;
   presetStates?: ColumnFiltersState;
   columnVisibility?: ColumnVisibility;
+  isSeparator?: boolean;
 }
 
 export interface DropdownOption extends SelectOption {

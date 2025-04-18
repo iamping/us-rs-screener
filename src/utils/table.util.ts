@@ -375,7 +375,7 @@ export const priceOptions: SelectOption[] = [
     description: 'Not lower than 25%',
     compareOption: {
       type: 'compare-field-percent',
-      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: -25 }]
+      params: [{ operator: '>', compareField: 'wk52High', comparePercent: -25 }]
     }
   },
   {

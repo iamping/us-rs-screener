@@ -1,12 +1,12 @@
-import { FC, useEffect, useState } from 'react';
-import { fetchStockRsList } from './services/data.service';
-import { Stock } from './models/stock';
 import { Box, Show, Skeleton } from '@chakra-ui/react';
-import { DataTable } from './components/app/data-table';
-import { Topbar } from './components/app/topbar';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { filteredStockListAtom, stockListAtom } from './state/atom';
-import { dataMapping } from './utils/table.util';
+import { FC, useEffect, useState } from 'react';
+import { DataTable } from '@/features/screener/components/data-table';
+import { TopBar } from '@/features/screener/components/top-bar';
+import { fetchStockRsList } from '@/services/data.service';
+import { filteredStockListAtom, stockListAtom } from '@/state/atom';
+import { Stock } from '@/types/stock';
+import { dataMapping } from '@/utils/table.util';
 
 const App: FC = () => {
   const [error, setError] = useState<null | string>(null);
@@ -35,7 +35,7 @@ const App: FC = () => {
 
   return (
     <Box>
-      <Topbar />
+      <TopBar />
       <Show when={!loading}>
         <DataTable data={filteredStockList}></DataTable>
       </Show>

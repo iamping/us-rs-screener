@@ -1,5 +1,3 @@
-import { CSSProperties, FC, useCallback, useEffect, useRef, useState } from 'react';
-import { Stock } from '../../models/stock';
 import { HStack, IconButton, Show, Text } from '@chakra-ui/react';
 import {
   ColumnPinningState,
@@ -13,10 +11,22 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { SortIcon } from '../ui/sort-icon';
-import { formatDecimal, formatNumber } from '../../utils/common.util';
-import { EllipsisText } from '../ui/ellipsis-text';
-import { FilterEmpty, Filter } from './filter';
+import { useAtom, useSetAtom } from 'jotai';
+import { CSSProperties, FC, useCallback, useEffect, useRef, useState } from 'react';
+import { AiOutlineStock } from 'react-icons/ai';
+import { PiExportDuotone } from 'react-icons/pi';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { ViewportList, ViewportListRef } from 'react-viewport-list';
+import { useEventListener } from 'usehooks-ts';
+import { CloseButton } from '@/components/ui/close-button';
+import { EllipsisText } from '@/components/ui/ellipsis-text';
+import { EmptyState } from '@/components/ui/empty-state';
+import { SortIcon } from '@/components/ui/sort-icon';
+import { HistoricalChart } from '@/features/stock-chart/components/historical-chart';
+import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerAtom } from '@/state/atom';
+import { CellProps, ColumnHeaderProps, DataTableProps } from '@/types/common';
+import { Stock } from '@/types/stock';
+import { formatDecimal, formatNumber } from '@/utils/common.util';
 import {
   amountFilterFn,
   avgDollarVolOptions,
@@ -30,18 +40,8 @@ import {
   relativeVolOptions,
   rsRatingOptions,
   tableGlobal
-} from '../../utils/table.util';
-import { EmptyState } from '../ui/empty-state';
-import { AiOutlineStock } from 'react-icons/ai';
-import { CellProps, ColumnHeaderProps, DataTableProps } from '../../models/common';
-import { CloseButton } from '../ui/close-button';
-import { ViewportList, ViewportListRef } from 'react-viewport-list';
-import { useAtom, useSetAtom } from 'jotai';
-import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerAtom } from '../../state/atom';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { HistoricalChart } from './historical-chart';
-import { useEventListener } from 'usehooks-ts';
-import { PiExportDuotone } from 'react-icons/pi';
+} from '@/utils/table.util';
+import { Filter, FilterEmpty } from './data-table-filter';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();

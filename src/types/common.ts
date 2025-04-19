@@ -1,7 +1,7 @@
 import { Cell, Column, ColumnFiltersState, Header, Row, Table } from '@tanstack/react-table';
 import { RefObject } from 'react';
-import { Stock } from './stock';
 import { ViewportListRef } from 'react-viewport-list';
+import { Stock } from './stock';
 
 // Data Table
 export interface DataTableProps {

@@ -1,15 +1,15 @@
 import { Button, IconButton, Text, VStack } from '@chakra-ui/react';
+import { useAtom, useAtomValue } from 'jotai';
 import { FC, useEffect, useState } from 'react';
 import { PiCaretDownBold } from 'react-icons/pi';
-import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
-import { RadioFilter } from './filter';
-import { DropdownProps, SelectOption } from '../../models/common';
-import { useAtom, useAtomValue } from 'jotai';
-import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '../../state/atom';
 import { useMediaQuery } from 'usehooks-ts';
-import { getAbbreviation, mobileMediaQuery } from '../../utils/common.util';
+import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
+import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '@/state/atom';
+import { DropdownProps, SelectOption } from '@/types/common';
+import { getAbbreviation, mobileMediaQuery } from '@/utils/common.util';
+import { RadioFilter } from './data-table-filter';
 
-export const Dropdown: FC<DropdownProps> = ({ optionList, type }) => {
+export const PresetSelection: FC<DropdownProps> = ({ optionList, type }) => {
   const filterChanged = useAtomValue(manualFilterAtom);
   const dropdownFn = useAtomValue(dropdownFnAtom);
   const [dropdownState, setDropdownState] = useAtom(appDropdownAtom);

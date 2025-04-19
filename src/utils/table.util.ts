@@ -1,6 +1,6 @@
 import { ColumnFiltersState, Row, Table } from '@tanstack/react-table';
-import { Stock } from '../models/stock';
-import { ColumnVisibility, Operator, SelectOption, Settings, TRecord } from '../models/common';
+import { ColumnVisibility, Operator, SelectOption, Settings, TRecord } from '@/types/common';
+import { Stock } from '@/types/stock';
 
 export const fallBackData: Stock[] = [];
 

@@ -1,21 +1,21 @@
 import { Box, Button, Code, HStack, IconButton, Input, Separator, Show, Spacer, Text, VStack } from '@chakra-ui/react';
-import { ChangeEvent, CSSProperties, FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
-import { Slider } from '../ui/slider';
-import { PiFunnelBold, PiMagnifyingGlass, PiCheckBold, PiXDuotone } from 'react-icons/pi';
-import { useDebounceCallback } from 'usehooks-ts';
-import {
-  FilterProps,
-  RadioFilterProps,
-  RangeFilterProps,
-  ComboBoxFilterProps,
-  MultiSelectFilterProps
-} from '../../models/common';
-import { useSetAtom } from 'jotai';
-import { manualFilterAtom } from '../../state/atom';
-import { InputGroup } from '../ui/input-group';
-import { EmptyState } from '../ui/empty-state';
 import fuzzysort from 'fuzzysort';
+import { useSetAtom } from 'jotai';
+import { ChangeEvent, CSSProperties, FC, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PiCheckBold, PiFunnelBold, PiMagnifyingGlass, PiXDuotone } from 'react-icons/pi';
+import { useDebounceCallback } from 'usehooks-ts';
+import { EmptyState } from '@/components/ui/empty-state';
+import { InputGroup } from '@/components/ui/input-group';
+import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { manualFilterAtom } from '@/state/atom';
+import {
+  ComboBoxFilterProps,
+  FilterProps,
+  MultiSelectFilterProps,
+  RadioFilterProps,
+  RangeFilterProps
+} from '@/types/common';
 
 export const FilterEmpty = () => {
   return (

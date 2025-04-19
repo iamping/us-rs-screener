@@ -1,7 +1,8 @@
-import { atom } from 'jotai';
 import { ColumnFiltersState } from '@tanstack/react-table';
-import { ColumnVisibility } from '../models/common';
+import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
+import { ColumnVisibility } from '@/types/common';
+import { Stock, StockInfo } from '@/types/stock';
 import {
   defaultColumnVisibility,
   defaultFilterState,
@@ -9,8 +10,7 @@ import {
   defaultSettings,
   defaultView,
   initialFilter
-} from '../utils/table.util';
-import { Stock, StockInfo } from '../models/stock';
+} from '@/utils/table.util';
 
 export const rowCountAtom = atom(-1);
 

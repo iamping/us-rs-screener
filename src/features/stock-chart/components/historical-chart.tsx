@@ -1,16 +1,16 @@
-import { useAtomValue, useSetAtom } from 'jotai';
-import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { stockInfoAtom, stockListAtom } from '../../state/atom';
-import { fetchHistoricalData } from '../../services/data.service';
 import { Spinner, Text } from '@chakra-ui/react';
-import { HistoricalData } from '../../models/historical-data';
-import { chartGlobalOptions, chartOptions, prepareSeries } from '../../utils/chart.util';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact, { HighchartsReactRefObject } from 'highcharts-react-official';
-import 'highcharts/indicators/indicators';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounceCallback, useResizeObserver } from 'usehooks-ts';
-import { formatDecimal } from '../../utils/common.util';
-import { Stock } from '../../models/stock';
+import 'highcharts/indicators/indicators';
+import { fetchHistoricalData } from '@/services/data.service';
+import { stockInfoAtom, stockListAtom } from '@/state/atom';
+import { HistoricalData } from '@/types/historical-data';
+import { Stock } from '@/types/stock';
+import { chartGlobalOptions, chartOptions, prepareSeries } from '@/utils/chart.util';
+import { formatDecimal } from '@/utils/common.util';
 
 // Set global options before creating the chart
 Highcharts.setOptions(chartGlobalOptions);

@@ -1,13 +1,13 @@
 import { Heading, IconButton, Separator, Text, VStack } from '@chakra-ui/react';
+import { useAtom } from 'jotai';
 import { FC, useState } from 'react';
 import { PiGearBold } from 'react-icons/pi';
-import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
-import { Switch } from '../ui/switch';
-import { SettingsKey, SettingsProps } from '../../models/common';
-import { useAtom } from 'jotai';
-import { appSettingsAtom } from '../../state/atom';
+import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
+import { appSettingsAtom } from '@/state/atom';
+import { SettingsKey, SettingsProps } from '@/types/common';
 
-export const Settings: FC<SettingsProps> = () => {
+export const SettingsButton: FC<SettingsProps> = () => {
   const [currentSettings, saveSettings] = useAtom(appSettingsAtom);
   const [open, setOpen] = useState(false);
 

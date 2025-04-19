@@ -1,5 +1,5 @@
-import { HistoricalData } from '../models/historical-data';
-import { Stock } from '../models/stock';
+import { HistoricalData } from '@/types/historical-data';
+import { Stock } from '@/types/stock';
 
 const cacheKey = 'historical-' + new Date().toISOString().substring(0, 13);
 const timeout = 5000;
@@ -11,7 +11,8 @@ export const fetchStockRsList = async (): Promise<Stock[]> => {
 
 export const fetchHistoricalData = async (ticker: string): Promise<HistoricalData> => {
   const params = new URLSearchParams({ ticker: ticker }).toString();
-  const path = import.meta.env.DEV ? './historical-api' : 'https://yf-proxy.koyeb.app/';
+  // const path = import.meta.env.DEV ? './historical-api' : 'https://yf-proxy.koyeb.app/';
+  const path = 'https://yf-proxy.koyeb.app/';
   const url = `${path}?${params}`;
   return await fetchOrRetrieve(url, cacheKey);
 };

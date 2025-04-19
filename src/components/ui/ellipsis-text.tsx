@@ -1,5 +1,4 @@
-import { TextProps } from '@chakra-ui/react';
-import { Text } from '@chakra-ui/react';
+import { Text, TextProps } from '@chakra-ui/react';
 import { FC } from 'react';
 
 export const EllipsisText: FC<TextProps> = (props) => {

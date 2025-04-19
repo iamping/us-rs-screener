@@ -3,11 +3,11 @@ import { useAtom, useAtomValue } from 'jotai';
 import { FC, useEffect, useState } from 'react';
 import { PiCaretDownBold } from 'react-icons/pi';
 import { useMediaQuery } from 'usehooks-ts';
+import { Filter } from '@/components/filter/filter';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
-import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '@/state/atom';
+import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '@/states/atom';
 import { DropdownProps, SelectOption } from '@/types/common';
-import { getAbbreviation, mobileMediaQuery } from '@/utils/common.util';
-import { RadioFilter } from './data-table-filter';
+import { getAbbreviation, mobileMediaQuery } from '@/utils/common.utils';
 
 export const PresetSelection: FC<DropdownProps> = ({ optionList, type }) => {
   const filterChanged = useAtomValue(manualFilterAtom);
@@ -72,7 +72,7 @@ export const PresetSelection: FC<DropdownProps> = ({ optionList, type }) => {
       <PopoverContent width={200}>
         <PopoverBody padding={2}>
           <VStack>
-            <RadioFilter id={type} initialValue={value.value} optionList={optionList} onChange={onChange} />
+            <Filter.RadioSelect id={type} initialValue={value.value} optionList={optionList} onChange={onChange} />
           </VStack>
         </PopoverBody>
       </PopoverContent>

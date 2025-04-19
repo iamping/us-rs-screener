@@ -4,7 +4,7 @@ import { FC, useState } from 'react';
 import { PiGearBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
-import { appSettingsAtom } from '@/state/atom';
+import { appSettingsAtom } from '@/states/atom';
 import { SettingsKey, SettingsProps } from '@/types/common';
 
 export const SettingsButton: FC<SettingsProps> = () => {

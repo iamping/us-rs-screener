@@ -5,17 +5,17 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounceCallback, useResizeObserver } from 'usehooks-ts';
 import 'highcharts/indicators/indicators';
+import { chartGlobalOptions, chartOptions, prepareSeries } from '@/helpers/chart.helper';
 import { fetchHistoricalData } from '@/services/data.service';
-import { stockInfoAtom, stockListAtom } from '@/state/atom';
+import { stockInfoAtom, stockListAtom } from '@/states/atom';
 import { HistoricalData } from '@/types/historical-data';
 import { Stock } from '@/types/stock';
-import { chartGlobalOptions, chartOptions, prepareSeries } from '@/utils/chart.util';
-import { formatDecimal } from '@/utils/common.util';
+import { formatDecimal } from '@/utils/common.utils';
 
 // Set global options before creating the chart
 Highcharts.setOptions(chartGlobalOptions);
 
-export const HistoricalChart: FC<{ ticker: string }> = ({ ticker }) => {
+export const StockChart: FC<{ ticker: string }> = ({ ticker }) => {
   const stockList = useAtomValue(stockListAtom);
   const setStockInfo = useSetAtom(stockInfoAtom);
   const [isError, setIsError] = useState(false);

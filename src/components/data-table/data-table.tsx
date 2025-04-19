@@ -18,15 +18,11 @@ import { PiExportDuotone } from 'react-icons/pi';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { ViewportList, ViewportListRef } from 'react-viewport-list';
 import { useEventListener } from 'usehooks-ts';
+import { StockChart } from '@/components/stock-chart/stock-chart';
 import { CloseButton } from '@/components/ui/close-button';
 import { EllipsisText } from '@/components/ui/ellipsis-text';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SortIcon } from '@/components/ui/sort-icon';
-import { HistoricalChart } from '@/features/stock-chart/components/historical-chart';
-import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerAtom } from '@/state/atom';
-import { CellProps, ColumnHeaderProps, DataTableProps } from '@/types/common';
-import { Stock } from '@/types/stock';
-import { formatDecimal, formatNumber } from '@/utils/common.util';
 import {
   amountFilterFn,
   avgDollarVolOptions,
@@ -40,8 +36,12 @@ import {
   relativeVolOptions,
   rsRatingOptions,
   tableGlobal
-} from '@/utils/table.util';
-import { Filter, FilterEmpty } from './data-table-filter';
+} from '@/helpers/table.helper';
+import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerAtom } from '@/states/atom';
+import { CellProps, ColumnHeaderProps, DataTableProps } from '@/types/common';
+import { Stock } from '@/types/stock';
+import { formatDecimal, formatNumber } from '@/utils/common.utils';
+import { Filter } from '../filter/filter';
 
 // table columns
 const columnHelper = createColumnHelper<Stock>();
@@ -447,7 +447,7 @@ export const DataTable: FC<DataTableProps> = ({ data }) => {
               zIndex={1}
               onClick={() => setTicker('')}
             />
-            <HistoricalChart ticker={ticker} />
+            <StockChart ticker={ticker} />
           </Panel>
           <PanelResizeHandle className="resize-handle"></PanelResizeHandle>
         </Show>
@@ -532,7 +532,7 @@ const GridHeaderCell = <T,>({ header, exportData, resetPageIndex }: ColumnHeader
             <PiExportDuotone title="Export ticker list" />
           </IconButton>
         )}
-        {isFilterNotReady && <FilterEmpty />}
+        {isFilterNotReady && <Filter.Empty />}
         {isFilterReady && (
           <Filter
             id={header.id}

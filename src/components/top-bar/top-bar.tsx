@@ -2,9 +2,9 @@ import { Heading, HStack, Separator, Show, Spacer, Text } from '@chakra-ui/react
 import { useAtomValue } from 'jotai';
 import { useMemo } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
-import { rowCountAtom, searchBoxOpenAtom } from '@/state/atom';
-import { mobileMediaQuery } from '@/utils/common.util';
-import { presetOptions, viewOptions } from '@/utils/table.util';
+import { presetOptions, viewOptions } from '@/helpers/table.helper';
+import { rowCountAtom, searchBoxOpenAtom } from '@/states/atom';
+import { mobileMediaQuery } from '@/utils/common.utils';
 import { ExportDataButton } from './export-data-button';
 import { PresetSelection } from './preset-selection';
 import { SearchBox } from './search-box';

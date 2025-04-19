@@ -1,7 +1,7 @@
 import Highcharts from 'highcharts';
 import { ChartSeries, CustomPoint, CustomSeries, HistoricalData, SeriePoint } from '@/types/historical-data';
 import { Stock, StockInfo } from '@/types/stock';
-import { findMax } from './common.util';
+import { findMax } from '../utils/common.utils';
 
 export const prepareSeries = (
   historicalData: HistoricalData | null,

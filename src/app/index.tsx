@@ -1,14 +1,14 @@
 import { Box, Show, Skeleton } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useState } from 'react';
-import { DataTable } from '@/features/screener/components/data-table';
-import { TopBar } from '@/features/screener/components/top-bar';
+import { DataTable } from '@/components/data-table/data-table';
+import { TopBar } from '@/components/top-bar/top-bar';
+import { dataMapping } from '@/helpers/table.helper';
 import { fetchStockRsList } from '@/services/data.service';
-import { filteredStockListAtom, stockListAtom } from '@/state/atom';
+import { filteredStockListAtom, stockListAtom } from '@/states/atom';
 import { Stock } from '@/types/stock';
-import { dataMapping } from '@/utils/table.util';
 
-const App: FC = () => {
+export const App: FC = () => {
   const [error, setError] = useState<null | string>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const setStockList = useSetAtom(stockListAtom);
@@ -48,5 +48,3 @@ const App: FC = () => {
     </Box>
   );
 };
-
-export default App;

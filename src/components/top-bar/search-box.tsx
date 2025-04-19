@@ -5,9 +5,9 @@ import { ChangeEvent, CSSProperties, useCallback, useEffect, useRef, useState } 
 import { PiMagnifyingGlassBold, PiXDuotone } from 'react-icons/pi';
 import { useDebounceCallback, useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
 import { InputGroup } from '@/components/ui/input-group';
-import { fuzzyListAtom, preFilteredListAtom, searchBoxOpenAtom, tickerAtom } from '@/state/atom';
+import { fuzzyListAtom, preFilteredListAtom, searchBoxOpenAtom, tickerAtom } from '@/states/atom';
 import { Stock } from '@/types/stock';
-import { mobileMediaQuery } from '@/utils/common.util';
+import { mobileMediaQuery } from '@/utils/common.utils';
 
 export const SearchBox = () => {
   const [open, setOpen] = useAtom(searchBoxOpenAtom);

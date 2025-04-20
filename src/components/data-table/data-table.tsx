@@ -27,7 +27,7 @@ export interface DataTableProps {
 }
 
 export const DataTable: FC<DataTableProps> = ({ data = [] }) => {
-  console.log('render table');
+  // console.log('render table');
   // app state
   const setRowCount = useSetAtom(rowCountAtom);
   const setDropdownFn = useSetAtom(dropdownFnAtom);

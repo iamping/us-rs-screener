@@ -1,6 +1,5 @@
 import { HStack, Text } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { EllipsisText } from '@/components/ui/ellipsis-text';
 import {
   amountFilterFn,
   avgDollarVolOptions,
@@ -26,9 +25,9 @@ export const columns = [
   columnHelper.accessor('companyName', {
     header: () => 'Company Name',
     cell: (cell) => (
-      <EllipsisText width={200} color="gray.500" title={cell.getValue()}>
+      <Text truncate color="gray.500" title={cell.getValue()}>
         {cell.row.original.highlightedCompanyName ?? cell.getValue()}
-      </EllipsisText>
+      </Text>
     ),
     meta: { width: 200 },
     enableSorting: false,
@@ -234,9 +233,9 @@ export const columns = [
   columnHelper.accessor('industry', {
     header: () => 'Industry',
     cell: (cell) => (
-      <EllipsisText width={250} title={cell.getValue()}>
+      <Text width={250} title={cell.getValue()}>
         {cell.getValue()}
-      </EllipsisText>
+      </Text>
     ),
     meta: { width: 250, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
@@ -248,7 +247,7 @@ export const columns = [
     filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('industryRankByAs', {
-    header: () => <Text textAlign="right">Industry Rank by AS</Text>,
+    header: () => <Text textAlign="right">`Industry Rank by AS</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
     meta: { width: 200, filterVariant: 'range' },
     filterFn: 'inNumberRange'

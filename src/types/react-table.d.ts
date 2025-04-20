@@ -7,7 +7,6 @@ import { FilterVariant, SelectOption } from '@/types/common';
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     width?: number;
-    ellipsis?: boolean;
     filterVariant?: FilterVariant;
     filterNote?: string;
     sticky?: boolean;

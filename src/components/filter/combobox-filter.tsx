@@ -130,7 +130,6 @@ export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
                     title={value}
                     htmlFor={`${id}-${value}`}
                     style={{
-                      width: '85%',
                       textOverflow: 'ellipsis',
                       overflow: 'hidden',
                       whiteSpace: 'nowrap',

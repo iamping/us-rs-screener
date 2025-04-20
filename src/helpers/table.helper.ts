@@ -2,8 +2,6 @@ import { ColumnFiltersState, Row, Table } from '@tanstack/react-table';
 import { ColumnVisibility, Operator, SelectOption, Settings, TRecord } from '@/types/common';
 import { Stock } from '@/types/stock';
 
-export const fallBackData: Stock[] = [];
-
 export const defaultPagination = {
   pageIndex: 0, //initial page index
   pageSize: 20 //default page size

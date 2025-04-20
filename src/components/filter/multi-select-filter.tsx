@@ -1,5 +1,5 @@
 import { Box, HStack, Separator, Show, Text, VStack } from '@chakra-ui/react';
-import { ChangeEvent, CSSProperties, FC, useEffect, useState } from 'react';
+import { ChangeEvent, CSSProperties, FC, Fragment, useEffect, useState } from 'react';
 import { PiCheckBold } from 'react-icons/pi';
 import { MultiSelectFilterProps } from '@/types/common';
 
@@ -26,12 +26,11 @@ export const MultiSelectFilter: FC<MultiSelectFilterProps> = ({ id, initialValue
     <VStack id={`multi-select-filter-${id}`} width="100%" gap={2} style={style} className="scrollbar">
       {optionList.map((e, idx) => {
         return (
-          <>
+          <Fragment key={idx}>
             <Show when={!e.isSeparator}>
               <VStack
                 as="label"
                 className="checkbox-wrapper"
-                key={idx}
                 width="100%"
                 alignItems="start"
                 gap={0}
@@ -70,9 +69,9 @@ export const MultiSelectFilter: FC<MultiSelectFilterProps> = ({ id, initialValue
               </VStack>
             </Show>
             <Show when={e.isSeparator}>
-              <Separator key={idx} />
+              <Separator />
             </Show>
-          </>
+          </Fragment>
         );
       })}
     </VStack>

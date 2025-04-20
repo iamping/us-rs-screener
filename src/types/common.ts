@@ -1,33 +1,8 @@
-import { Cell, Column, ColumnFiltersState, Header, Row, Table } from '@tanstack/react-table';
-import { RefObject } from 'react';
-import { ViewportListRef } from 'react-viewport-list';
+import { Column, ColumnFiltersState, Row } from '@tanstack/react-table';
 import { Stock } from './stock';
-
-// Data Table
-export interface DataTableProps {
-  data: Stock[];
-}
-
-export interface DataTableState {
-  table: Table<Stock>;
-  listRef?: RefObject<ViewportListRef>;
-}
-
-// Table Header
-export interface ColumnHeaderProps<T> {
-  header: Header<T, unknown>;
-  resetPageIndex: () => void;
-  exportData?: () => void;
-}
-
-// Table Cell
-export interface CellProps<T> {
-  cell: Cell<T, unknown>;
-}
 
 export type ColumnVisibility = { [P in keyof Stock]?: boolean };
 
-// Filter
 export type FilterVariant = 'range' | 'combo-box' | 'radio-select' | 'multi-select' | undefined;
 
 export type TRecord<T> = Row<T & Record<string, number>>;
@@ -75,7 +50,6 @@ export type CompareOperator = '>=' | '>' | '<>' | '<=' | '<' | '=';
 export type BoundOperator = 'bound-inclusive' | 'bound-exclusive';
 export type ChainOperator = 'chain-gt-exclusive' | 'chain-gt-inclusive';
 export type Operator = CompareOperator | BoundOperator | ChainOperator;
-
 export type CompareOption =
   | {
       type: 'fixed';

@@ -1,7 +1,7 @@
 import { Box, Show, Skeleton } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useState } from 'react';
-import { StockPanelGroup } from '@/components/stock-panel/stock-panel';
+import { DataPanelGroup } from '@/components/data-panel/data-panel';
 import { TopBar } from '@/components/top-bar/top-bar';
 import { dataMapping } from '@/helpers/table.helper';
 import { fetchStockRsList } from '@/services/data.service';
@@ -37,7 +37,7 @@ export const App: FC = () => {
     <Box>
       <TopBar />
       <Show when={!loading}>
-        <StockPanelGroup data={filteredStockList} />
+        <DataPanelGroup data={filteredStockList} />
       </Show>
       <Show when={loading}>
         <Skeleton flex="1" height="4" variant="pulse" marginY={4} />

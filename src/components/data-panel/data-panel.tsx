@@ -5,9 +5,9 @@ import { DataTable, DataTableProps } from '@/components/data-table/data-table';
 import { StockChart } from '@/components/stock-chart/stock-chart';
 import { tickerAtom } from '@/states/atom';
 
-type StockPanelGroupProps = DataTableProps;
+type DataPanelGroupProps = DataTableProps;
 
-export const StockPanelGroup = ({ data = [] }: StockPanelGroupProps) => {
+export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
   const ticker = useAtomValue(tickerAtom);
   return (
     <PanelGroup autoSaveId="panel-group" direction="horizontal">

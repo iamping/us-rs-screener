@@ -9,8 +9,7 @@ import { chartGlobalOptions, chartOptions, prepareSeries } from '@/helpers/chart
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockInfoAtom, stockListAtom, tickerAtom } from '@/states/atom';
 import { HistoricalData } from '@/types/historical-data';
-import { Stock } from '@/types/stock';
-import { formatDecimal } from '@/utils/common.utils';
+import { StockInfoTicker } from './stock-info-ticker';
 
 // Set global options before creating the chart
 Highcharts.setOptions(chartGlobalOptions);
@@ -77,7 +76,7 @@ export const StockChart: FC<{ ticker: string }> = ({ ticker }) => {
         {isError && <Text margin={2}>Something went wrong. Please try again.</Text>}
         {options && stock && !isLoading && !isError && (
           <>
-            <ChartHeader stock={stock} />
+            <StockInfoTicker stock={stock} />
             <HighchartsReact ref={chartRef} highcharts={Highcharts} constructorType={'stockChart'} options={options} />
           </>
         )}
@@ -92,63 +91,6 @@ export const StockChart: FC<{ ticker: string }> = ({ ticker }) => {
           onClick={() => setTicker('')}
         />
       </div>
-    </>
-  );
-};
-
-const ChartHeader: FC<{ stock: Stock }> = ({ stock }) => {
-  const stockInfo = useAtomValue(stockInfoAtom);
-  const marqueeContent = (
-    <>
-      <p>
-        Market Cap: <span>{formatDecimal(stock.marketCap / 1000000000)}B</span>
-      </p>
-      <p>
-        Avg $ Vol: <span>{formatDecimal(stock.avgDollarVolume / 1000000)}M</span>
-      </p>
-      <p>
-        R.Vol: <span>{formatDecimal(stock.relativeVolume)}</span>
-      </p>
-      <p>
-        Industry: <span>{stock.industry}</span>
-      </p>
-      <p>
-        Industry Rank: <span>{stock.industryRank}</span>
-      </p>
-    </>
-  );
-  return (
-    <>
-      <div className="marquee-wrapper">
-        <div className="marquee">
-          {marqueeContent}
-          {marqueeContent}
-        </div>
-      </div>
-      <Text
-        className="chart-stock-info"
-        fontSize="sm"
-        position="absolute"
-        whiteSpace="nowrap"
-        backgroundColor="white/50"
-        zIndex={1}
-        top={12}
-        left="18px">
-        <Text as={'span'} fontWeight={500}>
-          {stock.ticker}
-        </Text>
-        <Text as={'span'} color="gray.500">
-          {` - ${stock.companyName}`}
-        </Text>
-        <Text as={'span'} display="block" fontSize="xs">
-          <b>C</b>
-          <span className={`change${stockInfo.change}`}>
-            {stock.close} {formatDecimal(stockInfo.change, true)} ({formatDecimal(stockInfo.percentChange, true)}%){' '}
-          </span>
-          <b>Vol</b>
-          <span className={`change${stockInfo.change}`}>{formatDecimal(stockInfo.volume / 1000000)}M</span>
-        </Text>
-      </Text>
     </>
   );
 };

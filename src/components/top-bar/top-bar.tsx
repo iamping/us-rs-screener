@@ -5,10 +5,10 @@ import { useMediaQuery } from 'usehooks-ts';
 import { presetOptions, viewOptions } from '@/helpers/table.helper';
 import { rowCountAtom, searchBoxOpenAtom } from '@/states/atom';
 import { mobileMediaQuery } from '@/utils/common.utils';
+import { AppSettings } from './app-settings';
 import { ExportDataButton } from './export-data-button';
 import { PresetSelection } from './preset-selection';
 import { SearchBox } from './search-box';
-import { SettingsButton } from './settings-button';
 
 export const TopBar = () => {
   const rowCount = useAtomValue(rowCountAtom);
@@ -57,7 +57,7 @@ export const TopBar = () => {
       </Show>
       <SearchBox />
       <ExportDataButton />
-      <SettingsButton />
+      <AppSettings />
     </HStack>
   );
 };

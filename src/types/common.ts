@@ -123,10 +123,3 @@ export interface Settings {
   includeOtc: boolean;
   includeBiotechnology: boolean;
 }
-
-export type SettingsKey = keyof Settings;
-
-export interface SettingsProps {
-  currentSettings?: Settings;
-  saveSettings?: (settings: Settings) => void;
-}

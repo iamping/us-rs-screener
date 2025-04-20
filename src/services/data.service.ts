@@ -1,5 +1,5 @@
-import { HistoricalData } from '@/types/historical-data';
 import { Stock } from '@/types/stock';
+import { HistoricalData } from '@/types/stock-chart';
 
 const cacheKey = 'historical-' + new Date().toISOString().substring(0, 13);
 const timeout = 5000;

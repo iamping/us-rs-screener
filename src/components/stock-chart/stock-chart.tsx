@@ -8,7 +8,7 @@ import 'highcharts/indicators/indicators';
 import { chartGlobalOptions, chartOptions, prepareSeries } from '@/helpers/chart.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockInfoAtom, stockListAtom, tickerAtom } from '@/states/atom';
-import { HistoricalData } from '@/types/historical-data';
+import { HistoricalData } from '@/types/stock-chart';
 import { StockInfoTicker } from './stock-info-ticker';
 
 // Set global options before creating the chart

@@ -1,6 +1,6 @@
 import { Cell, flexRender } from '@tanstack/react-table';
 
-export interface DataCellProps<T> {
+interface DataCellProps<T> {
   cell: Cell<T, unknown>;
 }
 

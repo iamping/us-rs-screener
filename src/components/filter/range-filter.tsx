@@ -2,7 +2,14 @@ import { Code, HStack, Spacer, VStack } from '@chakra-ui/react';
 import { FC, useEffect, useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
 import { Slider } from '@/components/ui/slider';
-import { RangeFilterProps } from '@/types/common';
+
+interface RangeFilterProps {
+  id?: string;
+  initialValue: number[];
+  min: number;
+  max: number;
+  onChange: (val: number[]) => void;
+}
 
 export const RangeFilter: FC<RangeFilterProps> = ({ id, initialValue, min, max, onChange }) => {
   const [value, setValue] = useState([min, max]);

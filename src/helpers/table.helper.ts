@@ -1,6 +1,8 @@
 import { ColumnFiltersState, Row, Table } from '@tanstack/react-table';
-import { ColumnVisibility, Operator, SelectOption, Settings, TRecord } from '@/types/common';
+import { ColumnVisibility, Operator, SelectOption, Settings } from '@/types/shared';
 import { Stock } from '@/types/stock';
+
+type TRecord<T> = Row<T & Record<string, number>>;
 
 export const defaultPagination = {
   pageIndex: 0, //initial page index
@@ -13,7 +15,7 @@ export const defaultColumnVisibility: ColumnVisibility = {};
 
 export const defaultSettings: Settings = {
   includeOtc: false,
-  includeBiotechnology: false
+  includeBiotechnology: true
 };
 
 export const defaultPinnedColumns = ['ticker'];

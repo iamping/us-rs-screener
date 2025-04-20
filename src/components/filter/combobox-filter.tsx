@@ -4,9 +4,16 @@ import { ChangeEvent, FC, ReactNode, useCallback, useEffect, useMemo, useRef, us
 import { PiMagnifyingGlass, PiXDuotone } from 'react-icons/pi';
 import { EmptyState } from '@/components/ui/empty-state';
 import { InputGroup } from '@/components/ui/input-group';
-import { ComboBoxFilterProps } from '@/types/common';
 
-// Chakra UI is too slow for this, just use HTML
+interface ComboBoxFilterProps {
+  id?: string;
+  initialValue: string[];
+  valueList: string[];
+  onChange: (val: string[]) => void;
+  enableSearch?: boolean;
+  hideSelectAll?: boolean;
+}
+
 export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
   id,
   valueList,
@@ -103,6 +110,7 @@ export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
         </Show>
         <div style={{ maxHeight: '200px', overflowY: 'auto', width: '100%' }} className="scrollbar">
           <Show when={selectList.length > 0}>
+            {/* Chakra UI is too slow for this, just use HTML */}
             {selectList.map((value, idx) => {
               return (
                 <div

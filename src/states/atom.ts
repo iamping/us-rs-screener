@@ -9,7 +9,7 @@ import {
   defaultView,
   initialFilter
 } from '@/helpers/table.helper';
-import { ColumnVisibility } from '@/types/common';
+import { ColumnVisibility } from '@/types/shared';
 import { Stock, StockInfo } from '@/types/stock';
 
 export const rowCountAtom = atom(-1);

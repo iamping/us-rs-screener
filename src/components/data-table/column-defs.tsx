@@ -1,4 +1,4 @@
-import { HStack, Text } from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
 import {
   amountFilterFn,
@@ -13,8 +13,10 @@ import {
 } from '@/helpers/table.helper';
 import { Stock } from '@/types/stock';
 import { formatDecimal, formatNumber } from '@/utils/common.utils';
+import { CellTemplate } from './cell-template';
 
 const columnHelper = createColumnHelper<Stock>();
+
 export const columns = [
   columnHelper.accessor('ticker', {
     header: () => 'Ticker',
@@ -98,32 +100,7 @@ export const columns = [
   columnHelper.accessor((original) => original.close, {
     id: '52wkRange',
     header: () => '52 Week Range',
-    cell: (cell) => {
-      const position =
-        (100 * (cell.getValue() - cell.row.original.wk52Low)) /
-        (cell.row.original.wk52High - cell.row.original.wk52Low);
-      return (
-        <>
-          <div className="week-range-wrapper">
-            <div
-              className="week-range"
-              style={{
-                marginLeft: `${position}%`,
-                backgroundColor:
-                  position >= 75
-                    ? 'var(--chakra-colors-blue-500)'
-                    : position < 30
-                      ? 'var(--chakra-colors-red-500)'
-                      : 'var(--chakra-colors-black)'
-              }}></div>
-          </div>
-          <HStack justifyContent="space-between">
-            <Text fontSize="2xs">{formatDecimal(cell.row.original.wk52Low)}</Text>
-            <Text fontSize="2xs">{formatDecimal(cell.row.original.wk52High)}</Text>
-          </HStack>
-        </>
-      );
-    },
+    cell: (cell) => <CellTemplate.FiftyTwoWeek cell={cell} />,
     meta: {
       width: 120
     },
@@ -254,31 +231,31 @@ export const columns = [
   }),
   columnHelper.accessor('pocketPivot', {
     header: () => 'Pocket Pivot',
-    cell: (cell) => cell.getValue(),
+    cell: (cell) => <CellTemplate.Status cell={cell} />,
     meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('rsNewHigh', {
     header: () => 'RS New High',
-    cell: (cell) => cell.getValue(),
+    cell: (cell) => <CellTemplate.Status cell={cell} />,
     meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: customArrIncludesSome
   }),
   columnHelper.accessor('tightRange', {
     header: () => 'Tight Range',
-    cell: (cell) => cell.getValue(),
+    cell: (cell) => <CellTemplate.Status cell={cell} />,
     meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('insideDay', {
     header: () => 'Inside Day',
-    cell: (cell) => cell.getValue(),
+    cell: (cell) => <CellTemplate.Status cell={cell} />,
     meta: { width: 130, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   }),
   columnHelper.accessor('think40', {
     header: () => 'Think 40',
-    cell: (cell) => cell.getValue(),
+    cell: (cell) => <CellTemplate.Status cell={cell} />,
     meta: { width: 130, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   })

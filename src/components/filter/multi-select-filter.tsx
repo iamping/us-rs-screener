@@ -1,7 +1,14 @@
 import { Box, HStack, Separator, Show, Text, VStack } from '@chakra-ui/react';
 import { ChangeEvent, CSSProperties, FC, Fragment, useEffect, useState } from 'react';
 import { PiCheckBold } from 'react-icons/pi';
-import { MultiSelectFilterProps } from '@/types/common';
+import { SelectOption } from '@/types/shared';
+
+interface MultiSelectFilterProps {
+  id?: string;
+  initialValue: string[];
+  optionList: SelectOption[];
+  onChange: (val: string[]) => void;
+}
 
 export const MultiSelectFilter: FC<MultiSelectFilterProps> = ({ id, initialValue, optionList, onChange }) => {
   const [values, setValues] = useState<string[]>([]);

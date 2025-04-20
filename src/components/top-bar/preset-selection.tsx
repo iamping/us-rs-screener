@@ -6,10 +6,15 @@ import { useMediaQuery } from 'usehooks-ts';
 import { Filter } from '@/components/filter/filter';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
 import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '@/states/atom';
-import { DropdownProps, SelectOption } from '@/types/common';
+import { PresetOption, SelectOption } from '@/types/shared';
 import { getAbbreviation, mobileMediaQuery } from '@/utils/common.utils';
 
-export const PresetSelection: FC<DropdownProps> = ({ optionList, type }) => {
+interface PresetSelectionProps {
+  optionList: PresetOption[];
+  type: 'Preset' | 'View';
+}
+
+export const PresetSelection: FC<PresetSelectionProps> = ({ optionList, type }) => {
   const filterChanged = useAtomValue(manualFilterAtom);
   const dropdownFn = useAtomValue(dropdownFnAtom);
   const [dropdownState, setDropdownState] = useAtom(appDropdownAtom);

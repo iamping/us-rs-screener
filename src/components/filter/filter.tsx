@@ -1,15 +1,24 @@
 import { Button, HStack, IconButton, Separator, Show, Text, VStack } from '@chakra-ui/react';
+import { Column } from '@tanstack/react-table';
 import { useSetAtom } from 'jotai';
 import { useCallback, useRef, useState } from 'react';
 import { PiFunnelBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
 import { manualFilterAtom } from '@/states/atom';
-import { FilterProps } from '@/types/common';
+import { FilterVariant } from '@/types/shared';
 import { ComboBoxFilter } from './combobox-filter';
 import { EmptyFilter } from './empty-filter';
 import { MultiSelectFilter } from './multi-select-filter';
 import { RadioFilter } from './radio-filter';
 import { RangeFilter } from './range-filter';
+
+interface FilterProps<T> {
+  id?: string;
+  popupWidth: number | string;
+  filterVariant: FilterVariant;
+  column: Column<T, unknown>;
+  resetPageIndex?: () => void;
+}
 
 export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageIndex }: FilterProps<T>) => {
   // console.log(`render filter [${id}]`);

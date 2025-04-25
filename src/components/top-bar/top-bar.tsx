@@ -39,7 +39,13 @@ export const TopBar = () => {
       height="48px"
       position="relative"
       borderBottom="1px solid var(--chakra-colors-gray-200)">
-      <Heading paddingX={1} title="US Stock Screener" lineHeight="10px" paddingTop="12px" className="borel-regular">
+      <Heading
+        paddingX={1}
+        title="US Stock Screener"
+        lineHeight="10px"
+        paddingTop="12px"
+        fontFamily="borel"
+        fontWeight="400">
         {rowCount < 0 && 'Loading...'}
         {rowCount >= 0 && (
           <>

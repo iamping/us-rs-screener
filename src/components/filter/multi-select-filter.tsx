@@ -27,7 +27,7 @@ export const MultiSelectFilter: FC<MultiSelectFilterProps> = ({ id, initialValue
     setValues(initialValue);
   }, [initialValue]);
 
-  const style: CSSProperties = { maxHeight: 'var(--select-filter-max-height)', overflowY: 'auto' };
+  const style: CSSProperties = { maxHeight: 'var(--filter-content-max-height)', overflowY: 'auto' };
 
   return (
     <VStack id={`multi-select-filter-${id}`} width="100%" gap={2} style={style} className="scrollbar">

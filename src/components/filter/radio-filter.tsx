@@ -18,7 +18,7 @@ export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList
     onChange(value);
   };
   const debouncedOnSelect = useDebounceCallback(onSelect, 0);
-  const style: CSSProperties = { maxHeight: 'var(--select-filter-max-height)', overflowY: 'auto' };
+  const style: CSSProperties = { maxHeight: 'var(--filter-content-max-height)', overflowY: 'auto' };
 
   useEffect(() => {
     setValue(initialValue);

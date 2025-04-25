@@ -79,7 +79,7 @@ export const prepareSeries = (
         y: rs,
         marker: {
           enabled: isRsNewHigh || isRsNewHighBeforePrice,
-          fillColor: isRsNewHighBeforePrice ? 'rgb(0,204,0,0.4)' : 'rgb(0,0,0,0.2)',
+          fillColor: isRsNewHighBeforePrice ? 'var(--colors-rs-new-high-before-price)' : 'var(--colors-rs-new-high)',
           radius: 8,
           symbol: 'circle'
         }

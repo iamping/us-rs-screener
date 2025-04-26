@@ -92,7 +92,7 @@ export const DataTable: FC<DataTableProps> = ({ data = [] }) => {
   const numRows = table.getRowModel().rows.length;
   const gridAreaStyle: CSSProperties = {
     overflow: numRows === 0 ? 'hidden' : 'auto',
-    minHeight: numRows === 0 ? 'auto' : 'var(--content-max-height)'
+    height: numRows === 0 ? 'auto' : 'var(--table-height)'
   };
   const gridTemplateColumnsStyle: CSSProperties = { gridTemplateColumns: `repeat(${numColumns}, auto)` };
   const gridColumnStyle: CSSProperties = { gridColumn: `1 / ${numColumns + 1}` };

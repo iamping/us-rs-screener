@@ -34,3 +34,8 @@ export const getAbbreviation = (text: string, limit = 8) => {
 export const toKebabCase = (text: string) => {
   return text.toLowerCase().split(' ').join('-');
 };
+
+export const setCssVar = (name: string, value: string) => {
+  const root = document.querySelector(':root') as HTMLElement;
+  root.style.setProperty(name, value);
+};

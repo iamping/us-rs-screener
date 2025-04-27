@@ -14,16 +14,20 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
   const ticker = useAtomValue(tickerAtom);
   const panelGroupRef = useRef<ImperativePanelGroupHandle>(null);
   const windowSize = useWindowSize({ debounceDelay: 100 });
+  const topMargin = 48;
+  const offset = 16;
 
   const isLandscape = useMemo(() => {
     const isLandscape = windowSize.width > windowSize.height;
     if (isLandscape) {
-      setCssVar('--table-height', 'var(--content-max-height)');
+      setCssVar('--table-height', `${windowSize.height - topMargin}px`);
+      setCssVar('--chart-height', `${windowSize.height - topMargin}px`);
     } else {
       if (panelGroupRef.current) {
         const layout = panelGroupRef.current.getLayout();
         const tablePanelSize = layout.slice(-1).at(0) ?? 100;
-        setCssVar('--table-height', `${(windowSize.height - 48) * (tablePanelSize / 100)}px`);
+        setCssVar('--table-height', `${(windowSize.height - topMargin) * (tablePanelSize / 100)}px`);
+        setCssVar('--chart-height', `${(windowSize.height - topMargin) * ((100 - tablePanelSize) / 100) - offset}px`);
       }
     }
     return isLandscape;
@@ -31,9 +35,11 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
 
   const onPanelResize = (panelSize: number) => {
     if (isLandscape) {
-      setCssVar('--table-height', 'var(--content-max-height)');
+      setCssVar('--table-height', `${windowSize.height - topMargin}px`);
+      setCssVar('--chart-height', `${windowSize.height - topMargin}px`);
     } else {
-      setCssVar('--table-height', `${(windowSize.height - 48) * (panelSize / 100)}px`);
+      setCssVar('--table-height', `${(windowSize.height - topMargin) * (panelSize / 100)}px`);
+      setCssVar('--chart-height', `${(windowSize.height - topMargin) * ((100 - panelSize) / 100) - offset}px`);
     }
   };
   const onDebounceResize = useDebounceCallback(onPanelResize, 100);

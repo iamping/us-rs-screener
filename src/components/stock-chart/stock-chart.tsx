@@ -9,6 +9,7 @@ import { chartGlobalOptions, chartOptions, prepareSeries } from '@/helpers/chart
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockInfoAtom, stockListAtom, tickerAtom } from '@/states/atom';
 import { HistoricalData } from '@/types/stock-chart';
+import { getCssVar } from '@/utils/common.utils';
 import { StockInfoTicker } from './stock-info-ticker';
 
 // Set global options before creating the chart
@@ -64,14 +65,15 @@ export const StockChart: FC<{ ticker: string }> = ({ ticker }) => {
 
   const options: Highcharts.Options | null = useMemo(() => {
     if (series.ohlc.length > 0 && stock) {
-      return chartOptions(series, stock, dynamicHeight, setStockInfo);
+      const height = getCssVar('--chart-height').split('px').join('');
+      return chartOptions(series, stock, Number(height) || dynamicHeight, setStockInfo);
     }
     return null;
   }, [series, stock, dynamicHeight, setStockInfo]);
 
   return (
     <>
-      <div ref={wrapperRef} style={{ height: '100%', position: 'relative' }}>
+      <div ref={wrapperRef} style={{ height: 'var(--chart-height)', position: 'relative' }}>
         {isLoading && <Spinner position="absolute" top={2} right={12} zIndex={1} />}
         {isError && <Text margin={2}>Something went wrong. Please try again.</Text>}
         {options && stock && !isLoading && !isError && (

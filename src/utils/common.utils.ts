@@ -36,6 +36,9 @@ export const toKebabCase = (text: string) => {
 };
 
 export const setCssVar = (name: string, value: string) => {
-  const root = document.querySelector(':root') as HTMLElement;
-  root.style.setProperty(name, value);
+  document.documentElement.style.setProperty(name, value);
+};
+
+export const getCssVar = (name: string) => {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 };

@@ -2,7 +2,6 @@
 
 :root {
   --content-max-height: calc(100dvh - 48px);
-  --table-height: var(--content-max-height);
   --filter-content-max-height: calc(100dvh - 200px);
   --colors-rs-new-high-before-price: rgb(0, 200, 0, 0.25);
   --colors-rs-new-high: rgb(0, 0, 0, 0.25);

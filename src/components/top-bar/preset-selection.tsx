@@ -77,7 +77,7 @@ export const PresetSelection: FC<PresetSelectionProps> = ({ optionList, type }) 
       <PopoverContent width={200}>
         <PopoverBody padding={2}>
           <VStack>
-            <Filter.RadioSelect id={type} initialValue={value.value} optionList={optionList} onChange={onChange} />
+            <Filter.Radio id={type} initialValue={value.value} optionList={optionList} isPreset onChange={onChange} />
           </VStack>
         </PopoverBody>
       </PopoverContent>

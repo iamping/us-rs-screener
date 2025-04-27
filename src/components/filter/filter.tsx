@@ -129,5 +129,5 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
 Filter.Empty = EmptyFilter;
 Filter.Range = RangeFilter;
 Filter.ComboBox = ComboBoxFilter;
-Filter.RadioSelect = RadioFilter;
+Filter.Radio = RadioFilter;
 Filter.MultiSelect = MultiSelectFilter;

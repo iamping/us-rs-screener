@@ -8,9 +8,10 @@ interface RadioFilterProps {
   initialValue: string;
   optionList: SelectOption[];
   onChange: (val: string) => void;
+  isPreset?: boolean;
 }
 
-export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList, onChange }) => {
+export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList, onChange, isPreset }) => {
   // console.log('radio select => ', id, initialValue);
   const [value, setValue] = useState('');
   const onSelect = (value: string) => {
@@ -18,7 +19,10 @@ export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList
     onChange(value);
   };
   const debouncedOnSelect = useDebounceCallback(onSelect, 0);
-  const style: CSSProperties = { maxHeight: 'var(--filter-content-max-height)', overflowY: 'auto' };
+  const style: CSSProperties = {
+    maxHeight: isPreset ? 'var(--preset-content-max-height)' : 'var(--filter-content-max-height)',
+    overflowY: 'auto'
+  };
 
   useEffect(() => {
     setValue(initialValue);

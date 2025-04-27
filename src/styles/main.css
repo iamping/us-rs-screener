@@ -3,7 +3,8 @@
 :root {
   --content-max-height: calc(100dvh - 48px);
   --table-height: calc(100dvh - 48px);
-  --filter-content-max-height: calc(100dvh - 200px);
+  --preset-content-max-height: calc(100dvh - 100px);
+  --filter-content-max-height: calc(100dvh / 2.5);
   --colors-rs-new-high-before-price: rgb(0, 200, 0, 0.25);
   --colors-rs-new-high: rgb(0, 0, 0, 0.25);
   --font-outfit: 'Outfit', serif;

@@ -1,14 +1,14 @@
-import { FC, useEffect, useState } from 'react';
-import { fetchStockRsList } from './services/data.service';
-import { Stock } from './models/stock';
 import { Box, Show, Skeleton } from '@chakra-ui/react';
-import { DataTable } from './components/app/data-table';
-import { Topbar } from './components/app/topbar';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { filteredStockListAtom, stockListAtom } from './state/atom';
-import { dataMapping } from './utils/table.util';
+import { FC, useEffect, useState } from 'react';
+import { DataPanelGroup } from '@/components/data-panel/data-panel';
+import { TopBar } from '@/components/top-bar/top-bar';
+import { dataMapping } from '@/helpers/table.helper';
+import { fetchStockRsList } from '@/services/data.service';
+import { filteredStockListAtom, stockListAtom } from '@/states/atom';
+import { Stock } from '@/types/stock';
 
-const App: FC = () => {
+export const App: FC = () => {
   const [error, setError] = useState<null | string>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const setStockList = useSetAtom(stockListAtom);
@@ -35,9 +35,9 @@ const App: FC = () => {
 
   return (
     <Box>
-      <Topbar />
+      <TopBar />
       <Show when={!loading}>
-        <DataTable data={filteredStockList}></DataTable>
+        <DataPanelGroup data={filteredStockList} />
       </Show>
       <Show when={loading}>
         <Skeleton flex="1" height="4" variant="pulse" marginY={4} />
@@ -48,5 +48,3 @@ const App: FC = () => {
     </Box>
   );
 };
-
-export default App;

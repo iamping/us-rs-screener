@@ -1,11 +1,11 @@
 import { IconButton } from '@chakra-ui/react';
-import { PiExportDuotone } from 'react-icons/pi';
-import { tableGlobal } from '../../utils/table.util';
 import { useAtomValue } from 'jotai';
-import { appDropdownAtom } from '../../state/atom';
-import { toKebabCase } from '../../utils/common.util';
+import { PiExportDuotone } from 'react-icons/pi';
+import { tableGlobal } from '@/helpers/table.helper';
+import { appDropdownAtom } from '@/states/atom';
+import { toKebabCase } from '@/utils/common.utils';
 
-export const ExportData = () => {
+export const ExportDataButton = () => {
   const dropdownState = useAtomValue(appDropdownAtom);
   const disableExport = !tableGlobal.table || tableGlobal.table.getRowModel().rows.length === 0;
   const exportTickerList = () => {

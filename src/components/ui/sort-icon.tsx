@@ -1,7 +1,7 @@
-import { FC } from 'react';
-import { SortDirection } from '@tanstack/react-table';
-import { PiListBold, PiSortAscendingBold, PiSortDescendingBold } from 'react-icons/pi';
 import { IconButton } from '@chakra-ui/react';
+import { SortDirection } from '@tanstack/react-table';
+import { FC } from 'react';
+import { PiListBold, PiSortAscendingBold, PiSortDescendingBold } from 'react-icons/pi';
 
 export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) => {
   const { icon, color, direction } = getSortDirectionIcon(props.sortDirection);

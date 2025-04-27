@@ -1,17 +1,22 @@
 import { Heading, IconButton, Separator, Text, VStack } from '@chakra-ui/react';
+import { useAtom } from 'jotai';
 import { FC, useState } from 'react';
 import { PiGearBold } from 'react-icons/pi';
-import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '../ui/popover';
-import { Switch } from '../ui/switch';
-import { SettingsKey, SettingsProps } from '../../models/common';
-import { useAtom } from 'jotai';
-import { appSettingsAtom } from '../../state/atom';
+import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
+import { appSettingsAtom } from '@/states/atom';
+import { Settings } from '@/types/shared';
 
-export const Settings: FC<SettingsProps> = () => {
+interface SettingsProps {
+  currentSettings?: Settings;
+  saveSettings?: (settings: Settings) => void;
+}
+
+export const AppSettings: FC<SettingsProps> = () => {
   const [currentSettings, saveSettings] = useAtom(appSettingsAtom);
   const [open, setOpen] = useState(false);
 
-  const onSave = (key: SettingsKey, value: boolean) => {
+  const onSave = (key: keyof Settings, value: boolean) => {
     saveSettings({ ...currentSettings, [key]: value });
   };
 
@@ -32,12 +37,6 @@ export const Settings: FC<SettingsProps> = () => {
           <VStack alignItems="start">
             <Heading size="sm">Settings</Heading>
             <Separator marginY={1} />
-            {/* <Switch
-              size="sm"
-              checked={currentSettings.includeOtc}
-              onCheckedChange={(e) => onSave('includeOtc', e.checked)}>
-              <Text fontWeight={400}>Include OTC</Text>
-            </Switch> */}
             <Switch
               size="sm"
               checked={currentSettings.includeBiotechnology}

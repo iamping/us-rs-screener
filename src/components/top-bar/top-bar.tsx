@@ -1,16 +1,16 @@
 import { Heading, HStack, Separator, Show, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue } from 'jotai';
-import { rowCountAtom, searchBoxOpenAtom } from '../../state/atom';
-import { presetOptions, viewOptions } from '../../utils/table.util';
-import { Dropdown } from './dropdown';
-import { Settings } from './settings';
-import { useMediaQuery } from 'usehooks-ts';
 import { useMemo } from 'react';
+import { useMediaQuery } from 'usehooks-ts';
+import { presetOptions, viewOptions } from '@/helpers/table.helper';
+import { rowCountAtom, searchBoxOpenAtom } from '@/states/atom';
+import { mobileMediaQuery } from '@/utils/common.utils';
+import { AppSettings } from './app-settings';
+import { ExportDataButton } from './export-data-button';
+import { PresetSelection } from './preset-selection';
 import { SearchBox } from './search-box';
-import { mobileMediaQuery } from '../../utils/common.util';
-import { ExportData } from './export-data';
 
-export const Topbar = () => {
+export const TopBar = () => {
   const rowCount = useAtomValue(rowCountAtom);
   const isSearchBoxOpen = useAtomValue(searchBoxOpenAtom);
 
@@ -39,7 +39,13 @@ export const Topbar = () => {
       height="48px"
       position="relative"
       borderBottom="1px solid var(--chakra-colors-gray-200)">
-      <Heading paddingX={1} title="US Stock Screener" lineHeight="10px" paddingTop="12px" className="borel-regular">
+      <Heading
+        paddingX={1}
+        title="US Stock Screener"
+        lineHeight="10px"
+        paddingTop="12px"
+        fontFamily="borel"
+        fontWeight="400">
         {rowCount < 0 && 'Loading...'}
         {rowCount >= 0 && (
           <>
@@ -49,15 +55,15 @@ export const Topbar = () => {
       </Heading>
       <Show when={(!isSearchBoxOpen && isSmallScreen) || !isSmallScreen}>
         <Separator orientation="vertical" height={5} />
-        <Dropdown type="Preset" optionList={presetOptions} />
+        <PresetSelection type="Preset" optionList={presetOptions} />
         <Separator orientation="vertical" height={5} />
-        <Dropdown type="View" optionList={viewOptions} />
+        <PresetSelection type="View" optionList={viewOptions} />
         <Separator orientation="vertical" height={5} />
         <Spacer />
       </Show>
       <SearchBox />
-      <ExportData />
-      <Settings />
+      <ExportDataButton />
+      <AppSettings />
     </HStack>
   );
 };

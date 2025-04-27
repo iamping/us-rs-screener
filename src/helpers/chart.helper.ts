@@ -1,7 +1,7 @@
 import Highcharts from 'highcharts';
-import { ChartSeries, CustomPoint, CustomSeries, HistoricalData, SeriePoint } from '../models/historical-data';
-import { Stock, StockInfo } from '../models/stock';
-import { findMax } from './common.util';
+import { Stock, StockInfo } from '@/types/stock';
+import { ChartSeries, CustomPoint, CustomSeries, HistoricalData, SeriePoint } from '@/types/stock-chart';
+import { findMax } from '@/utils/common.utils';
 
 export const prepareSeries = (
   historicalData: HistoricalData | null,
@@ -79,7 +79,7 @@ export const prepareSeries = (
         y: rs,
         marker: {
           enabled: isRsNewHigh || isRsNewHighBeforePrice,
-          fillColor: isRsNewHighBeforePrice ? 'rgb(0,204,0,0.4)' : 'rgb(0,0,0,0.2)',
+          fillColor: isRsNewHighBeforePrice ? 'var(--colors-rs-new-high-before-price)' : 'var(--colors-rs-new-high)',
           radius: 8,
           symbol: 'circle'
         }
@@ -128,7 +128,6 @@ export const chartGlobalOptions: Highcharts.Options = {
 export const chartOptions = (
   series: ChartSeries,
   stock: Stock | undefined,
-  chartHeight: number,
   setStockInfo: (stockInfo: StockInfo) => void
 ) => {
   return {
@@ -140,7 +139,7 @@ export const chartOptions = (
       marginBottom: 0,
       marginTop: 10,
       animation: false,
-      height: chartHeight,
+      // height: chartHeight,
       // panning: { enabled: false },
       zooming: {
         mouseWheel: { enabled: false }

@@ -18,8 +18,6 @@ export const formatNumber = (val: string | number) => {
 
 export const mobileMediaQuery = '(max-width: 680px)';
 
-export const mobileLandscapeQuery = '(max-height: 500px)';
-
 export const findMax = (arr: number[]) => {
   return Math.max(...arr);
 };
@@ -35,4 +33,12 @@ export const getAbbreviation = (text: string, limit = 8) => {
 
 export const toKebabCase = (text: string) => {
   return text.toLowerCase().split(' ').join('-');
+};
+
+export const setCssVar = (name: string, value: string) => {
+  document.documentElement.style.setProperty(name, value);
+};
+
+export const getCssVar = (name: string) => {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 };

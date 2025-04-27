@@ -1,26 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Borel&family=Outfit:wght@100..900&display=swap');
 
 :root {
-  --content-max-height: calc(100svh - 48px);
-  --select-filter-max-height: calc(100svh - 200px);
+  --content-max-height: calc(100dvh - 48px);
+  --table-height: calc(100dvh - 48px);
+  --filter-content-max-height: calc(100dvh - 200px);
+  --colors-rs-new-high-before-price: rgb(0, 200, 0, 0.25);
+  --colors-rs-new-high: rgb(0, 0, 0, 0.25);
+  --font-outfit: 'Outfit', serif;
 }
 
 body {
   padding: 0;
   min-width: 380px;
-  font-family: 'Outfit', serif;
   font-optical-sizing: auto;
   font-variant-numeric: lining-nums tabular-nums;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'Outfit', serif;
-  font-optical-sizing: auto;
 }
 
 .scrollbar {
@@ -28,18 +21,15 @@ h6 {
   scrollbar-color: var(--chakra-colors-gray-300) var(--chakra-colors-gray-50);
 }
 
-.borel-regular {
-  font-family: 'Borel', serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-}
-
 .resize-handle {
   display: flex;
   align-items: center;
   width: 4px;
   background-color: var(--chakra-colors-gray-100);
+  &.portrait {
+    width: 100%;
+    height: 4px;
+  }
 }
 
 .resize-handle[data-resize-handle-state='hover'] {
@@ -56,8 +46,6 @@ h6 {
 
 .grid-area {
   max-width: 100%;
-  min-height: var(--content-max-height);
-  max-height: var(--content-max-height);
   overflow: auto;
   white-space: nowrap;
   position: relative;
@@ -156,8 +144,7 @@ h6 {
   }
 }
 
-.grid-cell {
-  vertical-align: top;
+.grid-data-cell {
   padding: 4px 8px;
   border-bottom: 1px solid var(--chakra-colors-gray-200);
   &.pinned {
@@ -197,7 +184,7 @@ h6 {
   background-color: var(--chakra-colors-black);
 }
 
-.chart-max-height {
+.data-panel-group {
   min-height: var(--content-max-height);
   max-height: var(--content-max-height);
   position: relative;
@@ -205,7 +192,7 @@ h6 {
 
 .chart-series-tooltip {
   font-size: 12px !important;
-  font-family: 'Outfit', serif !important;
+  font-family: var(--font-outfit) !important;
   white-space: nowrap;
   background-color: var(--chakra-colors-white);
 }
@@ -216,7 +203,7 @@ h6 {
 }
 
 .chart-price-tooltip {
-  font-family: 'Outfit', serif !important;
+  font-family: var(--font-outfit) !important;
   margin-top: 36px;
 }
 
@@ -229,9 +216,13 @@ h6 {
 }
 
 .chart-rs-rating {
-  font-family: 'Outfit', serif !important;
+  font-family: var(--font-outfit) !important;
   font-size: 12px !important;
-  background-color: rgb(255, 255, 255, 0.8);
+  background-color: var(--chakra-colors-white-alpha-800);
+}
+
+div[data-highcharts-chart] {
+  height: var(--chart-height);
 }
 
 .marquee-wrapper {

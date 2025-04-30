@@ -4,9 +4,10 @@ import { useMemo, useRef } from 'react';
 import { ImperativePanelGroupHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
 import { DataTable, DataTableProps } from '@/components/data-table/data-table';
-import { StockChart } from '@/components/stock-chart/stock-chart';
+// import { StockChart } from '@/components/stock-chart/stock-chart';
 import { tickerAtom } from '@/states/atom';
 import { setCssVar } from '@/utils/common.utils';
+import { MyStockChart } from '../stock-chart/my-stock-chart';
 
 type DataPanelGroupProps = DataTableProps;
 
@@ -56,7 +57,8 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
       className="data-panel-group">
       <Show when={ticker.length > 0}>
         <Panel id="panel-chart" minSize={40} order={1}>
-          <StockChart ticker={ticker} />
+          {/* <StockChart ticker={ticker} /> */}
+          <MyStockChart ticker={ticker} />
         </Panel>
         <PanelResizeHandle className={isLandscape ? 'resize-handle' : 'resize-handle portrait'}></PanelResizeHandle>
       </Show>

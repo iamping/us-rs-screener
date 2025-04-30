@@ -262,3 +262,8 @@ div[data-highcharts-chart] {
     transform: translate3d(-50%, 0, 0);
   }
 }
+
+/* css for new chart*/
+.tick-value {
+  font-size: 12px;
+}

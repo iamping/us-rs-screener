@@ -51,6 +51,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   });
 
   // Element Refs
+  const svgRef = useRef<SVGSVGElement>(null);
   const xRef = useRef<SVGGElement>(null);
   const yRef = useRef<SVGGElement>(null);
   const plotAreaRef = useRef<SVGGElement>(null);
@@ -97,17 +98,17 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
     }
   }, [series, xScale, yScale]);
 
-  // useEffect(() => {
-  //   if (plotAreaRef.current) {
-  //     const plot = d3.select(plotAreaRef.current as Element);
-  //     const dragOn = d3.drag().on('start', (e) => console.log(e));
-  //     plot.call(dragOn);
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (svgRef.current) {
+      const plot = d3.select(svgRef.current as Element);
+      const dragOn = d3.drag().on('start', (e) => console.log(e));
+      plot.call(dragOn);
+    }
+  }, []);
 
   return (
     <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper">
-      <svg id="stock-chart" height={dms.height} width={dms.width}>
+      <svg ref={svgRef} id="stock-chart" height={dms.height} width={dms.width}>
         <g transform={`translate(${dms.marginLeft}, ${dms.marginTop})`}>
           <g ref={xRef} id="xAxis" transform={`translate(0, ${dms.plotHeight})`} />
           <g ref={yRef} id="yAxis" transform={`translate(${dms.plotWidth}, 0)`} />

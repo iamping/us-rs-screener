@@ -31,17 +31,17 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     });
   }, [ticker]);
 
+  console.log('render stockInfoPanel');
+
   return (
     <>
       {isLoading && <Spinner position="absolute" top={2} left={2} zIndex={1} />}
-      {!isLoading && (
-        <Flex height="full" direction="column">
-          <div>test</div>
-          <Box flexGrow={1}>
-            <MyStockChart ticker={ticker} series={series} />
-          </Box>
-        </Flex>
-      )}
+      <Flex height="full" direction="column">
+        <div>test</div>
+        <Box flexGrow={1} overflow="hidden">
+          <MyStockChart ticker={ticker} series={series} />
+        </Box>
+      </Flex>
     </>
   );
 };

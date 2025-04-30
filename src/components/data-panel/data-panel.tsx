@@ -7,7 +7,7 @@ import { DataTable, DataTableProps } from '@/components/data-table/data-table';
 // import { StockChart } from '@/components/stock-chart/stock-chart';
 import { tickerAtom } from '@/states/atom';
 import { setCssVar } from '@/utils/common.utils';
-import { MyStockChart } from '../stock-chart/my-stock-chart';
+import { StockInfoPanel } from '../stock-chart/stock-info-panel';
 
 type DataPanelGroupProps = DataTableProps;
 
@@ -58,7 +58,7 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
       <Show when={ticker.length > 0}>
         <Panel id="panel-chart" minSize={40} order={1}>
           {/* <StockChart ticker={ticker} /> */}
-          <MyStockChart ticker={ticker} />
+          <StockInfoPanel ticker={ticker} />
         </Panel>
         <PanelResizeHandle className={isLandscape ? 'resize-handle' : 'resize-handle portrait'}></PanelResizeHandle>
       </Show>

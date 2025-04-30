@@ -1,12 +1,12 @@
 import * as d3 from 'd3';
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useEffect, useRef } from 'react';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
-import { fetchHistoricalData } from '@/services/data.service';
 import { StockDataPoint } from '@/types/stock-chart';
 
-type StockChartProps = {
+interface StockChartProps {
   ticker: string;
-};
+  series: StockDataPoint[];
+}
 
 const dateFormat = (date: Date) => {
   const fnc = date.getMonth() === 0 ? d3.utcFormat('%Y') : d3.utcFormat('%b');
@@ -40,31 +40,20 @@ const logTicks = (start: number, stop: number) => {
 
 const priceFormat = d3.format(',.2s');
 
-export const MyStockChart: FC<StockChartProps> = ({ ticker }) => {
-  const [series, setSeries] = useState<StockDataPoint[]>([]);
-  const [wrapperRef, dms] = useChartDimensions({ marginRight: 40, marginBottom: 30, marginTop: 20, marginLeft: 20 });
+export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
+  console.log('MyStockChart', ticker);
+
+  const [wrapperRef, dms] = useChartDimensions({
+    marginRight: 40,
+    marginBottom: 30,
+    marginTop: 20,
+    marginLeft: 10
+  });
 
   // Element Refs
   const xRef = useRef<SVGGElement>(null);
   const yRef = useRef<SVGGElement>(null);
   const plotAreaRef = useRef<SVGGElement>(null);
-
-  useEffect(() => {
-    fetchHistoricalData(ticker).then((data) => {
-      const series = [];
-      for (let i = 0; i < data.date.length; i++) {
-        series.push({
-          close: data.close[i],
-          high: data.high[i],
-          low: data.low[i],
-          open: data.open[i],
-          volume: data.volume[i],
-          date: new Date(data.date[i] * 1000)
-        });
-      }
-      setSeries(series.slice(-200));
-    });
-  }, [ticker]);
 
   // X Axis
   const xScale = d3.scaleBand<Date>().range([0, dms.plotWidth]);
@@ -108,13 +97,21 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker }) => {
     }
   }, [series, xScale, yScale]);
 
+  // useEffect(() => {
+  //   if (plotAreaRef.current) {
+  //     const plot = d3.select(plotAreaRef.current as Element);
+  //     const dragOn = d3.drag().on('start', (e) => console.log(e));
+  //     plot.call(dragOn);
+  //   }
+  // }, []);
+
   return (
-    <div id="chart-wrapper" ref={wrapperRef} style={{ height: '100%' }}>
+    <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper">
       <svg id="stock-chart" height={dms.height} width={dms.width}>
         <g transform={`translate(${dms.marginLeft}, ${dms.marginTop})`}>
-          <g id="xAxis" ref={xRef} transform={`translate(0, ${dms.plotHeight})`} />
-          <g id="yAxis" ref={yRef} transform={`translate(${dms.plotWidth}, 0)`} />
-          <g id="plotArea" ref={plotAreaRef} transform={`translate(0, 0)`} />
+          <g ref={xRef} id="xAxis" transform={`translate(0, ${dms.plotHeight})`} />
+          <g ref={yRef} id="yAxis" transform={`translate(${dms.plotWidth}, 0)`} />
+          <g ref={plotAreaRef} id="plotArea" transform={`translate(0, 0)`} />
         </g>
       </svg>
     </div>

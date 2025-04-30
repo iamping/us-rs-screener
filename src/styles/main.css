@@ -267,3 +267,7 @@ div[data-highcharts-chart] {
 .tick-value {
   font-size: 12px;
 }
+
+.chart-wrapper {
+  height: 100%;
+}

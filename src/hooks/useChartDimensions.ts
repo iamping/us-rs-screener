@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react';
 import { useDebounceCallback, useResizeObserver } from 'usehooks-ts';
 
-type ChartMargins = {
+interface ChartMargins {
   marginTop?: number;
   marginRight?: number;
   marginBottom?: number;
   marginLeft?: number;
-};
+}
 
-export type ChartDimensions = {
+interface ChartDimensions {
   marginTop: number;
   marginRight: number;
   marginBottom: number;
@@ -17,7 +17,7 @@ export type ChartDimensions = {
   width: number;
   plotHeight: number;
   plotWidth: number;
-};
+}
 
 export const useChartDimensions = (margins?: ChartMargins) => {
   const ref = useRef(null);

@@ -270,4 +270,6 @@ div[data-highcharts-chart] {
 
 .chart-wrapper {
   height: 100%;
+  overflow: hidden;
+  position: relative;
 }

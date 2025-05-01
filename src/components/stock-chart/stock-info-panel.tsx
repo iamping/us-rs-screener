@@ -1,4 +1,4 @@
-import { Box, Flex, Spinner } from '@chakra-ui/react';
+import { Flex, Spinner } from '@chakra-ui/react';
 import { FC, useEffect, useState } from 'react';
 import { fetchHistoricalData } from '@/services/data.service';
 import { StockDataPoint } from '@/types/stock-chart';
@@ -37,9 +37,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     <>
       {isLoading && <Spinner position="absolute" top={2} left={2} zIndex={1} />}
       <Flex height="full" direction="column">
-        <Box flexGrow={1} overflow="hidden">
-          <MyStockChart ticker={ticker} series={series} />
-        </Box>
+        <MyStockChart ticker={ticker} series={series} />
       </Flex>
     </>
   );

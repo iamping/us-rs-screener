@@ -32,8 +32,8 @@ export const useChartDimensions = (margins?: ChartMargins) => {
   };
 
   const onResize = useDebounceCallback((size) => {
-    setWidth(size.width);
-    setHeight(size.height);
+    setWidth(Math.round(size.width));
+    setHeight(Math.round(size.height));
   }, 200);
 
   useResizeObserver({ ref, box: 'border-box', onResize });

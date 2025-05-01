@@ -47,7 +47,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   console.log('MyStockChart', ticker);
 
   const [wrapperRef, dms] = useChartDimensions({
-    marginRight: 40,
+    marginRight: 55,
     marginBottom: 30,
     marginTop: 20,
     marginLeft: 10
@@ -58,6 +58,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   const xRef = useRef<SVGGElement>(null);
   const yRef = useRef<SVGGElement>(null);
   const plotAreaRef = useRef<SVGGElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // X Axis
   const xScale = d3.scaleBand<Date>().range([0, dms.plotWidth]);
@@ -98,25 +99,39 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
         .attr('y2', (d) => yScale(d.high))
         .attr('stroke-width', 2)
         .attr('stroke', (d) => (d.close > d.open ? 'royalblue' : 'deeppink'));
-    }
-  }, [series, xScale, yScale]);
 
-  useEffect(() => {
-    if (svgRef.current) {
-      const plot = d3.select(svgRef.current as Element);
-      const dragOn = d3.drag().on('start', (e) => console.log(e));
-      plot.call(dragOn);
+      if (canvasRef.current) {
+        const context = canvasRef.current.getContext('2d') as CanvasRenderingContext2D;
+        context.clearRect(0, 0, dms.plotWidth, dms.plotWidth);
+        context.save();
+
+        context.rect(200, 0, 5, 100);
+        context.fill();
+
+        context.restore();
+      }
     }
-  }, []);
+  }, [series, xScale, yScale, dms]);
 
   return (
     <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper">
+      <canvas
+        ref={canvasRef}
+        id="canvas"
+        width={dms.plotWidth}
+        height={dms.plotHeight}
+        style={{
+          position: 'absolute',
+          top: dms.marginTop,
+          left: dms.marginLeft,
+          imageRendering: 'pixelated'
+        }}
+      />
       <svg ref={svgRef} id="stock-chart" height={dms.height} width={dms.width}>
         <g transform={`translate(${dms.marginLeft}, ${dms.marginTop})`}>
           <g ref={xRef} id="xAxis" transform={`translate(0, ${dms.plotHeight})`} />
           <g ref={yRef} id="yAxis" transform={`translate(${dms.plotWidth}, 0)`} />
           <g ref={plotAreaRef} id="plotArea" transform={`translate(0, 0)`} />
-          <canvas id="canvas" />
         </g>
       </svg>
     </div>

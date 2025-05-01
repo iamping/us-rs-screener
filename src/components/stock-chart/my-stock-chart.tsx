@@ -15,7 +15,7 @@ const dateFormat = (date: Date) => {
 
 const priceFormat = (value: d3.NumberValue) => {
   const price = value as number;
-  return price > 1000 ? (price / 1000).toFixed(1) + 'k' : d3.format(',.0f')(price);
+  return price > 1000 ? d3.format('.2f')(price / 1000) + 'k' : d3.format(',.2f')(price);
 };
 
 const dateTicks = (dates: Date[]) => {

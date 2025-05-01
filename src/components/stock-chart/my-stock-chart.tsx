@@ -13,6 +13,11 @@ const dateFormat = (date: Date) => {
   return fnc(date);
 };
 
+const priceFormat = (value: d3.NumberValue) => {
+  const price = value as number;
+  return price > 1000 ? (price / 1000).toFixed(1) + 'k' : d3.format(',.0f')(price);
+};
+
 const dateTicks = (dates: Date[]) => {
   const dateSet: string[] = [];
   return dates
@@ -37,8 +42,6 @@ const logTicks = (start: number, stop: number) => {
     .map((_, i) => start + distance * i)
     .slice(1);
 };
-
-const priceFormat = d3.format(',.2s');
 
 export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   console.log('MyStockChart', ticker);
@@ -113,6 +116,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
           <g ref={xRef} id="xAxis" transform={`translate(0, ${dms.plotHeight})`} />
           <g ref={yRef} id="yAxis" transform={`translate(${dms.plotWidth}, 0)`} />
           <g ref={plotAreaRef} id="plotArea" transform={`translate(0, 0)`} />
+          <canvas id="canvas" />
         </g>
       </svg>
     </div>

@@ -37,7 +37,6 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     <>
       {isLoading && <Spinner position="absolute" top={2} left={2} zIndex={1} />}
       <Flex height="full" direction="column">
-        <div>test</div>
         <Box flexGrow={1} overflow="hidden">
           <MyStockChart ticker={ticker} series={series} />
         </Box>

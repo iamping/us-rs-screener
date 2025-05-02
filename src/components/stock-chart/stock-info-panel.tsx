@@ -14,21 +14,25 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
 
   useEffect(() => {
     setIsLoading(true);
-    fetchHistoricalData(ticker).then((data) => {
-      const temp: StockDataPoint[] = [];
-      for (let i = 0; i < data.date.length; i++) {
-        temp.push({
-          close: data.close[i],
-          high: data.high[i],
-          low: data.low[i],
-          open: data.open[i],
-          volume: data.volume[i],
-          date: new Date(data.date[i] * 1000)
-        });
-      }
-      setIsLoading(false);
-      setSeries(temp.slice(-120));
-    });
+    fetchHistoricalData(ticker)
+      .then((data) => {
+        const temp: StockDataPoint[] = [];
+        for (let i = 0; i < data.date.length; i++) {
+          temp.push({
+            close: data.close[i],
+            high: data.high[i],
+            low: data.low[i],
+            open: data.open[i],
+            volume: data.volume[i],
+            date: new Date(data.date[i] * 1000)
+          });
+        }
+        setIsLoading(false);
+        setSeries(temp);
+      })
+      .catch(() => {
+        setIsLoading(false);
+      });
   }, [ticker]);
 
   console.log('render stockInfoPanel');

@@ -18,20 +18,20 @@ const priceFormat = (max: number) => (value: d3.NumberValue) => {
   return max > 1000 ? d3.format('.2f')(price / 1000) + 'k' : d3.format(',.2f')(price);
 };
 
-const dateTicks = (dates: Date[]) => {
-  const dateSet: string[] = [];
-  return dates
-    .filter((date) => {
-      const key = `${date.getMonth()},${date.getFullYear()}`;
-      if (dateSet.includes(key)) {
-        return false;
-      } else {
-        dateSet.push(key);
-        return true;
-      }
-    })
-    .slice(1);
-};
+// const dateTicks = (dates: Date[]) => {
+//   const dateSet: string[] = [];
+//   return dates
+//     .filter((date) => {
+//       const key = `${date.getMonth()},${date.getFullYear()}`;
+//       if (dateSet.includes(key)) {
+//         return false;
+//       } else {
+//         dateSet.push(key);
+//         return true;
+//       }
+//     })
+//     .slice(1);
+// };
 
 const logTicks = (start: number, stop: number) => {
   const noOfTicks = 9;
@@ -39,7 +39,7 @@ const logTicks = (start: number, stop: number) => {
   const distance = diff / noOfTicks;
   return Array(noOfTicks)
     .fill(0)
-    .map((_, i) => start + distance * i)
+    .map((_, i) => Math.round(start + distance * i))
     .slice(1);
 };
 
@@ -79,16 +79,24 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // X Axis
-  const xScale = d3.scaleBand<Date>().range([0, dms.plotWidth]).padding(0.8);
-  useEffect(() => {
-    if (series.length > 0 && xRef.current) {
-      const dateSeries = series.map((d) => d.date);
-      xScale.domain(dateSeries);
-      const gX = d3.select(xRef.current as SVGGElement);
-      gX.call(d3.axisBottom(xScale).tickValues(dateTicks(dateSeries)).tickFormat(dateFormat));
-      gX.selectAll('text').attr('class', 'tick-value');
-    }
-  }, [series, xScale]);
+  // const xScale = d3.scaleBand<Date>().range([0, dms.plotWidth]).padding(0.8);
+  // useEffect(() => {
+  //   if (series.length > 0) {
+  //     const dateSeries = series.map((d) => d.date);
+  //     xScale.domain(dateSeries);
+  //     // const gX = d3.select(xRef.current as SVGGElement);
+  //     // gX.call(d3.axisBottom(xScale).tickValues(dateTicks(dateSeries)).tickFormat(dateFormat));
+  //     // gX.selectAll('text').attr('class', 'tick-value');
+  //   }
+  // }, [series, xScale]);
+
+  const getXScale = (range: number[], dates: Date[]) => {
+    return d3.scaleBand<Date>().range(range).domain(dates).padding(0.8);
+  };
+
+  const getYScale = (range: number[], domain: number[]) => {
+    return d3.scaleLog().range(range).domain(domain);
+  };
 
   // Custom X Scale
   // const xScale = useMemo(() => {
@@ -99,20 +107,22 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   // }, [dms, series]);
 
   // Y Axis
-  const yScale = d3.scaleLog().range([dms.plotHeight, 0]);
-  useEffect(() => {
-    if (series.length > 0 && yRef.current) {
-      const min = (d3.min(series.map((d) => d.low)) ?? 0) * 0.95;
-      const max = (d3.max(series.map((d) => d.high)) ?? 0) * 1.05;
-      yScale.domain([min, max]);
-      const gY = d3.select(yRef.current as SVGGElement);
-      gY.call(d3.axisRight(yScale).tickValues(logTicks(min, max)).tickFormat(priceFormat(max)));
-      gY.selectAll('text').attr('class', 'tick-value');
-    }
-  }, [series, yScale]);
+  // const yScale = d3.scaleLog().range([dms.plotHeight, 0]);
+  // useEffect(() => {
+  //   if (series.length > 0) {
+  //     const min = (d3.min(series.map((d) => d.low)) ?? 0) * 0.95;
+  //     const max = (d3.max(series.map((d) => d.high)) ?? 0) * 1.05;
+  //     yScale.domain([min, max]);
+  //     const gY = d3.select(yRef.current as SVGGElement);
+  //     gY.call(d3.axisRight(yScale).tickValues(logTicks(min, max)).tickFormat(priceFormat(max)));
+  //     gY.selectAll('text').attr('class', 'tick-value');
+  //     gY.select('path').remove();
+  //     gY.selectAll('line').remove();
+  //   }
+  // }, [series, yScale]);
 
   const initCanvas = (canvas: HTMLCanvasElement, dms: ChartDimensions) => {
-    const dpr = 3; //window.devicePixelRatio || 3;
+    const dpr = 3;
     canvas.width = dms.plotWidth * dpr;
     canvas.height = dms.plotHeight * dpr;
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -121,16 +131,32 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
     return context;
   };
 
-  const redrawCanvas = useCallback(
-    (transform: d3.ZoomTransform) => {
-      // console.log(transform);
+  const drawChart = useCallback(
+    (
+      series: StockDataPoint[],
+      transform: d3.ZoomTransform,
+      xScale: d3.ScaleBand<Date>,
+      yScale: d3.ScaleLogarithmic<number, number>,
+      dms: ChartDimensions,
+      drawYAxis = true
+    ) => {
+      // clear canvas & translate on zoom event
       const canvas = canvasRef.current as HTMLCanvasElement;
       const context = initCanvas(canvas, dms);
-      const bandWidth = xScale.bandwidth();
-      const padding = xScale.padding();
+      context.translate(transform.x, 0);
 
-      series.forEach((d) => {
-        const x = (xScale(d.date) ?? 0) + bandWidth / 2 + transform.x;
+      // clear x axis
+      const gx = d3.select(xRef.current);
+      gx.select('path').remove();
+      gx.selectAll('.tick').remove();
+
+      const visibleDomain: number[] = [];
+      const bandWidth = xScale.bandwidth();
+      const padding = xScale.padding() + (transform.k > 8 ? 2 : 0);
+
+      // loop & draw each bar on canvas
+      series.forEach((d, i) => {
+        const x = (xScale(d.date) ?? 0) + bandWidth / 2;
         const low = yScale(d.low);
         const high = yScale(d.high);
         const close = yScale(d.close);
@@ -147,80 +173,144 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
         context.lineTo(x + bandWidth + padding, close);
         context.stroke();
 
-        // context.fillStyle = d.close > d.open ? 'royalblue' : 'deeppink';
-        // context.fillRect(x, high - bandWidth / 2, bandWidth, low - high + bandWidth);
-        // console.log('open', d.open, ', high', d.high, ', low', d.low);
-        // context.fillRect(x - bandWidth, yOpen, bandWidth + 1, bandWidth);
-        // context.fillRect(x + bandWidth - 1, yClose, bandWidth + 1, bandWidth);
+        // find min & max visible price
+        const boundStart = x + transform.x + 10;
+        const boundEnd = x + transform.x - 10;
+        if (boundStart > 0 && boundEnd <= dms.plotWidth) {
+          if (visibleDomain.length) {
+            visibleDomain[0] = Math.min(d.low, visibleDomain[0]);
+            visibleDomain[1] = Math.max(d.high, visibleDomain[1]);
+          } else {
+            visibleDomain.push(d.low);
+            visibleDomain.push(d.low);
+          }
+        }
+
+        // manually add x ticks
+        if (i % 21 === 0 && boundEnd <= dms.plotWidth - 20 && boundStart - 20 > 0) {
+          const tick = gx
+            .append('g')
+            .attr('class', 'tick')
+            .attr('transform', `translate(${x + transform.x},0)`);
+          tick
+            .insert('text')
+            .attr('class', 'tick-value')
+            .attr('y', 9)
+            .attr('dy', '0.7em')
+            .attr('fill', 'currentColor')
+            .text(dateFormat(d.date));
+        }
       });
+
+      // expand domain a little bit
+      visibleDomain[0] *= 0.95;
+      visibleDomain[1] *= 1.05;
+
+      // draw Y axis
+      if (drawYAxis) {
+        const [min, max] = visibleDomain;
+        yScale.domain(visibleDomain);
+        const gY = d3.select(yRef.current as SVGGElement);
+        gY.call(d3.axisRight(yScale).tickValues(logTicks(min, max)).tickFormat(priceFormat(max)))
+          .selectAll('text')
+          .attr('class', 'tick-value');
+        gY.select('path').remove();
+        gY.selectAll('line').remove();
+
+        // redraw bar chart again based on updated domain
+        drawChart(series, transform, xScale, yScale, dms, false);
+      }
     },
-    [dms, series, xScale, yScale]
+    []
   );
 
   // Plot Area
+  // useEffect(() => {
+  //   if (series.length > 0 && plotAreaRef.current) {
+  //     // d3.select(plotAreaRef.current as SVGGElement)
+  //     //   .selectAll('.lineY')
+  //     //   .data(series)
+  //     //   .join('line')
+  //     //   .attr('class', 'lineY')
+  //     //   .attr('x1', (d) => xScale(d.date) ?? 0)
+  //     //   .attr('x2', (d) => xScale(d.date) ?? 0)
+  //     //   .attr('y1', (d) => yScale(d.low))
+  //     //   .attr('y2', (d) => yScale(d.high))
+  //     //   .attr('stroke-width', 2)
+  //     //   .attr('stroke', (d) => (d.close > d.open ? 'royalblue' : 'deeppink'));
+
+  //     redrawCanvas(d3.zoomIdentity);
+
+  //     // if (canvasRef.current) {
+  //     //   const context = initCanvas(canvasRef.current, dms);
+  //     //   const bandWidth = xScale.bandwidth();
+  //     //   const padding = xScale.padding();
+  //     //   series.forEach((d) => {
+  //     //     const x = (xScale(d.date) ?? 0) + bandWidth / 2;
+  //     //     const low = yScale(d.low);
+  //     //     const high = yScale(d.high);
+  //     //     const close = yScale(d.close);
+  //     //     const open = yScale(d.open);
+  //     //     context.strokeStyle = d.close > d.open ? 'royalblue' : 'deeppink';
+  //     //     context.lineWidth = bandWidth;
+  //     //     context.beginPath();
+  //     //     context.moveTo(x, low + bandWidth / 2);
+  //     //     context.lineTo(x, high - bandWidth / 2);
+  //     //     context.moveTo(x, open);
+  //     //     context.lineTo(x - bandWidth - padding, open);
+  //     //     context.moveTo(x, close);
+  //     //     context.lineTo(x + bandWidth + padding, close);
+  //     //     context.stroke();
+  //     //     // context.fillStyle = d.close > d.open ? 'royalblue' : 'deeppink';
+  //     //     // context.fillRect(x, high - bandWidth / 2, bandWidth, low - high + bandWidth);
+  //     //     // console.log('open', d.open, ', high', d.high, ', low', d.low);
+  //     //     // context.fillRect(x - bandWidth, yOpen, bandWidth + 1, bandWidth);
+  //     //     // context.fillRect(x + bandWidth - 1, yClose, bandWidth + 1, bandWidth);
+  //     //   });
+  //     // }
+  //   }
+  // }, [series, dms, redrawCanvas]);
+
   useEffect(() => {
-    if (series.length > 0 && plotAreaRef.current) {
-      // d3.select(plotAreaRef.current as SVGGElement)
-      //   .selectAll('.lineY')
-      //   .data(series)
-      //   .join('line')
-      //   .attr('class', 'lineY')
-      //   .attr('x1', (d) => xScale(d.date) ?? 0)
-      //   .attr('x2', (d) => xScale(d.date) ?? 0)
-      //   .attr('y1', (d) => yScale(d.low))
-      //   .attr('y2', (d) => yScale(d.high))
-      //   .attr('stroke-width', 2)
-      //   .attr('stroke', (d) => (d.close > d.open ? 'royalblue' : 'deeppink'));
+    const initialScale = 3;
+    const canvas = d3.select(canvasRef.current as HTMLCanvasElement);
 
-      redrawCanvas(d3.zoomIdentity);
+    if (series.length > 0) {
+      // prepare X & Y Scale
+      const min = (d3.min(series.map((d) => d.low)) ?? 0) * 0.95;
+      const max = (d3.max(series.map((d) => d.high)) ?? 0) * 1.05;
+      const xScale = getXScale(
+        [0, dms.plotWidth],
+        series.map((d) => d.date)
+      );
+      const yScale = getYScale([dms.plotHeight, 0], [min, max]);
 
-      // if (canvasRef.current) {
-      //   const context = initCanvas(canvasRef.current, dms);
-      //   const bandWidth = xScale.bandwidth();
-      //   const padding = xScale.padding();
-      //   series.forEach((d) => {
-      //     const x = (xScale(d.date) ?? 0) + bandWidth / 2;
-      //     const low = yScale(d.low);
-      //     const high = yScale(d.high);
-      //     const close = yScale(d.close);
-      //     const open = yScale(d.open);
-      //     context.strokeStyle = d.close > d.open ? 'royalblue' : 'deeppink';
-      //     context.lineWidth = bandWidth;
-      //     context.beginPath();
-      //     context.moveTo(x, low + bandWidth / 2);
-      //     context.lineTo(x, high - bandWidth / 2);
-      //     context.moveTo(x, open);
-      //     context.lineTo(x - bandWidth - padding, open);
-      //     context.moveTo(x, close);
-      //     context.lineTo(x + bandWidth + padding, close);
-      //     context.stroke();
-      //     // context.fillStyle = d.close > d.open ? 'royalblue' : 'deeppink';
-      //     // context.fillRect(x, high - bandWidth / 2, bandWidth, low - high + bandWidth);
-      //     // console.log('open', d.open, ', high', d.high, ', low', d.low);
-      //     // context.fillRect(x - bandWidth, yOpen, bandWidth + 1, bandWidth);
-      //     // context.fillRect(x + bandWidth - 1, yClose, bandWidth + 1, bandWidth);
-      //   });
-      // }
-    }
-  }, [series, xScale, yScale, dms, redrawCanvas]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
+      // prepare zoom
+      const extent = [
+        [0, 0],
+        [dms.plotWidth / 2, 0]
+      ] as [[number, number], [number, number]];
       const zoom = d3
         .zoom<HTMLCanvasElement, unknown>()
-        // .translateExtent([
-        //   [0, 0],
-        //   [dms.plotWidth * 10, dms.plotHeight]
-        // ])
-        .on('zoom', (e: { transform: d3.ZoomTransform }) => redrawCanvas(e.transform));
-      d3.select(canvas).call(zoom);
-      d3.select(canvas).call(zoom.transform, d3.zoomIdentity); // reset zoom
+        .scaleExtent([2, 10])
+        .translateExtent(extent)
+        .extent(extent)
+        .on('zoom', ({ transform }: { transform: d3.ZoomTransform }) => {
+          xScale.range([0, dms.plotWidth].map((d) => transform.applyX(d)));
+          drawChart(series, transform, xScale, yScale, dms);
+        });
+
+      // register zoom
+      canvas.call(zoom);
+
+      // draw canvas with initial zoom
+      canvas.call(zoom.transform, d3.zoomIdentity.translate(-dms.plotWidth, 0).scale(initialScale));
+
       return () => {
-        d3.select(canvas).on('zoom', null);
+        canvas.on('zoom', null);
       };
     }
-  }, [redrawCanvas]);
+  }, [series, dms, drawChart]);
 
   return (
     <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper">

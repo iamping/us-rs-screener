@@ -27,7 +27,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
         });
       }
       setIsLoading(false);
-      setSeries(temp.slice(-60));
+      setSeries(temp.slice(-120));
     });
   }, [ticker]);
 

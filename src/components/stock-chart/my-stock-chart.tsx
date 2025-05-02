@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { FC, useEffect, useRef } from 'react';
+import { FC, useCallback, useEffect, useRef } from 'react';
 import { ChartDimensions, useChartDimensions } from '@/hooks/useChartDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
 
@@ -42,8 +42,6 @@ const logTicks = (start: number, stop: number) => {
     .map((_, i) => start + distance * i)
     .slice(1);
 };
-
-const dpr = 2;
 
 // Custom Band Scale for canvas
 // const bandScale = (range: number[], domain: Date[]) => {
@@ -113,7 +111,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
     }
   }, [series, yScale]);
 
-  const initCanvas = (canvas: HTMLCanvasElement, dms: ChartDimensions, dpr: number) => {
+  const initCanvas = (canvas: HTMLCanvasElement, dms: ChartDimensions) => {
+    const dpr = 3; //window.devicePixelRatio || 3;
     canvas.width = dms.plotWidth * dpr;
     canvas.height = dms.plotHeight * dpr;
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -121,6 +120,42 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
     context.scale(dpr, dpr);
     return context;
   };
+
+  const redrawCanvas = useCallback(
+    (transform: d3.ZoomTransform) => {
+      // console.log(transform);
+      const canvas = canvasRef.current as HTMLCanvasElement;
+      const context = initCanvas(canvas, dms);
+      const bandWidth = xScale.bandwidth();
+      const padding = xScale.padding();
+
+      series.forEach((d) => {
+        const x = (xScale(d.date) ?? 0) + bandWidth / 2 + transform.x;
+        const low = yScale(d.low);
+        const high = yScale(d.high);
+        const close = yScale(d.close);
+        const open = yScale(d.open);
+
+        context.strokeStyle = d.close > d.open ? 'royalblue' : 'deeppink';
+        context.lineWidth = bandWidth;
+        context.beginPath();
+        context.moveTo(x, low + bandWidth / 2);
+        context.lineTo(x, high - bandWidth / 2);
+        context.moveTo(x, open);
+        context.lineTo(x - bandWidth - padding, open);
+        context.moveTo(x, close);
+        context.lineTo(x + bandWidth + padding, close);
+        context.stroke();
+
+        // context.fillStyle = d.close > d.open ? 'royalblue' : 'deeppink';
+        // context.fillRect(x, high - bandWidth / 2, bandWidth, low - high + bandWidth);
+        // console.log('open', d.open, ', high', d.high, ', low', d.low);
+        // context.fillRect(x - bandWidth, yOpen, bandWidth + 1, bandWidth);
+        // context.fillRect(x + bandWidth - 1, yClose, bandWidth + 1, bandWidth);
+      });
+    },
+    [dms, series, xScale, yScale]
+  );
 
   // Plot Area
   useEffect(() => {
@@ -137,37 +172,55 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
       //   .attr('stroke-width', 2)
       //   .attr('stroke', (d) => (d.close > d.open ? 'royalblue' : 'deeppink'));
 
-      if (canvasRef.current) {
-        const context = initCanvas(canvasRef.current, dms, dpr);
-        const bandWidth = xScale.bandwidth();
-        const padding = xScale.padding() * 2;
-        series.forEach((d) => {
-          const x = (xScale(d.date) ?? 0) + bandWidth / 2;
-          const low = yScale(d.low);
-          const high = yScale(d.high);
-          const close = yScale(d.close);
-          const open = yScale(d.open);
+      redrawCanvas(d3.zoomIdentity);
 
-          context.strokeStyle = d.close > d.open ? 'royalblue' : 'deeppink';
-          context.lineWidth = bandWidth;
-          context.beginPath();
-          context.moveTo(x, low + bandWidth / 2);
-          context.lineTo(x, high - bandWidth / 2);
-          context.moveTo(x, open);
-          context.lineTo(x - bandWidth - padding, open);
-          context.moveTo(x, close);
-          context.lineTo(x + bandWidth + padding, close);
-          context.stroke();
-
-          // context.fillStyle = d.close > d.open ? 'royalblue' : 'deeppink';
-          // context.fillRect(x, high - bandWidth / 2, bandWidth, low - high + bandWidth);
-          // console.log('open', d.open, ', high', d.high, ', low', d.low);
-          // context.fillRect(x - bandWidth, yOpen, bandWidth + 1, bandWidth);
-          // context.fillRect(x + bandWidth - 1, yClose, bandWidth + 1, bandWidth);
-        });
-      }
+      // if (canvasRef.current) {
+      //   const context = initCanvas(canvasRef.current, dms);
+      //   const bandWidth = xScale.bandwidth();
+      //   const padding = xScale.padding();
+      //   series.forEach((d) => {
+      //     const x = (xScale(d.date) ?? 0) + bandWidth / 2;
+      //     const low = yScale(d.low);
+      //     const high = yScale(d.high);
+      //     const close = yScale(d.close);
+      //     const open = yScale(d.open);
+      //     context.strokeStyle = d.close > d.open ? 'royalblue' : 'deeppink';
+      //     context.lineWidth = bandWidth;
+      //     context.beginPath();
+      //     context.moveTo(x, low + bandWidth / 2);
+      //     context.lineTo(x, high - bandWidth / 2);
+      //     context.moveTo(x, open);
+      //     context.lineTo(x - bandWidth - padding, open);
+      //     context.moveTo(x, close);
+      //     context.lineTo(x + bandWidth + padding, close);
+      //     context.stroke();
+      //     // context.fillStyle = d.close > d.open ? 'royalblue' : 'deeppink';
+      //     // context.fillRect(x, high - bandWidth / 2, bandWidth, low - high + bandWidth);
+      //     // console.log('open', d.open, ', high', d.high, ', low', d.low);
+      //     // context.fillRect(x - bandWidth, yOpen, bandWidth + 1, bandWidth);
+      //     // context.fillRect(x + bandWidth - 1, yClose, bandWidth + 1, bandWidth);
+      //   });
+      // }
     }
-  }, [series, xScale, yScale, dms]);
+  }, [series, xScale, yScale, dms, redrawCanvas]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const zoom = d3
+        .zoom<HTMLCanvasElement, unknown>()
+        // .translateExtent([
+        //   [0, 0],
+        //   [dms.plotWidth * 10, dms.plotHeight]
+        // ])
+        .on('zoom', (e: { transform: d3.ZoomTransform }) => redrawCanvas(e.transform));
+      d3.select(canvas).call(zoom);
+      d3.select(canvas).call(zoom.transform, d3.zoomIdentity); // reset zoom
+      return () => {
+        d3.select(canvas).on('zoom', null);
+      };
+    }
+  }, [redrawCanvas]);
 
   return (
     <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper">

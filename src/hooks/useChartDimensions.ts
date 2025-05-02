@@ -8,7 +8,7 @@ interface ChartMargins {
   marginLeft?: number;
 }
 
-interface ChartDimensions {
+export interface ChartDimensions {
   marginTop: number;
   marginRight: number;
   marginBottom: number;

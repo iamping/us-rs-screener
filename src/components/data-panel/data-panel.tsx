@@ -23,7 +23,7 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
   const topMargin = 48;
 
   const isLandscape = useMemo(() => {
-    const isLandscape = windowSize.width > windowSize.height;
+    const isLandscape = false; //windowSize.width > windowSize.height;
     if (isLandscape) {
       setCssVar('--table-height', computeHeight(windowSize.height, topMargin));
       setCssVar('--chart-height', computeHeight(windowSize.height, topMargin));

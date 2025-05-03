@@ -2,6 +2,7 @@ import { Box, CloseButton, Flex, Heading, HStack, Link, SegmentGroup, Spacer, Te
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { LuChartCandlestick, LuInfo } from 'react-icons/lu';
+import { calculateEMA, calculateSMA } from '@/helpers/chart.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
 import { Stock } from '@/types/stock';
@@ -38,6 +39,10 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     fetchHistoricalData(ticker)
       .then((data) => {
         const temp: StockDataPoint[] = [];
+        const ema21 = calculateEMA(data.close, 21);
+        const ema50 = calculateEMA(data.close, 50);
+        const ema200 = calculateEMA(data.close, 200);
+        const volSma50 = calculateSMA(data.volume, 50);
         for (let i = 0; i < data.date.length; i++) {
           temp.push({
             close: data.close[i],
@@ -45,7 +50,11 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
             low: data.low[i],
             open: data.open[i],
             volume: data.volume[i],
-            date: new Date(data.date[i] * 1000)
+            date: new Date(data.date[i] * 1000),
+            ema21: ema21[i],
+            ema50: ema50[i],
+            ema200: ema200[i],
+            volSma50: volSma50[i]
           });
         }
         setSeries(temp);

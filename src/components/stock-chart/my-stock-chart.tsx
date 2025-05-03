@@ -182,8 +182,11 @@ const drawChart = (
   const padding = xScale.padding() + (transform.k > 8 ? 2 : 0);
 
   // colors
-  const upColor = getCssVar('--colors-up');
-  const downColor = getCssVar('--colors-down');
+  const colorUp = getCssVar('--colors-up');
+  const colorDown = getCssVar('--colors-down');
+  const colorEma21 = getCssVar('--chakra-colors-gray-300');
+  const colorEma50 = getCssVar('--chakra-colors-gray-400');
+  const colorEma200 = getCssVar('--chakra-colors-black');
 
   // loop data & draw on canvas
   series.forEach((d, i) => {
@@ -194,7 +197,7 @@ const drawChart = (
     const open = yScale(d.open);
 
     // draw price bar
-    context.strokeStyle = d.close > d.open ? upColor : downColor;
+    context.strokeStyle = d.close > d.open ? colorUp : colorDown;
     context.lineWidth = bandWidth;
     context.beginPath();
     context.moveTo(x, low + bandWidth / 2);
@@ -231,6 +234,45 @@ const drawChart = (
         .text(dateFormat(d.date));
     }
   });
+
+  // draw ema 21
+  const lineEma21 = d3
+    .line<StockDataPoint>(
+      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+      (d) => yScale(d.ema21 ?? 0)
+    )
+    .context(context);
+  context.beginPath();
+  lineEma21(series.filter((d) => !!d.ema21));
+  context.lineWidth = 1;
+  context.strokeStyle = colorEma21;
+  context.stroke();
+
+  // draw ema 50
+  const lineEma50 = d3
+    .line<StockDataPoint>(
+      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+      (d) => yScale(d.ema50 ?? 0)
+    )
+    .context(context);
+  context.beginPath();
+  lineEma50(series.filter((d) => !!d.ema50));
+  context.lineWidth = 1;
+  context.strokeStyle = colorEma50;
+  context.stroke();
+
+  // draw ema 200
+  const lineEma200 = d3
+    .line<StockDataPoint>(
+      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+      (d) => yScale(d.ema200 ?? 0)
+    )
+    .context(context);
+  context.beginPath();
+  lineEma200(series.filter((d) => !!d.ema200));
+  context.lineWidth = 1;
+  context.strokeStyle = colorEma200;
+  context.stroke();
 };
 
 export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
@@ -247,7 +289,6 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   const svgRef = useRef<SVGSVGElement>(null);
   const xRef = useRef<SVGGElement>(null);
   const yRef = useRef<SVGGElement>(null);
-  const plotAreaRef = useRef<SVGGElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // X Axis
@@ -368,7 +409,6 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
             /> */}
           <g ref={xRef} id="xAxis" transform={`translate(0, ${dms.plotHeight})`} />
           <g ref={yRef} id="yAxis" transform={`translate(${dms.plotWidth}, 0)`} />
-          <g ref={plotAreaRef} id="plotArea" transform={`translate(0, 0)`} />
         </g>
       </svg>
     </div>

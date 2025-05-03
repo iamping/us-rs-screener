@@ -464,3 +464,37 @@ export const chartOptions = (
     }
   } as Highcharts.Options;
 };
+
+export const calculateEMA = (values: number[], period: number) => {
+  const k = 2 / (period + 1);
+  const emaArray: Array<number | null> = [];
+  let previousEma = 0;
+  values.forEach((value, index) => {
+    if (index < period - 1) {
+      emaArray.push(null);
+    } else if (index === period - 1) {
+      // first ema value = simple ma
+      const sum = values.slice(0, period).reduce((pre, current) => pre + current, 0);
+      previousEma = sum / period;
+      emaArray.push(previousEma);
+    } else {
+      const ema = value * k + previousEma * (1 - k);
+      emaArray.push(ema);
+      previousEma = ema;
+    }
+  });
+  return emaArray;
+};
+
+export const calculateSMA = (values: number[], period: number) => {
+  const smaArray: Array<number | null> = [];
+  values.forEach((_, index) => {
+    if (index < period - 1) {
+      smaArray.push(null);
+    } else {
+      const sum = values.slice(index + 1 - period, index + 1).reduce((pre, current) => pre + current, 0);
+      smaArray.push(sum / period);
+    }
+  });
+  return smaArray;
+};

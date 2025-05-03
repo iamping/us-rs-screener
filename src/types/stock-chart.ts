@@ -16,6 +16,10 @@ export interface StockDataPoint {
   low: number;
   open: number;
   volume: number;
+  ema21: number | null;
+  ema50: number | null;
+  ema200: number | null;
+  volSma50: number | null;
 }
 
 export interface ChartSeries {

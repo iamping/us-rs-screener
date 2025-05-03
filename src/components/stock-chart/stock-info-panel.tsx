@@ -1,6 +1,10 @@
-import { Flex, Spinner } from '@chakra-ui/react';
-import { FC, useEffect, useState } from 'react';
+import { Box, CloseButton, Flex, Heading, HStack, Link, SegmentGroup, Spacer, Text } from '@chakra-ui/react';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { FC, useEffect, useMemo, useState } from 'react';
+import { LuChartCandlestick, LuInfo } from 'react-icons/lu';
 import { fetchHistoricalData } from '@/services/data.service';
+import { stockListAtom, tickerAtom } from '@/states/atom';
+import { Stock } from '@/types/stock';
 import { StockDataPoint } from '@/types/stock-chart';
 import { MyStockChart } from './my-stock-chart';
 
@@ -10,10 +14,27 @@ interface StockInfoPanelProps {
 
 export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const [series, setSeries] = useState<StockDataPoint[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'normal' | 'error'>('normal');
+  const [retry, setRetry] = useState(0);
+  const [segment, setSegment] = useState('chart');
+  const stockList = useAtomValue(stockListAtom);
+  const setTicker = useSetAtom(tickerAtom);
+
+  const isLoading = status === 'loading';
+  const isError = status === 'error';
+  const showChart = segment === 'chart';
+
+  const stockInfo = useMemo(() => {
+    return stockList.find((e) => e.ticker === ticker)!;
+  }, [ticker, stockList]);
+
+  const items = [
+    { value: 'chart', label: <LuChartCandlestick /> },
+    { value: 'info', label: <LuInfo /> }
+  ];
 
   useEffect(() => {
-    setIsLoading(true);
+    setStatus('loading');
     fetchHistoricalData(ticker)
       .then((data) => {
         const temp: StockDataPoint[] = [];
@@ -27,22 +48,75 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
             date: new Date(data.date[i] * 1000)
           });
         }
-        setIsLoading(false);
         setSeries(temp);
+        setStatus('normal');
       })
       .catch(() => {
-        setIsLoading(false);
+        setStatus('error');
       });
-  }, [ticker]);
+  }, [ticker, retry]);
 
   console.log('render stockInfoPanel');
 
+  if (isError) {
+    return (
+      <Flex margin={2} gap={2}>
+        <Text>
+          Something went wrong. Please{' '}
+          <Link colorPalette="red" onClick={() => setRetry((val) => val + 1)}>
+            try again.
+          </Link>
+        </Text>
+        <Spacer />
+        <CloseButton size="2xs" variant="subtle" zIndex={1} loading={isLoading} onClick={() => setTicker('')} />
+      </Flex>
+    );
+  }
+
   return (
     <>
-      {isLoading && <Spinner position="absolute" top={2} left={2} zIndex={1} />}
       <Flex height="full" direction="column">
-        <MyStockChart ticker={ticker} series={series} />
+        <Flex margin={2} gap={2}>
+          <Box>{isLoading ? <Text>Loading...</Text> : <HeadLine stockInfo={stockInfo} />}</Box>
+          <Spacer />
+          <SegmentGroup.Root
+            disabled={isLoading}
+            size="xs"
+            value={segment}
+            onValueChange={(e) => setSegment(e.value ?? '')}>
+            <SegmentGroup.Indicator backgroundColor="white" />
+            <SegmentGroup.Items items={items} />
+          </SegmentGroup.Root>
+          <CloseButton size="2xs" variant="subtle" zIndex={1} loading={isLoading} onClick={() => setTicker('')} />
+        </Flex>
+        {showChart && (
+          <MyStockChart
+            id="stock-chart"
+            className="stock-chart"
+            data-loading={isLoading}
+            ticker={ticker}
+            series={series}
+          />
+        )}
       </Flex>
+    </>
+  );
+};
+
+const HeadLine = ({ stockInfo }: { stockInfo: Stock }) => {
+  return (
+    <>
+      <HStack>
+        <Heading size="md" fontWeight="500">
+          {stockInfo.companyName}
+        </Heading>
+        <Text fontWeight="500" color="gray.500">
+          ({stockInfo.ticker})
+        </Text>
+        {/* <Text>{stockInfo.close}</Text>
+        <Text>{stockInfo.change}</Text>
+        <Text>{stockInfo.percentChange}</Text> */}
+      </HStack>
     </>
   );
 };

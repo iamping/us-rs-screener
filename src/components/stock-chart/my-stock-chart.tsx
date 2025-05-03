@@ -2,8 +2,9 @@ import * as d3 from 'd3';
 import { FC, useCallback, useEffect, useRef } from 'react';
 import { ChartDimensions, useChartDimensions } from '@/hooks/useChartDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
+import { getCssVar } from '@/utils/common.utils';
 
-interface StockChartProps {
+interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
   ticker: string;
   series: StockDataPoint[];
 }
@@ -34,7 +35,7 @@ const priceFormat = (max: number) => (value: d3.NumberValue) => {
 // };
 
 const logTicks = (start: number, stop: number) => {
-  const noOfTicks = 9;
+  const noOfTicks = 10;
   const diff = stop - start;
   const distance = diff / noOfTicks;
   return Array(noOfTicks)
@@ -61,14 +62,14 @@ const logTicks = (start: number, stop: number) => {
 //   return fnc;
 // };
 
-export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
+export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   console.log('MyStockChart', ticker);
 
   const [wrapperRef, dms] = useChartDimensions({
     marginRight: 55,
     marginBottom: 30,
-    marginTop: 20,
-    marginLeft: 10
+    marginTop: 0,
+    marginLeft: 0
   });
 
   // Element Refs
@@ -77,6 +78,10 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   const yRef = useRef<SVGGElement>(null);
   const plotAreaRef = useRef<SVGGElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // constant
+  const dpr = 3;
+  const domainMultiplier = 0.01;
 
   // X Axis
   // const xScale = d3.scaleBand<Date>().range([0, dms.plotWidth]).padding(0.8);
@@ -122,7 +127,6 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   // }, [series, yScale]);
 
   const initCanvas = (canvas: HTMLCanvasElement, dms: ChartDimensions) => {
-    const dpr = 3;
     canvas.width = dms.plotWidth * dpr;
     canvas.height = dms.plotHeight * dpr;
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -154,7 +158,11 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
       const bandWidth = xScale.bandwidth();
       const padding = xScale.padding() + (transform.k > 8 ? 2 : 0);
 
-      // loop & draw each bar on canvas
+      // colors
+      const upColor = getCssVar('--colors-up');
+      const downColor = getCssVar('--colors-down');
+
+      // loop data & draw on canvas
       series.forEach((d, i) => {
         const x = (xScale(d.date) ?? 0) + bandWidth / 2;
         const low = yScale(d.low);
@@ -162,7 +170,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
         const close = yScale(d.close);
         const open = yScale(d.open);
 
-        context.strokeStyle = d.close > d.open ? 'royalblue' : 'deeppink';
+        // draw price bar
+        context.strokeStyle = d.close > d.open ? upColor : downColor;
         context.lineWidth = bandWidth;
         context.beginPath();
         context.moveTo(x, low + bandWidth / 2);
@@ -171,6 +180,11 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
         context.lineTo(x - bandWidth - padding, open);
         context.moveTo(x, close);
         context.lineTo(x + bandWidth + padding, close);
+
+        // draw volume bar
+        context.moveTo(x, dms.plotHeight);
+        context.lineTo(x, dms.plotHeight - 10 + d.volume / 1000000);
+
         context.stroke();
 
         // find min & max visible price
@@ -203,8 +217,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
       });
 
       // expand domain a little bit
-      visibleDomain[0] *= 0.95;
-      visibleDomain[1] *= 1.05;
+      visibleDomain[0] *= 1 - domainMultiplier;
+      visibleDomain[1] *= 1 + domainMultiplier;
 
       // draw Y axis
       if (drawYAxis) {
@@ -277,8 +291,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
 
     if (series.length > 0) {
       // prepare X & Y Scale
-      const min = (d3.min(series.map((d) => d.low)) ?? 0) * 0.95;
-      const max = (d3.max(series.map((d) => d.high)) ?? 0) * 1.05;
+      const min = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - domainMultiplier);
+      const max = (d3.max(series.map((d) => d.high)) ?? 0) * (1 + domainMultiplier);
       const xScale = getXScale(
         [0, dms.plotWidth],
         series.map((d) => d.date)
@@ -313,7 +327,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
   }, [series, dms, drawChart]);
 
   return (
-    <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper">
+    <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper" {...props}>
       <canvas
         ref={canvasRef}
         id="canvas"
@@ -325,7 +339,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series }) => {
           height: dms.plotHeight
         }}
       />
-      <svg ref={svgRef} id="stock-chart" height={dms.height} width={dms.width}>
+      <svg ref={svgRef} id="stock-chart-svg" height={dms.height} width={dms.width}>
         <g transform={`translate(${dms.marginLeft}, ${dms.marginTop})`}>
           {/* <XAxis
             id="customXAxis"

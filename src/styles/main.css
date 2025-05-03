@@ -5,9 +5,13 @@
   --table-height: calc(100dvh - 48px);
   --preset-content-max-height: calc(100dvh - 100px);
   --filter-content-max-height: calc(100dvh / 3);
+  --font-outfit: 'Outfit', serif;
+
+  /* colors for chart */
+  --colors-up: royalblue;
+  --colors-down: deeppink;
   --colors-rs-new-high-before-price: rgb(0, 200, 0, 0.25);
   --colors-rs-new-high: rgb(0, 0, 0, 0.25);
-  --font-outfit: 'Outfit', serif;
 }
 
 body {
@@ -268,8 +272,11 @@ div[data-highcharts-chart] {
   font-size: 12px;
 }
 
-.chart-wrapper {
+.stock-chart {
   height: 100%;
   overflow: hidden;
   position: relative;
+  &[data-loading=true] {
+    opacity: 0.4;
+  }
 }

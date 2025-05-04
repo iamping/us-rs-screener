@@ -12,7 +12,8 @@ interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
 interface ChartScales {
   xScale: d3.ScaleBand<Date>;
   yScale: d3.ScaleLogarithmic<number, number>;
-  volumeScale: d3.ScaleLinear<number, number>;
+  volumeYScale: d3.ScaleLinear<number, number>;
+  rsYScale: d3.ScaleLinear<number, number>;
 }
 
 interface ElementRefs {
@@ -82,7 +83,7 @@ const getYScale = (range: number[], domain: number[]) => {
   return d3.scaleLog().range(range).domain(domain);
 };
 
-const getVolumeScale = (range: number[], domain: number[]) => {
+const getLinearScale = (range: number[], domain: number[]) => {
   return d3.scaleLinear().range(range).domain(domain);
 };
 
@@ -90,7 +91,8 @@ const getVolumeScale = (range: number[], domain: number[]) => {
 const dpr = 3;
 const domainMultiplier = 0.01;
 const barArea = 0.8;
-const volumeArea = 1 - barArea;
+const volumeArea = 0.2;
+const rsArea = 0.4;
 
 const initCanvas = (canvas: HTMLCanvasElement, dms: ChartDimensions, dpr: number) => {
   canvas.width = dms.plotWidth * dpr;
@@ -161,7 +163,8 @@ const drawChart = (
   transform: d3.ZoomTransform,
   elementRefs: ElementRefs,
   scales: ChartScales,
-  dms: ChartDimensions
+  dms: ChartDimensions,
+  showRs = true
 ) => {
   // clear canvas & translate on zoom event
   const { canvasRef, xRef } = elementRefs;
@@ -176,7 +179,7 @@ const drawChart = (
   gx.select('path').remove();
   gx.selectAll('.tick').remove();
 
-  const { xScale, yScale, volumeScale } = scales;
+  const { xScale, yScale, volumeYScale, rsYScale } = scales;
   // const visibleDomain: number[] = [];
   const bandWidth = xScale.bandwidth();
   const padding = xScale.padding() + (transform.k > 8 ? 2 : 0);
@@ -187,6 +190,7 @@ const drawChart = (
   const colorEma21 = getCssVar('--chakra-colors-gray-300');
   const colorEma50 = getCssVar('--chakra-colors-gray-400');
   const colorEma200 = getCssVar('--chakra-colors-black');
+  const colorRs = getCssVar('--chakra-colors-blue-300');
 
   // loop data & draw on canvas
   series.forEach((d, i) => {
@@ -212,7 +216,7 @@ const drawChart = (
     context.lineWidth = bandWidth * 2;
     context.beginPath();
     context.moveTo(x, dms.plotHeight);
-    context.lineTo(x, dms.plotHeight - volumeScale(d.volume) - dms.plotHeight * domainMultiplier);
+    context.lineTo(x, dms.plotHeight - volumeYScale(d.volume) + dms.plotHeight * domainMultiplier);
     context.stroke();
 
     // find min & max visible price
@@ -236,47 +240,69 @@ const drawChart = (
   });
 
   // draw ema 21
-  const lineEma21 = d3
+  const ema21Line = d3
     .line<StockDataPoint>(
       (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
       (d) => yScale(d.ema21 ?? 0)
     )
     .context(context);
   context.beginPath();
-  lineEma21(series.filter((d) => !!d.ema21));
+  ema21Line(series.filter((d) => !!d.ema21));
   context.lineWidth = 1;
   context.strokeStyle = colorEma21;
   context.stroke();
 
   // draw ema 50
-  const lineEma50 = d3
+  const ema50Line = d3
     .line<StockDataPoint>(
       (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
       (d) => yScale(d.ema50 ?? 0)
     )
     .context(context);
   context.beginPath();
-  lineEma50(series.filter((d) => !!d.ema50));
+  ema50Line(series.filter((d) => !!d.ema50));
   context.lineWidth = 1;
   context.strokeStyle = colorEma50;
   context.stroke();
 
   // draw ema 200
-  const lineEma200 = d3
+  const ema200Line = d3
     .line<StockDataPoint>(
       (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
       (d) => yScale(d.ema200 ?? 0)
     )
     .context(context);
   context.beginPath();
-  lineEma200(series.filter((d) => !!d.ema200));
+  ema200Line(series.filter((d) => !!d.ema200));
   context.lineWidth = 1;
   context.strokeStyle = colorEma200;
   context.stroke();
+
+  // draw rs line + rs rating
+  if (showRs) {
+    const rsLine = d3
+      .line<StockDataPoint>(
+        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (d) => rsYScale(d.rs) + dms.plotHeight * 0.5
+      )
+      .context(context);
+    context.beginPath();
+    rsLine(series);
+    context.lineWidth = 1;
+    context.strokeStyle = colorRs;
+    context.stroke();
+
+    // context.font = '30px Outfit';
+    // context.fillStyle = 'blue';
+    // console.log(dms.plotWidth * transform.k + transform.x - 100);
+    // context.fillText('99', dms.plotWidth * transform.k + transform.x - 100, dms.plotHeight - 100);
+    // context.fillText('99', dms.plotWidth * (transform.k - 1) + transform.x, 50);
+    // context.fillText('99', dms.plotWidth * (transform.k - 2) + transform.x, 50);
+  }
 };
 
 export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
-  console.log('MyStockChart', ticker);
+  // console.log('MyStockChart', ticker);
 
   const [wrapperRef, dms] = useChartDimensions({
     marginRight: 55,
@@ -340,21 +366,26 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       };
 
       // prepare X & Y Scale
-      const min = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - domainMultiplier);
-      const max = (d3.max(series.map((d) => d.high)) ?? 0) * (1 + domainMultiplier);
+      const minLow = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - domainMultiplier);
+      const maxHigh = (d3.max(series.map((d) => d.high)) ?? 0) * (1 + domainMultiplier);
       const xScale = getXScale(
         [0, dms.plotWidth],
         series.map((d) => d.date)
       );
-      const yScale = getYScale([dms.plotHeight * barArea, 0], [min, max]);
-      const volumeScale = getVolumeScale(
+      const yScale = getYScale([dms.plotHeight * barArea, 0], [minLow, maxHigh]);
+      const volumeYScale = getLinearScale(
         [0, dms.plotHeight * volumeArea],
         [0, d3.max(series.map((d) => d.volume)) ?? 0]
+      );
+      const rsYScale = getLinearScale(
+        [dms.plotHeight * rsArea, 0],
+        d3.extent(series.map((d) => d.rs)) as [number, number]
       );
       const scales: ChartScales = {
         xScale,
         yScale,
-        volumeScale
+        volumeYScale,
+        rsYScale
       };
 
       // prepare zoom
@@ -369,7 +400,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         .extent(extent)
         .on('zoom', ({ transform }: { transform: d3.ZoomTransform }) => {
           xScale.range([0, dms.plotWidth].map((d) => transform.applyX(d)));
-          drawChart(series, transform, elements, scales, dms);
+          drawChart(series, transform, elements, scales, dms, ticker !== 'SPY');
         });
 
       // bind zoom event
@@ -382,7 +413,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         canvas.on('zoom', null);
       };
     }
-  }, [series, dms]);
+  }, [series, ticker, dms]);
 
   return (
     <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper" {...props}>

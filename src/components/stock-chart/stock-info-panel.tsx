@@ -51,25 +51,28 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
 
   useEffect(() => {
     setStatus('loading');
-    fetchHistoricalData(ticker)
+    Promise.all([fetchHistoricalData(ticker), fetchHistoricalData('SPY')])
       .then((data) => {
+        const stockData = data[0];
+        const spyPriceData = data[1].close.slice(-stockData.close.length);
         const temp: StockDataPoint[] = [];
-        const ema21 = calculateEMA(data.close, 21);
-        const ema50 = calculateEMA(data.close, 50);
-        const ema200 = calculateEMA(data.close, 200);
-        const volSma50 = calculateSMA(data.volume, 50);
-        for (let i = 0; i < data.date.length; i++) {
+        const ema21 = calculateEMA(stockData.close, 21);
+        const ema50 = calculateEMA(stockData.close, 50);
+        const ema200 = calculateEMA(stockData.close, 200);
+        const volSma50 = calculateSMA(stockData.volume, 50);
+        for (let i = 0; i < stockData.date.length; i++) {
           temp.push({
-            close: data.close[i],
-            high: data.high[i],
-            low: data.low[i],
-            open: data.open[i],
-            volume: data.volume[i],
-            date: new Date(data.date[i] * 1000),
+            close: stockData.close[i],
+            high: stockData.high[i],
+            low: stockData.low[i],
+            open: stockData.open[i],
+            volume: stockData.volume[i],
+            date: new Date(stockData.date[i] * 1000),
             ema21: ema21[i],
             ema50: ema50[i],
             ema200: ema200[i],
-            volSma50: volSma50[i]
+            avgVol: volSma50[i],
+            rs: stockData.close[i] / spyPriceData[i]
           });
         }
         setSeries(temp);

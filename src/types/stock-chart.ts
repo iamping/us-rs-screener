@@ -19,7 +19,8 @@ export interface StockDataPoint {
   ema21: number | null;
   ema50: number | null;
   ema200: number | null;
-  volSma50: number | null;
+  avgVol: number | null;
+  rs: number;
 }
 
 export interface ChartSeries {

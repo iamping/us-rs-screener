@@ -80,7 +80,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
       });
   }, [ticker, retry]);
 
-  console.log('render stockInfoPanel');
+  // console.log('render stockInfoPanel');
 
   if (isError) {
     return (

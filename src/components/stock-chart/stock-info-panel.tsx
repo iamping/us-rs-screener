@@ -29,6 +29,7 @@ interface StockInfoPanelProps {
 
 export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const [series, setSeries] = useState<StockDataPoint[]>([]);
+  const [newTicker, setNewTicker] = useState('');
   const [status, setStatus] = useState<'loading' | 'normal' | 'error'>('normal');
   const [interval, setInterval] = useState<'D' | 'W'>('D');
   const [retry, setRetry] = useState(0);
@@ -41,8 +42,8 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const showChart = segment === 'chart';
 
   const stockInfo = useMemo(() => {
-    return stockList.find((e) => e.ticker === ticker)!;
-  }, [ticker, stockList]);
+    return stockList.find((e) => e.ticker === newTicker)!;
+  }, [newTicker, stockList]);
 
   const items = [
     { value: 'chart', label: <LuChartCandlestick /> },
@@ -76,6 +77,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           });
         }
         setSeries(temp);
+        setNewTicker(ticker);
         setStatus('normal');
       })
       .catch(() => {
@@ -111,6 +113,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
               size="2xs"
               width="30px"
               variant={interval === 'D' ? 'solid' : 'subtle'}
+              disabled={isLoading}
               onClick={() => setInterval('D')}>
               D
             </Button>
@@ -118,6 +121,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
               size="2xs"
               width="30px"
               variant={interval === 'W' ? 'solid' : 'subtle'}
+              disabled={isLoading}
               onClick={() => setInterval('W')}>
               W
             </Button>
@@ -137,7 +141,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
             id="stock-chart"
             className="stock-chart"
             data-loading={isLoading}
-            ticker={ticker}
+            ticker={newTicker}
             series={series}
           />
         )}
@@ -146,6 +150,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   );
 };
 
+// check stockInfo null
 const HeadLine = ({ stockInfo }: { stockInfo: Stock }) => {
   const isSmallScreen = useMediaQuery(mobileMediaQuery);
   return (
@@ -155,11 +160,11 @@ const HeadLine = ({ stockInfo }: { stockInfo: Stock }) => {
         fontWeight="500"
         truncate={isSmallScreen}
         maxWidth={isSmallScreen ? 60 : undefined}
-        title={stockInfo.companyName}>
-        {stockInfo.companyName}
+        title={stockInfo?.companyName}>
+        {stockInfo?.companyName}
       </Heading>
       <Text fontWeight="500" color="gray.500">
-        ({stockInfo.ticker})
+        ({stockInfo?.ticker})
       </Text>
       {/* <Text>{stockInfo.close}</Text>
         <Text>{stockInfo.change}</Text>

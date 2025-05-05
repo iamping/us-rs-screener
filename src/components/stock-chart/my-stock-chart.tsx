@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { FC, useEffect, useRef } from 'react';
+import { FC, useEffect } from 'react';
 import { ChartDimensions, useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
@@ -171,28 +171,28 @@ const updateYScale = (
   return yScale.domain(visibleDomain);
 };
 
-const drawYAxis = (
-  series: StockDataPoint[],
-  transform: d3.ZoomTransform,
-  elementRefs: ElementRefs,
-  scales: ChartScales,
-  plotWidth: number
-) => {
-  const { yRef } = elementRefs;
-  const { yScale } = scales;
+// const drawYAxis = (
+//   series: StockDataPoint[],
+//   transform: d3.ZoomTransform,
+//   elementRefs: ElementRefs,
+//   scales: ChartScales,
+//   plotWidth: number
+// ) => {
+//   const { yRef } = elementRefs;
+//   const { yScale } = scales;
 
-  // update domain
-  const [min, max] = getVisibleDomain(series, transform, scales, plotWidth);
-  yScale.domain([min, max]);
+//   // update domain
+//   const [min, max] = getVisibleDomain(series, transform, scales, plotWidth);
+//   yScale.domain([min, max]);
 
-  // draw Y axis
-  const gy = d3.select(yRef);
-  gy.call(d3.axisRight(yScale).tickValues(logTicks(min, max)).tickFormat(priceFormat(max)))
-    .selectAll('text')
-    .attr('class', 'tick-value');
-  gy.select('path').remove();
-  gy.selectAll('line').remove();
-};
+//   // draw Y axis
+//   const gy = d3.select(yRef);
+//   gy.call(d3.axisRight(yScale).tickValues(logTicks(min, max)).tickFormat(priceFormat(max)))
+//     .selectAll('text')
+//     .attr('class', 'tick-value');
+//   gy.select('path').remove();
+//   gy.selectAll('line').remove();
+// };
 
 const drawChart = (
   series: StockDataPoint[],
@@ -210,7 +210,7 @@ const drawChart = (
   // console.log('translate => ', Math.round(transform.x));
 
   // update domain & draw Y axis
-  drawYAxis(series, transform, elementRefs, scales, dms.plotWidth);
+  // drawYAxis(series, transform, elementRefs, scales, dms.plotWidth);
 
   // clear x axis
   const gx = d3.select(xRef);
@@ -457,6 +457,21 @@ const plotChart = (
   context.restore();
 };
 
+const drawYAxis = (context: CanvasRenderingContext2D, yScale: d3.ScaleLogarithmic<number, number>) => {
+  const [min, max] = yScale.domain();
+  const tickValues = logTicks(min * 0.95, max);
+  const priceFormatFnc = priceFormat(max);
+
+  tickValues.forEach((d) => {
+    const y = yScale(d);
+    context.font = '1em Outfit';
+    context.fillText(priceFormatFnc(d), 10, y);
+    context.fill();
+  });
+
+  context.restore();
+};
+
 export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   // console.log('MyStockChart', ticker);
 
@@ -468,12 +483,13 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   });
 
   // Element Refs
-  const svgRef = useRef<SVGSVGElement>(null);
-  const xRef = useRef<SVGGElement>(null);
-  const yRef = useRef<SVGGElement>(null);
+  // const svgRef = useRef<SVGSVGElement>(null);
+  // const xRef = useRef<SVGGElement>(null);
+  // const yRef = useRef<SVGGElement>(null);
   // test ref
   // const cvRef = useRef<HTMLCanvasElement>(null);
   const [plotAreaRef, plotDms] = useDimensions<HTMLCanvasElement>();
+  const [yAxisRef, yAxisDms] = useDimensions<HTMLCanvasElement>();
 
   // console.log(dimensions);
 
@@ -517,6 +533,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     const initialScale = isFew ? 1 : 3;
     const initialTranX = (-plotDms.bitmapWidth * (initialScale - 1)) / 2;
     const plotElement = plotAreaRef.current as HTMLCanvasElement;
+    const yAxisElement = yAxisRef.current as HTMLCanvasElement;
     const plotCanvas = d3.select(plotElement);
     if (series.length > 0) {
       // draw elements
@@ -556,8 +573,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         .on('zoom', ({ transform }: { transform: d3.ZoomTransform }) => {
           const plotContext = initCanvas(plotElement, plotDms);
           const scales: ChartScales = {
-            xScale: updateXScale(xScale, transform, plotDms.bitmapWidth),
-            yScale: updateYScale(xScale, yScale, transform, series, plotDms.bitmapWidth),
+            xScale: updateXScale(xScale, transform, plotDms.bitmapWidth), // update inplace
+            yScale: updateYScale(xScale, yScale, transform, series, plotDms.bitmapWidth), // update inplace
             volumeScale,
             rsScale
           };
@@ -565,6 +582,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
 
           // draw x axis
           // draw y axis
+          const yAxisContext = initCanvas(yAxisElement, yAxisDms);
+          drawYAxis(yAxisContext, yScale);
         });
 
       // bind zoom event
@@ -577,7 +596,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         plotCanvas.on('zoom', null);
       };
     }
-  }, [series, ticker, chartDms, plotAreaRef, plotDms]);
+  }, [series, ticker, chartDms, plotAreaRef, plotDms, yAxisRef, yAxisDms]);
 
   return (
     <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper" {...props}>
@@ -592,49 +611,23 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           height: chartDms.plotHeight
         }}
       />
-      <svg ref={svgRef} id="stock-chart-svg" height={chartDms.height} width={chartDms.width}>
+      <canvas
+        ref={yAxisRef}
+        id="canvas"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop,
+          right: 0,
+          width: chartDms.width - chartDms.plotWidth,
+          height: chartDms.plotHeight
+        }}
+      />
+      {/* <svg ref={svgRef} id="stock-chart-svg" height={chartDms.height} width={chartDms.width}>
         <g transform={`translate(${chartDms.marginLeft}, ${chartDms.marginTop})`}>
-          {/* <XAxis
-            id="customXAxis"
-            series={series}
-            xScale={xScale}
-            width={dms.plotWidth}
-            transform={`translate(0, ${dms.plotHeight})`}
-            fill="none"
-            /> */}
           <g ref={xRef} id="xAxis" transform={`translate(0, ${chartDms.plotHeight})`} />
           <g ref={yRef} id="yAxis" transform={`translate(${chartDms.plotWidth}, 0)`} />
         </g>
-      </svg>
+      </svg> */}
     </div>
   );
 };
-
-// interface XAxisProps extends React.SVGProps<SVGGElement> {
-//   series: StockDataPoint[];
-//   width: number;
-//   xScale: (d: Date) => number;
-// }
-
-// const XAxis: FC<XAxisProps> = ({ width, series, xScale, ...props }) => {
-//   if (series.length === 0) return null;
-//   return (
-//     <g {...props}>
-//       <path className="domain" stroke="currentColor" d={`M0,6V0H${width}V6`} />
-//       {dateTicks(series.map((d) => d.date)).map((date, i) => {
-//         const x = xScale(date) ?? 0;
-//         const no = 30;
-//         const step = width / no;
-//         if (x < step || x > step * (no - 1)) return null;
-//         return (
-//           <g key={i} className="tick" transform={`translate(${x}, 0)`}>
-//             <line stroke="currentColor" y2="6" />
-//             <text className="tick-value" fill="currentColor" y="9" dy="0.71em" textAnchor="middle">
-//               {dateFormat(date)}
-//             </text>
-//           </g>
-//         );
-//       })}
-//     </g>
-//   );
-// };

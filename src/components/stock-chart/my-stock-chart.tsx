@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
@@ -326,6 +326,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   const [yAxisRef, yAxisDms] = useDimensions<HTMLCanvasElement>();
   const [xAxisRef, XAxisDms] = useDimensions<HTMLCanvasElement>();
 
+  const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
+
   useEffect(() => {
     const isFew = series.length <= 80;
     const initialScale = isFew ? 1 : 3;
@@ -379,19 +381,26 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           const yAxisElement = yAxisRef.current as HTMLCanvasElement;
           const yAxisContext = initCanvas(yAxisElement, yAxisDms);
           drawYAxis(yAxisContext, yScale);
+
+          // save transform for next ticker
+          setCurrentTransform(transform);
         });
 
       // bind zoom event
       plotCanvas.call(zoom);
 
       // draw canvas with initial zoom
-      plotCanvas.call(zoom.transform, d3.zoomIdentity.translate(initialTranX, 0).scale(initialScale));
+      if (currentTransform) {
+        plotCanvas.call(zoom.transform, currentTransform);
+      } else {
+        plotCanvas.call(zoom.transform, d3.zoomIdentity.translate(initialTranX, 0).scale(initialScale));
+      }
 
       return () => {
         plotCanvas.on('zoom', null);
       };
     }
-  }, [series, ticker, chartDms, plotAreaRef, plotDms, yAxisRef, yAxisDms, xAxisRef, XAxisDms]);
+  }, [series, ticker, chartDms, plotAreaRef, plotDms, yAxisRef, yAxisDms, xAxisRef, XAxisDms, currentTransform]);
 
   return (
     <div ref={wrapperRef} {...props}>

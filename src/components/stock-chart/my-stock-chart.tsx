@@ -253,6 +253,17 @@ const plotChart = (
     context.lineWidth = lineWidth;
     context.strokeStyle = colorRs;
     context.stroke();
+
+    // const xCorrection = 30 * window.devicePixelRatio;
+    // const lastPoint = series.slice(-1)[0];
+    // const lastX = (xScale(lastPoint.date) ?? 0) - xCorrection;
+    // const lastY = rsScale(lastPoint.rs) + plotDms.bitmapHeight * 0.5;
+    // // console.log('lastPoint', lastPoint);
+    // const pixelRatio = window.devicePixelRatio || 1;
+    // const fontSize = 12 * pixelRatio;
+    // context.font = `${fontSize}px Outfit`;
+    // context.textBaseline = 'middle';
+    // context.fillText('RS 99', lastX, lastY);
   }
   context.restore();
 };
@@ -262,12 +273,15 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: d3.ScaleLogarithmi
   const priceFormatFnc = priceFormat(max);
   const tickValues = logTicks(min * 0.9, max);
   const canvasHeight = context.canvas.height;
+  const pixelRatio = window.devicePixelRatio || 1;
+  const fontSize = 12 * pixelRatio;
+  const x = 10 * pixelRatio;
   tickValues.forEach((d) => {
     const y = Math.round(yScale(d));
     if (y > 10 && y < canvasHeight) {
-      context.font = '16px Outfit';
+      context.font = `${fontSize}px Outfit`;
       context.textBaseline = 'middle';
-      context.fillText(priceFormatFnc(d), 10, y);
+      context.fillText(priceFormatFnc(d), x, y);
     }
   });
   context.restore();
@@ -278,14 +292,17 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: d3.ScaleBand<Date>
   const tickValues = xScale.domain();
   const step = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
   const canvasWidth = context.canvas.width;
+  const pixelRatio = window.devicePixelRatio || 1;
+  const fontSize = 12 * pixelRatio;
+  const y = 14 * pixelRatio;
   let willDraw = true;
   tickValues.forEach((d, i) => {
     const x = Math.round((xScale(d) ?? 0) + transform.x);
     if (i % 21 === 0 && x > 10 && x < canvasWidth - 10 && willDraw) {
-      context.font = '16px Outfit';
+      context.font = `${fontSize}px Outfit`;
       context.textBaseline = 'middle';
       context.textAlign = 'center';
-      context.fillText(dateFormat(d), x, 20);
+      context.fillText(dateFormat(d), x, y);
     }
     if (step < 2) {
       willDraw = !willDraw;
@@ -325,11 +342,11 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       );
       const yScale = getYScale([plotDms.bitmapHeight * barArea, 0], [minLow, maxHigh]);
       const volumeScale = getLinearScale(
-        [0, chartDms.plotHeight * volumeArea],
+        [0, plotDms.bitmapHeight * volumeArea],
         [0, d3.max(series.map((d) => d.volume)) ?? 0]
       );
       const rsScale = getLinearScale(
-        [chartDms.plotHeight * rsArea, 0],
+        [plotDms.bitmapHeight * rsArea, 0],
         d3.extent(series.map((d) => d.rs)) as [number, number]
       );
 
@@ -377,7 +394,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   }, [series, ticker, chartDms, plotAreaRef, plotDms, yAxisRef, yAxisDms, xAxisRef, XAxisDms]);
 
   return (
-    <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper" {...props}>
+    <div ref={wrapperRef} {...props}>
       <canvas
         ref={plotAreaRef}
         id="canvas"

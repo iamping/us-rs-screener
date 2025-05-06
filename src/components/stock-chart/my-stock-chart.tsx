@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { FC, useEffect } from 'react';
-import { ChartDimensions, useChartDimensions } from '@/hooks/useChartDimensions';
+import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
 import { getCssVar } from '@/utils/common.utils';
@@ -17,11 +17,17 @@ interface ChartScales {
   rsScale: d3.ScaleLinear<number, number>;
 }
 
-interface ElementRefs {
-  canvasRef: HTMLCanvasElement;
-  xRef: SVGGElement;
-  yRef: SVGGElement;
-}
+// interface ElementRefs {
+//   canvasRef: HTMLCanvasElement;
+//   xRef: SVGGElement;
+//   yRef: SVGGElement;
+// }
+
+// constant
+const domainMultiplier = 0.01;
+const barArea = 0.8;
+const volumeArea = 0.2;
+const rsArea = 0.4;
 
 const dateFormat = (date: Date) => {
   const fnc = date.getMonth() === 0 ? d3.utcFormat('%Y') : d3.utcFormat('%b');
@@ -48,14 +54,20 @@ const priceFormat = (max: number) => (value: d3.NumberValue) => {
 //     .slice(1);
 // };
 
+// TODO: implement new logic to find proper steps
 const logTicks = (start: number, stop: number) => {
   const noOfTicks = 10;
   const diff = stop - start;
   const distance = diff / noOfTicks;
-  return Array(noOfTicks)
-    .fill(0)
-    .map((_, i) => Math.round(start + distance * i))
-    .slice(1);
+  return [
+    ...new Set(
+      Array(noOfTicks)
+        .fill(0)
+        .map((_, i) => (stop < 10 ? start + distance * i : Math.round(start + distance * i)))
+        .slice(1)
+        .sort(d3.ascending)
+    )
+  ];
 };
 
 // Custom Band Scale for canvas
@@ -88,12 +100,6 @@ const getLinearScale = (range: number[], domain: number[]) => {
   return d3.scaleLinear().range(range).domain(domain);
 };
 
-// constant
-const domainMultiplier = 0.01;
-const barArea = 0.8;
-const volumeArea = 0.2;
-const rsArea = 0.4;
-
 const initCanvas = (canvas: HTMLCanvasElement, dms: Dimensions) => {
   canvas.width = dms.bitmapWidth;
   canvas.height = dms.bitmapHeight;
@@ -101,38 +107,6 @@ const initCanvas = (canvas: HTMLCanvasElement, dms: Dimensions) => {
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.save();
   return context;
-};
-
-const getVisibleDomain = (
-  series: StockDataPoint[],
-  transform: d3.ZoomTransform,
-  scales: ChartScales,
-  plotWidth: number
-) => {
-  const { xScale } = scales;
-  const visibleDomain: number[] = [];
-  const bandWidth = xScale.bandwidth();
-
-  // find min & max visible price
-  series.forEach((d) => {
-    const x = (xScale(d.date) ?? 0) + bandWidth / 2;
-    const boundStart = x + transform.x + 10;
-    const boundEnd = x + transform.x - 10;
-    if (boundStart > 0 && boundEnd <= plotWidth) {
-      if (visibleDomain.length) {
-        visibleDomain[0] = Math.min(d.low, visibleDomain[0]);
-        visibleDomain[1] = Math.max(d.high, visibleDomain[1]);
-      } else {
-        visibleDomain.push(d.low);
-        visibleDomain.push(d.low);
-      }
-    }
-  });
-
-  // expand domain a little bit
-  visibleDomain[0] *= 1 - domainMultiplier;
-  visibleDomain[1] *= 1 + domainMultiplier;
-  return visibleDomain;
 };
 
 const updateXScale = (xScale: d3.ScaleBand<Date>, transform: d3.ZoomTransform, plotWidth: number) => {
@@ -171,177 +145,6 @@ const updateYScale = (
   return yScale.domain(visibleDomain);
 };
 
-// const drawYAxis = (
-//   series: StockDataPoint[],
-//   transform: d3.ZoomTransform,
-//   elementRefs: ElementRefs,
-//   scales: ChartScales,
-//   plotWidth: number
-// ) => {
-//   const { yRef } = elementRefs;
-//   const { yScale } = scales;
-
-//   // update domain
-//   const [min, max] = getVisibleDomain(series, transform, scales, plotWidth);
-//   yScale.domain([min, max]);
-
-//   // draw Y axis
-//   const gy = d3.select(yRef);
-//   gy.call(d3.axisRight(yScale).tickValues(logTicks(min, max)).tickFormat(priceFormat(max)))
-//     .selectAll('text')
-//     .attr('class', 'tick-value');
-//   gy.select('path').remove();
-//   gy.selectAll('line').remove();
-// };
-
-const drawChart = (
-  series: StockDataPoint[],
-  transform: d3.ZoomTransform,
-  elementRefs: ElementRefs,
-  scales: ChartScales,
-  dms: ChartDimensions,
-  dimension: Dimensions,
-  showRs = true
-) => {
-  // clear canvas & translate on zoom event
-  const { canvasRef, xRef } = elementRefs;
-  const context = initCanvas(canvasRef, dimension);
-  context.translate(Math.floor(transform.x), 0);
-  // console.log('translate => ', Math.round(transform.x));
-
-  // update domain & draw Y axis
-  // drawYAxis(series, transform, elementRefs, scales, dms.plotWidth);
-
-  // clear x axis
-  const gx = d3.select(xRef);
-  gx.select('path').remove();
-  gx.selectAll('.tick').remove();
-
-  const { xScale, yScale, volumeScale: volumeYScale, rsScale: rsYScale } = scales;
-  // const visibleDomain: number[] = [];
-  const bandWidth = Math.ceil(xScale.bandwidth());
-  const correction = bandWidth % 2 === 0 ? 0 : 0.5;
-  const padding = xScale.padding() + (transform.k > 8 ? 2 : 0);
-
-  // colors
-  const colorUp = 'blue'; //getCssVar('--colors-up');
-  const colorDown = 'red'; // getCssVar('--colors-down');
-  const colorEma21 = getCssVar('--chakra-colors-gray-300');
-  const colorEma50 = getCssVar('--chakra-colors-gray-400');
-  const colorEma200 = getCssVar('--chakra-colors-black');
-  const colorRs = getCssVar('--chakra-colors-blue-300');
-
-  // loop data & draw on canvas
-  series.forEach((d, i) => {
-    const x = Math.floor(xScale(d.date) ?? 0) + correction;
-    const low = yScale(d.low);
-    const high = yScale(d.high);
-    const close = yScale(d.close);
-    const open = yScale(d.open);
-
-    // draw price bar
-    context.strokeStyle = d.close > d.open ? colorUp : colorDown;
-    context.lineWidth = bandWidth;
-    context.beginPath();
-    context.moveTo(x, Math.round(low + bandWidth / 2));
-    context.lineTo(x, Math.round(high - bandWidth / 2));
-
-    // context.moveTo(x, open);
-    // context.lineTo(x - 40, open);
-    // context.moveTo(x, close);
-    // context.lineTo(x + bandWidth + padding, close);
-    // console.log(x, bandWidth);
-    context.stroke();
-
-    // draw volume bar
-    context.lineWidth = bandWidth * 2;
-    context.beginPath();
-    context.moveTo(x, dms.plotHeight);
-    context.lineTo(x, dms.plotHeight - volumeYScale(d.volume) + dms.plotHeight * domainMultiplier);
-    context.stroke();
-
-    // find min & max visible price
-    const boundStart = x + transform.x + 10;
-    const boundEnd = x + transform.x - 10;
-
-    // manually add x ticks
-    if (i % 21 === 0 && boundEnd <= dms.plotWidth - 20 && boundStart - 20 > 0) {
-      const tick = gx
-        .append('g')
-        .attr('class', 'tick')
-        .attr('transform', `translate(${x + transform.x},0)`);
-      tick
-        .insert('text')
-        .attr('class', 'tick-value')
-        .attr('y', 9)
-        .attr('dy', '0.7em')
-        .attr('fill', 'currentColor')
-        .text(dateFormat(d.date));
-    }
-  });
-
-  // draw ema 21
-  const ema21Line = d3
-    .line<StockDataPoint>(
-      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-      (d) => yScale(d.ema21 ?? 0)
-    )
-    .context(context);
-  context.beginPath();
-  ema21Line(series.filter((d) => !!d.ema21));
-  context.lineWidth = 1;
-  context.strokeStyle = colorEma21;
-  context.stroke();
-
-  // draw ema 50
-  const ema50Line = d3
-    .line<StockDataPoint>(
-      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-      (d) => yScale(d.ema50 ?? 0)
-    )
-    .context(context);
-  context.beginPath();
-  ema50Line(series.filter((d) => !!d.ema50));
-  context.lineWidth = 1;
-  context.strokeStyle = colorEma50;
-  context.stroke();
-
-  // draw ema 200
-  const ema200Line = d3
-    .line<StockDataPoint>(
-      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-      (d) => yScale(d.ema200 ?? 0)
-    )
-    .context(context);
-  context.beginPath();
-  ema200Line(series.filter((d) => !!d.ema200));
-  context.lineWidth = 1;
-  context.strokeStyle = colorEma200;
-  context.stroke();
-
-  // draw rs line + rs rating
-  if (showRs) {
-    const rsLine = d3
-      .line<StockDataPoint>(
-        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-        (d) => rsYScale(d.rs) + dms.plotHeight * 0.5
-      )
-      .context(context);
-    context.beginPath();
-    rsLine(series);
-    context.lineWidth = 1;
-    context.strokeStyle = colorRs;
-    context.stroke();
-
-    // context.font = '30px Outfit';
-    // context.fillStyle = 'blue';
-    // console.log(dms.plotWidth * transform.k + transform.x - 100);
-    // context.fillText('99', dms.plotWidth * transform.k + transform.x - 100, dms.plotHeight - 100);
-    // context.fillText('99', dms.plotWidth * (transform.k - 1) + transform.x, 50);
-    // context.fillText('99', dms.plotWidth * (transform.k - 2) + transform.x, 50);
-  }
-};
-
 const plotChart = (
   context: CanvasRenderingContext2D,
   series: StockDataPoint[],
@@ -356,7 +159,7 @@ const plotChart = (
   const { xScale, yScale, volumeScale, rsScale } = scales;
   const bandWidth = Math.ceil(xScale.bandwidth());
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
-  const tickLength = Math.ceil(((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) / 3);
+  const tickLength = Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) / 3);
 
   // colors
   const colorUp = getCssVar('--colors-up');
@@ -373,9 +176,6 @@ const plotChart = (
     const high = yScale(d.high);
     const close = Math.round(yScale(d.close));
     const open = Math.round(yScale(d.open));
-
-    // console.log(open, Math.round(open));
-    // const tickLength = bandWidth + Math.floor(transform.k / 4) + (transform.k > 3 ? 2 : 0);
 
     // draw price bar
     context.strokeStyle = d.close > d.open ? colorUp : colorDown;
@@ -459,16 +259,38 @@ const plotChart = (
 
 const drawYAxis = (context: CanvasRenderingContext2D, yScale: d3.ScaleLogarithmic<number, number>) => {
   const [min, max] = yScale.domain();
-  const tickValues = logTicks(min * 0.95, max);
   const priceFormatFnc = priceFormat(max);
-
+  const tickValues = logTicks(min * 0.9, max);
+  const canvasHeight = context.canvas.height;
   tickValues.forEach((d) => {
-    const y = yScale(d);
-    context.font = '1em Outfit';
-    context.fillText(priceFormatFnc(d), 10, y);
-    context.fill();
+    const y = Math.round(yScale(d));
+    if (y > 10 && y < canvasHeight) {
+      context.font = '16px Outfit';
+      context.textBaseline = 'middle';
+      context.fillText(priceFormatFnc(d), 10, y);
+    }
   });
+  context.restore();
+};
 
+// TODO: implement new logic to find proper steps
+const drawXAxis = (context: CanvasRenderingContext2D, xScale: d3.ScaleBand<Date>, transform: d3.ZoomTransform) => {
+  const tickValues = xScale.domain();
+  const step = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
+  const canvasWidth = context.canvas.width;
+  let willDraw = true;
+  tickValues.forEach((d, i) => {
+    const x = Math.round((xScale(d) ?? 0) + transform.x);
+    if (i % 21 === 0 && x > 10 && x < canvasWidth - 10 && willDraw) {
+      context.font = '16px Outfit';
+      context.textBaseline = 'middle';
+      context.textAlign = 'center';
+      context.fillText(dateFormat(d), x, 20);
+    }
+    if (step < 2) {
+      willDraw = !willDraw;
+    }
+  });
   context.restore();
 };
 
@@ -483,66 +305,17 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   });
 
   // Element Refs
-  // const svgRef = useRef<SVGSVGElement>(null);
-  // const xRef = useRef<SVGGElement>(null);
-  // const yRef = useRef<SVGGElement>(null);
-  // test ref
-  // const cvRef = useRef<HTMLCanvasElement>(null);
   const [plotAreaRef, plotDms] = useDimensions<HTMLCanvasElement>();
   const [yAxisRef, yAxisDms] = useDimensions<HTMLCanvasElement>();
-
-  // console.log(dimensions);
-
-  // X Axis
-  // const xScale = d3.scaleBand<Date>().range([0, dms.plotWidth]).padding(0.8);
-  // useEffect(() => {
-  //   if (series.length > 0) {
-  //     const dateSeries = series.map((d) => d.date);
-  //     xScale.domain(dateSeries);
-  //     // const gX = d3.select(xRef.current as SVGGElement);
-  //     // gX.call(d3.axisBottom(xScale).tickValues(dateTicks(dateSeries)).tickFormat(dateFormat));
-  //     // gX.selectAll('text').attr('class', 'tick-value');
-  //   }
-  // }, [series, xScale]);
-
-  // Custom X Scale
-  // const xScale = useMemo(() => {
-  //   return bandScale(
-  //     [0, dms.plotWidth],
-  //     series.map((d) => d.date)
-  //   );
-  // }, [dms, series]);
-
-  // Y Axis
-  // const yScale = d3.scaleLog().range([dms.plotHeight, 0]);
-  // useEffect(() => {
-  //   if (series.length > 0) {
-  //     const min = (d3.min(series.map((d) => d.low)) ?? 0) * 0.95;
-  //     const max = (d3.max(series.map((d) => d.high)) ?? 0) * 1.05;
-  //     yScale.domain([min, max]);
-  //     const gY = d3.select(yRef.current as SVGGElement);
-  //     gY.call(d3.axisRight(yScale).tickValues(logTicks(min, max)).tickFormat(priceFormat(max)));
-  //     gY.selectAll('text').attr('class', 'tick-value');
-  //     gY.select('path').remove();
-  //     gY.selectAll('line').remove();
-  //   }
-  // }, [series, yScale]);
+  const [xAxisRef, XAxisDms] = useDimensions<HTMLCanvasElement>();
 
   useEffect(() => {
     const isFew = series.length <= 80;
     const initialScale = isFew ? 1 : 3;
     const initialTranX = (-plotDms.bitmapWidth * (initialScale - 1)) / 2;
     const plotElement = plotAreaRef.current as HTMLCanvasElement;
-    const yAxisElement = yAxisRef.current as HTMLCanvasElement;
     const plotCanvas = d3.select(plotElement);
     if (series.length > 0) {
-      // draw elements
-      // const elements: ElementRefs = {
-      //   canvasRef: plotElement,
-      //   xRef: xRef.current as SVGGElement,
-      //   yRef: yRef.current as SVGGElement
-      // };
-
       // prepare X & Y Scale
       const minLow = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - domainMultiplier);
       const maxHigh = (d3.max(series.map((d) => d.high)) ?? 0) * (1 + domainMultiplier);
@@ -581,7 +354,12 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           plotChart(plotContext, series, scales, plotDms, transform, ticker !== 'SPY');
 
           // draw x axis
+          const xAxisElement = xAxisRef.current as HTMLCanvasElement;
+          const xAxisContext = initCanvas(xAxisElement, XAxisDms);
+          drawXAxis(xAxisContext, xScale, transform);
+
           // draw y axis
+          const yAxisElement = yAxisRef.current as HTMLCanvasElement;
           const yAxisContext = initCanvas(yAxisElement, yAxisDms);
           drawYAxis(yAxisContext, yScale);
         });
@@ -596,7 +374,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         plotCanvas.on('zoom', null);
       };
     }
-  }, [series, ticker, chartDms, plotAreaRef, plotDms, yAxisRef, yAxisDms]);
+  }, [series, ticker, chartDms, plotAreaRef, plotDms, yAxisRef, yAxisDms, xAxisRef, XAxisDms]);
 
   return (
     <div ref={wrapperRef} id="chart-wrapper" className="chart-wrapper" {...props}>
@@ -613,7 +391,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       />
       <canvas
         ref={yAxisRef}
-        id="canvas"
+        id="yAxis"
         style={{
           position: 'absolute',
           top: chartDms.marginTop,
@@ -622,12 +400,17 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           height: chartDms.plotHeight
         }}
       />
-      {/* <svg ref={svgRef} id="stock-chart-svg" height={chartDms.height} width={chartDms.width}>
-        <g transform={`translate(${chartDms.marginLeft}, ${chartDms.marginTop})`}>
-          <g ref={xRef} id="xAxis" transform={`translate(0, ${chartDms.plotHeight})`} />
-          <g ref={yRef} id="yAxis" transform={`translate(${chartDms.plotWidth}, 0)`} />
-        </g>
-      </svg> */}
+      <canvas
+        ref={xAxisRef}
+        id="xAxis"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop + chartDms.plotHeight,
+          left: chartDms.marginLeft,
+          width: chartDms.plotWidth,
+          height: chartDms.height - chartDms.plotHeight
+        }}
+      />
     </div>
   );
 };

@@ -38,6 +38,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const setTicker = useSetAtom(tickerAtom);
 
   const isLoading = status === 'loading';
+  const isNormal = status === 'normal';
   const isError = status === 'error';
   const showChart = segment === 'chart';
 
@@ -87,11 +88,12 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
 
   // console.log('render stockInfoPanel');
 
-  if (isError) {
+  if (isError || (isNormal && series.length === 0)) {
+    const msg = isError ? 'Something went wrong.' : 'No data.';
     return (
       <Flex margin={2} gap={2}>
         <Text>
-          Something went wrong. Please{' '}
+          {msg} Please{' '}
           <Link colorPalette="red" onClick={() => setRetry((val) => val + 1)}>
             try again.
           </Link>

@@ -26,13 +26,13 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
     const isLandscape = false; //windowSize.width > windowSize.height;
     if (isLandscape) {
       setCssVar('--table-height', computeHeight(windowSize.height, topMargin));
-      setCssVar('--chart-height', computeHeight(windowSize.height, topMargin));
+      setCssVar('--chart-panel-height', computeHeight(windowSize.height, topMargin));
     } else {
       if (panelGroupRef.current) {
         const layout = panelGroupRef.current.getLayout();
         const panelSize = layout.slice(-1).at(0) ?? 100; // only table panel size
         setCssVar('--table-height', computeHeight(windowSize.height, topMargin, panelSize));
-        setCssVar('--chart-height', computeHeight(windowSize.height, topMargin, 100 - panelSize));
+        setCssVar('--chart-panel-height', computeHeight(windowSize.height, topMargin, 100 - panelSize));
       }
     }
     return isLandscape;
@@ -41,10 +41,10 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
   const onPanelResize = (panelSize: number) => {
     if (isLandscape) {
       setCssVar('--table-height', computeHeight(windowSize.height, topMargin));
-      setCssVar('--chart-height', computeHeight(windowSize.height, topMargin));
+      setCssVar('--chart-panel-height', computeHeight(windowSize.height, topMargin));
     } else {
       setCssVar('--table-height', computeHeight(windowSize.height, topMargin, panelSize));
-      setCssVar('--chart-height', computeHeight(windowSize.height, topMargin, 100 - panelSize));
+      setCssVar('--chart-panel-height', computeHeight(windowSize.height, topMargin, 100 - panelSize));
     }
   };
   const onDebounceResize = useDebounceCallback(onPanelResize, 100);
@@ -56,13 +56,13 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
       direction={isLandscape ? 'horizontal' : 'vertical'}
       className="data-panel-group">
       <Show when={ticker.length > 0}>
-        <Panel id="panel-chart" minSize={40} order={1}>
+        <Panel id="panel-chart" minSize={40} order={1} style={{ height: 'var(--chart-panel-height)' }}>
           {/* <StockChart ticker={ticker} /> */}
           <StockInfoPanel ticker={ticker} />
         </Panel>
         <PanelResizeHandle className={isLandscape ? 'resize-handle' : 'resize-handle portrait'}></PanelResizeHandle>
       </Show>
-      <Panel id="panel-stock" minSize={30} order={2} onResize={onDebounceResize}>
+      <Panel id="panel-table" minSize={30} order={2} onResize={onDebounceResize}>
         <DataTable data={data} />
       </Panel>
     </PanelGroup>

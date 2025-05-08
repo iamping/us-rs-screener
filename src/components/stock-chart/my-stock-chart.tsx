@@ -39,7 +39,10 @@ const dateFormat = (date: Date) => {
 };
 
 const dateTooltipFormat = d3.utcFormat("%a %d %b '%y");
-const priceTooltipFormat = d3.format(',.2f');
+const priceTooltipFormat = (value: d3.NumberValue) => {
+  const price = value as number;
+  return price > 1000 ? d3.format(',.0f')(price) : d3.format('.2f')(price);
+};
 
 const priceFormat = (max: number) => (value: d3.NumberValue) => {
   const price = value as number;

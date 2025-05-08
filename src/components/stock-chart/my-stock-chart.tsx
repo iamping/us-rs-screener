@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { FC, MouseEvent, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
@@ -125,6 +125,14 @@ const initCanvas = (canvas: HTMLCanvasElement, dms: Dimensions) => {
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.save();
   return context;
+};
+
+const clearCanvas = (canvasList: HTMLCanvasElement[]) => {
+  canvasList.forEach((canvas) => {
+    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.save();
+  });
 };
 
 const updateXScale = (xScale: XScale, transform: d3.ZoomTransform, plotWidth: number) => {
@@ -348,147 +356,66 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   const [yAxisTooltipRef, yAxisTooltipDms] = useDimensions<HTMLCanvasElement>();
   const xScaleRef = useRef<XScale | null>(null);
   const yScaleRef = useRef<YScale | null>(null);
+  const currentPointer = useRef<[number, number] | null>(null);
 
+  // state
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
 
-  useEffect(() => {
-    const isFew = series.length <= 80;
-    const initialScale = isFew ? 1 : 3;
-    const initialTranX = (-plotDms.bitmapWidth * (initialScale - 1)) / 2;
-    const plotElement = plotAreaRef.current as HTMLCanvasElement;
-    const plotCanvas = d3.select(plotElement);
-    if (series.length > 0) {
-      // prepare X & Y Scale
-      const minLow = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - lowerDomainMultiplier);
-      const maxHigh = (d3.max(series.map((d) => d.high)) ?? 0) * (1 + domainMultiplier);
-      const xScale = getXScale(
-        [0, plotDms.bitmapWidth],
-        series.map((d) => d.date)
-      );
-      const yScale = getYScale([plotDms.bitmapHeight * barArea, 0], [minLow, maxHigh]);
-      const volumeScale = getLinearScale(
-        [0, plotDms.bitmapHeight * volumeArea],
-        [0, d3.max(series.map((d) => d.volume)) ?? 0]
-      );
-      const rsScale = getLinearScale(
-        [plotDms.bitmapHeight * rsArea, 0],
-        d3.extent(series.map((d) => d.rs)) as [number, number]
-      );
+  const drawCrosshair = useCallback(
+    (
+      pointer: [number, number],
+      xScale: XScale | null,
+      yScale: YScale | null,
+      currentTransform: d3.ZoomTransform | null
+    ) => {
+      if (!xScale || !yScale) return;
+      const [px, py] = pointer;
+      currentPointer.current = pointer;
+      const transform = currentTransform ? currentTransform : d3.zoomIdentity;
+      const pixelRatio = crosshairDms.pixelRatio;
+      const crosshairElement = crosshairRef.current as HTMLCanvasElement;
+      const context = initCanvas(crosshairElement, crosshairDms);
+      context.translate(Math.floor(transform.x), 0);
 
-      // prepare zoom
-      const extent = [
-        [0, 0],
-        [plotDms.bitmapWidth / 2, 0]
-      ] as [[number, number], [number, number]];
-      const zoom = d3
-        .zoom<HTMLCanvasElement, unknown>()
-        .scaleExtent([1, 10])
-        .translateExtent(extent)
-        .extent(extent)
-        .on('zoom', ({ transform }: { transform: d3.ZoomTransform }) => {
-          const plotContext = initCanvas(plotElement, plotDms);
-          const scales: ChartScales = {
-            xScale: updateXScale(xScale, transform, plotDms.bitmapWidth), // update inplace
-            yScale: updateYScale(xScale, yScale, transform, series, plotDms.bitmapWidth), // update inplace
-            volumeScale,
-            rsScale
-          };
-          xScaleRef.current = xScale;
-          yScaleRef.current = yScale;
-          plotChart(plotContext, series, scales, plotDms, transform, ticker !== 'SPY');
+      // x
+      const canvasX = px * pixelRatio - transform.x;
+      const boundRight = -transform.x + context.canvas.width - 5;
+      const [x, date] = getInvertXScale(xScale)(canvasX > boundRight ? boundRight : canvasX);
+      const adjustX = Math.floor(x);
+      // y
+      const canvasY = py * pixelRatio;
+      const price = yScale.invert(canvasY);
+      const adjustY = Math.ceil(canvasY);
 
-          // draw x axis
-          const xAxisElement = xAxisRef.current as HTMLCanvasElement;
-          const xAxisContext = initCanvas(xAxisElement, XAxisDms);
-          drawXAxis(xAxisContext, xScale, transform);
+      // draw vertical line
+      context.beginPath();
+      context.strokeStyle = getCssVar('--chakra-colors-gray-400');
+      context.lineWidth = 2;
+      context.setLineDash([8, 4]);
+      context.moveTo(adjustX, 0);
+      context.lineTo(adjustX, crosshairDms.bitmapHeight);
+      context.stroke();
 
-          // draw y axis
-          const yAxisElement = yAxisRef.current as HTMLCanvasElement;
-          const yAxisContext = initCanvas(yAxisElement, yAxisDms);
-          drawYAxis(yAxisContext, yScale);
+      // draw horizontal line
+      context.beginPath();
+      context.moveTo(-transform.x, adjustY);
+      context.lineTo(-transform.x + crosshairDms.bitmapWidth, adjustY);
+      context.stroke();
+      context.restore();
 
-          // save transform for next ticker
-          setCurrentTransform(transform);
-        });
+      // draw x axis tooltip
+      const xTooltip = xAxisTooltipRef.current as HTMLCanvasElement;
+      const xTooltipContext = initCanvas(xTooltip, xAxisTooltipDms);
+      xTooltipContext.translate(Math.floor(transform.x), 0);
+      drawXToolTip(xTooltipContext, adjustX, date);
 
-      // bind zoom event
-      plotCanvas.call(zoom);
-
-      // draw canvas with initial zoom
-      if (currentTransform) {
-        plotCanvas.call(zoom.transform, currentTransform);
-      } else {
-        plotCanvas.call(zoom.transform, d3.zoomIdentity.translate(initialTranX, 0).scale(initialScale));
-      }
-
-      return () => {
-        plotCanvas.on('zoom', null);
-      };
-    }
-  }, [
-    series,
-    ticker,
-    currentTransform,
-    chartDms,
-    plotAreaRef,
-    plotDms,
-    yAxisRef,
-    yAxisDms,
-    xAxisRef,
-    XAxisDms,
-    crosshairRef,
-    crosshairDms
-  ]);
-
-  const drawCrosshair = (
-    event: MouseEvent,
-    xScale: XScale | null,
-    yScale: YScale | null,
-    currentTransform: d3.ZoomTransform | null
-  ) => {
-    if (!xScale || !yScale) return;
-    const transform = currentTransform ? currentTransform : d3.zoomIdentity;
-    const pixelRatio = crosshairDms.pixelRatio;
-    const crosshairElement = crosshairRef.current as HTMLCanvasElement;
-    const context = initCanvas(crosshairElement, crosshairDms);
-    context.translate(Math.floor(transform.x), 0);
-
-    const [px, py] = d3.pointer(event);
-    // x
-    const canvasX = px * pixelRatio - transform.x;
-    const [x, date] = getInvertXScale(xScale)(canvasX);
-    const adjustX = Math.floor(x);
-    // y
-    const canvasY = py * pixelRatio;
-    const price = yScale.invert(canvasY);
-    const adjustY = Math.ceil(canvasY);
-
-    // draw vertical line
-    context.beginPath();
-    context.strokeStyle = getCssVar('--chakra-colors-gray-400');
-    context.lineWidth = 2;
-    context.setLineDash([8, 4]);
-    context.moveTo(adjustX, 0);
-    context.lineTo(adjustX, crosshairDms.bitmapHeight);
-    context.stroke();
-
-    // draw horizontal line
-    context.beginPath();
-    context.moveTo(-transform.x, adjustY);
-    context.lineTo(-transform.x + crosshairDms.bitmapWidth, adjustY);
-    context.stroke();
-
-    // draw x axis tooltip
-    const xTooltip = xAxisTooltipRef.current as HTMLCanvasElement;
-    const xTooltipContext = initCanvas(xTooltip, xAxisTooltipDms);
-    xTooltipContext.translate(Math.floor(transform.x), 0);
-    drawXToolTip(xTooltipContext, adjustX, date);
-
-    // draw y axis tooltip
-    const yTooltip = yAxisTooltipRef.current as HTMLCanvasElement;
-    const yTooltipContext = initCanvas(yTooltip, yAxisTooltipDms);
-    drawYToolTip(yTooltipContext, adjustY, price);
-  };
+      // draw y axis tooltip
+      const yTooltip = yAxisTooltipRef.current as HTMLCanvasElement;
+      const yTooltipContext = initCanvas(yTooltip, yAxisTooltipDms);
+      drawYToolTip(yTooltipContext, adjustY, price);
+    },
+    [crosshairDms, crosshairRef, xAxisTooltipDms, xAxisTooltipRef, yAxisTooltipDms, yAxisTooltipRef]
+  );
 
   const drawXToolTip = (context: CanvasRenderingContext2D, x: number, date: Date) => {
     const pixelRatio = window.devicePixelRatio || 1;
@@ -537,11 +464,112 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     context.restore();
   };
 
+  useEffect(() => {
+    const isFew = series.length <= 80;
+    const initialScale = isFew ? 1 : 3;
+    const initialTranX = (-plotDms.bitmapWidth * (initialScale - 1)) / 2;
+    const plotElement = plotAreaRef.current as HTMLCanvasElement;
+    const plotCanvas = d3.select(plotElement);
+    if (series.length > 0) {
+      // prepare X & Y Scale
+      const minLow = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - lowerDomainMultiplier);
+      const maxHigh = (d3.max(series.map((d) => d.high)) ?? 0) * (1 + domainMultiplier);
+      const xScale = getXScale(
+        [0, plotDms.bitmapWidth],
+        series.map((d) => d.date)
+      );
+      const yScale = getYScale([plotDms.bitmapHeight * barArea, 0], [minLow, maxHigh]);
+      const volumeScale = getLinearScale(
+        [0, plotDms.bitmapHeight * volumeArea],
+        [0, d3.max(series.map((d) => d.volume)) ?? 0]
+      );
+      const rsScale = getLinearScale(
+        [plotDms.bitmapHeight * rsArea, 0],
+        d3.extent(series.map((d) => d.rs)) as [number, number]
+      );
+
+      // prepare zoom
+      const extent = [
+        [0, 0],
+        [plotDms.bitmapWidth / 2 + 1, 0]
+      ] as [[number, number], [number, number]];
+      const zoom = d3
+        .zoom<HTMLCanvasElement, unknown>()
+        .scaleExtent([1, 10])
+        .translateExtent(extent)
+        .extent(extent)
+        .on('zoom', ({ transform }: { transform: d3.ZoomTransform }) => {
+          const plotContext = initCanvas(plotElement, plotDms);
+          const scales: ChartScales = {
+            xScale: updateXScale(xScale, transform, plotDms.bitmapWidth), // update inplace
+            yScale: updateYScale(xScale, yScale, transform, series, plotDms.bitmapWidth), // update inplace
+            volumeScale,
+            rsScale
+          };
+          xScaleRef.current = xScale;
+          yScaleRef.current = yScale;
+          plotChart(plotContext, series, scales, plotDms, transform, ticker !== 'SPY');
+
+          // draw x axis
+          const xAxisElement = xAxisRef.current as HTMLCanvasElement;
+          const xAxisContext = initCanvas(xAxisElement, XAxisDms);
+          drawXAxis(xAxisContext, xScale, transform);
+
+          // draw y axis
+          const yAxisElement = yAxisRef.current as HTMLCanvasElement;
+          const yAxisContext = initCanvas(yAxisElement, yAxisDms);
+          drawYAxis(yAxisContext, yScale);
+
+          if (currentPointer.current) {
+            drawCrosshair(currentPointer.current, xScale, yScale, transform);
+          }
+
+          // save transform for next ticker
+          setCurrentTransform(transform);
+        });
+
+      // bind zoom event
+      plotCanvas.call(zoom);
+
+      // draw canvas with initial zoom
+      if (currentTransform) {
+        plotCanvas.call(zoom.transform, currentTransform);
+      } else {
+        plotCanvas.call(zoom.transform, d3.zoomIdentity.translate(initialTranX, 0).scale(initialScale));
+      }
+
+      return () => {
+        plotCanvas.on('zoom', null);
+      };
+    }
+  }, [
+    series,
+    ticker,
+    currentTransform,
+    chartDms,
+    plotAreaRef,
+    plotDms,
+    yAxisRef,
+    yAxisDms,
+    xAxisRef,
+    XAxisDms,
+    crosshairRef,
+    crosshairDms,
+    drawCrosshair
+  ]);
+
   return (
     <div
       ref={wrapperRef}
       {...props}
-      onMouseMove={(e) => drawCrosshair(e, xScaleRef.current, yScaleRef.current, currentTransform)}>
+      onMouseMove={(e) => drawCrosshair(d3.pointer(e), xScaleRef.current, yScaleRef.current, currentTransform)}
+      onMouseOut={() =>
+        clearCanvas([
+          crosshairRef.current as HTMLCanvasElement,
+          xAxisTooltipRef.current as HTMLCanvasElement,
+          yAxisTooltipRef.current as HTMLCanvasElement
+        ])
+      }>
       <canvas
         ref={crosshairRef}
         id="crosshair"

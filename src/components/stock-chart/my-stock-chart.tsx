@@ -28,6 +28,7 @@ interface ChartScales {
 
 // constant
 const domainMultiplier = 0.01;
+const lowerDomainMultiplier = 0.1;
 const barArea = 0.8;
 const volumeArea = 0.2;
 const rsArea = 0.4;
@@ -156,7 +157,7 @@ const updateYScale = (
   });
 
   // expand domain a little bit
-  visibleDomain[0] *= 1 - domainMultiplier;
+  visibleDomain[0] *= 1 - lowerDomainMultiplier;
   visibleDomain[1] *= 1 + domainMultiplier;
   return yScale.domain(visibleDomain);
 };
@@ -173,7 +174,7 @@ const plotChart = (
   context.translate(Math.floor(transform.x), 0);
 
   const { xScale, yScale, volumeScale, rsScale } = scales;
-  const bandWidth = Math.ceil(xScale.bandwidth());
+  const bandWidth = Math.max(Math.ceil(xScale.bandwidth()), 2);
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
   const tickLength = Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) / 3);
 
@@ -185,41 +186,7 @@ const plotChart = (
   const colorEma200 = getCssVar('--chakra-colors-black');
   const colorRs = getCssVar('--chakra-colors-blue-300');
 
-  // loop data & draw on canvas
-  series.forEach((d, i) => {
-    const x = Math.floor(xScale(d.date) ?? 0) + correction;
-    const low = yScale(d.low);
-    const high = yScale(d.high);
-    const close = Math.round(yScale(d.close));
-    const open = Math.round(yScale(d.open));
-
-    // if (i > 490) {
-    //   console.log(x, d.date);
-    // }
-
-    // draw price bar
-    context.strokeStyle = d.close > d.open ? colorUp : colorDown;
-    context.lineWidth = bandWidth;
-    context.beginPath();
-    context.moveTo(x, Math.round(low + bandWidth / 2));
-    context.lineTo(x, Math.round(high - bandWidth / 2));
-
-    context.moveTo(x, open + correction);
-    context.lineTo(Math.floor(x - tickLength), open + correction);
-    context.moveTo(x, close + correction);
-    context.lineTo(Math.floor(x + tickLength), close + correction);
-    context.stroke();
-
-    // draw volume bar
-    const volumeBarHeight = Math.floor(volumeScale(d.volume) + plotDms.bitmapHeight * domainMultiplier);
-    context.lineWidth = bandWidth * 2;
-    context.beginPath();
-    context.moveTo(x - correction, plotDms.bitmapHeight);
-    context.lineTo(x - correction, plotDms.bitmapHeight - volumeBarHeight);
-    context.stroke();
-  });
-
-  const lineWidth = Math.max(plotDms.pixelRatio, 1);
+  const lineWidth = Math.min(plotDms.pixelRatio, 2);
 
   // draw ema 21
   const ema21Line = d3
@@ -284,6 +251,35 @@ const plotChart = (
     // context.font = `${fontSize}px Outfit`;
     // context.textBaseline = 'middle';
     // context.fillText('RS 99', lastX, lastY);
+    // loop data & draw on canvas
+    series.forEach((d) => {
+      const x = Math.floor(xScale(d.date) ?? 0) + correction;
+      const low = yScale(d.low);
+      const high = yScale(d.high);
+      const close = Math.round(yScale(d.close));
+      const open = Math.round(yScale(d.open));
+
+      // draw price bar
+      context.strokeStyle = d.close > d.open ? colorUp : colorDown;
+      context.lineWidth = bandWidth;
+      context.beginPath();
+      context.moveTo(x, Math.round(low + bandWidth / 2));
+      context.lineTo(x, Math.round(high - bandWidth / 2));
+
+      context.moveTo(x, open + correction);
+      context.lineTo(Math.floor(x - tickLength), open + correction);
+      context.moveTo(x, close + correction);
+      context.lineTo(Math.floor(x + tickLength), close + correction);
+      context.stroke();
+
+      // draw volume bar
+      const volumeBarHeight = Math.floor(volumeScale(d.volume));
+      context.lineWidth = bandWidth * 2;
+      context.beginPath();
+      context.moveTo(x - correction, plotDms.bitmapHeight);
+      context.lineTo(x - correction, plotDms.bitmapHeight - volumeBarHeight);
+      context.stroke();
+    });
   }
   context.restore();
 };
@@ -363,7 +359,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     const plotCanvas = d3.select(plotElement);
     if (series.length > 0) {
       // prepare X & Y Scale
-      const minLow = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - domainMultiplier);
+      const minLow = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - lowerDomainMultiplier);
       const maxHigh = (d3.max(series.map((d) => d.high)) ?? 0) * (1 + domainMultiplier);
       const xScale = getXScale(
         [0, plotDms.bitmapWidth],
@@ -461,16 +457,16 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     // x
     const canvasX = px * pixelRatio - transform.x;
     const [x, date] = getInvertXScale(xScale)(canvasX);
-    const adjustX = Math.floor(x) + 0.5;
+    const adjustX = Math.floor(x);
     // y
     const canvasY = py * pixelRatio;
     const price = yScale.invert(canvasY);
-    const adjustY = Math.ceil(canvasY) + 0.5;
+    const adjustY = Math.ceil(canvasY);
 
     // draw vertical line
     context.beginPath();
     context.strokeStyle = getCssVar('--chakra-colors-gray-400');
-    context.lineWidth = 1;
+    context.lineWidth = 2;
     context.setLineDash([8, 4]);
     context.moveTo(adjustX, 0);
     context.lineTo(adjustX, crosshairDms.bitmapHeight);
@@ -500,7 +496,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     const y = 15 * pixelRatio;
     context.font = `${fontSize}px Outfit`;
     const text = `${dateTooltipFormat(date)}`;
-    const textWidth = Math.floor(context.measureText(text).width + 10);
+    const textWidth = Math.floor(context.measureText(text).width + pixelRatio * 10);
 
     const transformX = context.getTransform().e;
     const boundLeft = -transformX;
@@ -513,11 +509,11 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         : x + textWidth / 2 > boundRight
           ? boundRight - textWidth
           : x - textWidth / 2;
-    context.fillStyle = 'black';
+    context.fillStyle = getCssVar('--chakra-colors-gray-700');
     context.fillRect(Math.floor(xRect), 0, textWidth, context.canvas.height);
 
     // fill date text
-    context.fillStyle = 'white';
+    context.fillStyle = getCssVar('--chakra-colors-white');
     context.textBaseline = 'middle';
     context.textAlign = 'center';
     context.fillText(text, xRect + textWidth / 2, y);
@@ -529,13 +525,13 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     const fontSize = 12 * pixelRatio;
     const x = 10 * pixelRatio;
     const text = `${priceTooltipFormat(price)}`;
-    const rectHeight = pixelRatio * 20;
+    const rectHeight = pixelRatio * 28;
 
     // draw wrapper rect
-    context.fillStyle = 'black';
+    context.fillStyle = getCssVar('--chakra-colors-gray-700');
     context.fillRect(0, y - rectHeight / 2, context.canvas.width, rectHeight);
     context.font = `${fontSize}px Outfit`;
-    context.fillStyle = 'white';
+    context.fillStyle = getCssVar('--chakra-colors-white');
     context.textBaseline = 'middle';
     context.fillText(text, x, y);
     context.restore();

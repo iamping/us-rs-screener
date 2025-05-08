@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { RefObject, useRef, useState } from 'react';
 import { useDebounceCallback, useResizeObserver } from 'usehooks-ts';
 
 interface ChartMargins {
@@ -19,7 +19,7 @@ export interface ChartDimensions {
   plotWidth: number;
 }
 
-export const useChartDimensions = (margins?: ChartMargins) => {
+export const useChartDimensions = <T>(margins?: ChartMargins): [RefObject<T>, ChartDimensions] => {
   const ref = useRef(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);

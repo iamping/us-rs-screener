@@ -340,7 +340,7 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
 export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   // console.log('MyStockChart', ticker);
 
-  const [wrapperRef, chartDms] = useChartDimensions({
+  const [wrapperRef, chartDms] = useChartDimensions<HTMLDivElement>({
     marginRight: 55,
     marginBottom: 30,
     marginTop: 0,
@@ -498,7 +498,10 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         .scaleExtent([1, 10])
         .translateExtent(extent)
         .extent(extent)
-        .on('zoom', ({ transform }: { transform: d3.ZoomTransform }) => {
+        .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
+          const wrapper = wrapperRef.current as HTMLDivElement;
+          wrapper.style.cursor = 'grabbing';
+
           const plotContext = initCanvas(plotElement, plotDms);
           const scales: ChartScales = {
             xScale: updateXScale(xScale, transform, plotDms.bitmapWidth), // update inplace
@@ -521,11 +524,20 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           drawYAxis(yAxisContext, yScale);
 
           if (currentPointer.current) {
-            drawCrosshair(currentPointer.current, xScale, yScale, transform);
+            if (sourceEvent instanceof MouseEvent) {
+              const pointer = d3.pointer(sourceEvent, wrapperRef.current);
+              drawCrosshair(pointer, xScale, yScale, transform);
+            } else {
+              drawCrosshair(currentPointer.current, xScale, yScale, transform);
+            }
           }
 
           // save transform for next ticker
           setCurrentTransform(transform);
+        })
+        .on('end', () => {
+          const wrapper = wrapperRef.current as HTMLDivElement;
+          wrapper.style.cursor = 'unset';
         });
 
       // bind zoom event
@@ -547,6 +559,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     ticker,
     currentTransform,
     chartDms,
+    wrapperRef,
     plotAreaRef,
     plotDms,
     yAxisRef,

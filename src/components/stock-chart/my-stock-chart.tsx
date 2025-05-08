@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { FC, useEffect, useState } from 'react';
+import { FC, MouseEvent, useEffect, useRef, useState } from 'react';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
@@ -10,9 +10,12 @@ interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
   series: StockDataPoint[];
 }
 
+type XScale = d3.ScaleBand<Date>;
+type YScale = d3.ScaleLogarithmic<number, number>;
+
 interface ChartScales {
-  xScale: d3.ScaleBand<Date>;
-  yScale: d3.ScaleLogarithmic<number, number>;
+  xScale: XScale;
+  yScale: YScale;
   volumeScale: d3.ScaleLinear<number, number>;
   rsScale: d3.ScaleLinear<number, number>;
 }
@@ -33,6 +36,9 @@ const dateFormat = (date: Date) => {
   const fnc = date.getMonth() === 0 ? d3.utcFormat('%Y') : d3.utcFormat('%b');
   return fnc(date);
 };
+
+const dateTooltipFormat = d3.utcFormat("%a %d %b '%y");
+const priceTooltipFormat = d3.format(',.2f');
 
 const priceFormat = (max: number) => (value: d3.NumberValue) => {
   const price = value as number;
@@ -92,6 +98,17 @@ const getXScale = (range: number[], dates: Date[]) => {
   return d3.scaleBand<Date>().range(range).domain(dates).padding(0.8);
 };
 
+const getInvertXScale = (xScale: XScale) => {
+  const domain = xScale.domain();
+  const xList = domain.map((d) => xScale(d) ?? 0);
+  // console.log('head =>', xList.slice(0, 10));
+  // console.log('tail =>', xList.slice(-10), domain.slice(-10));
+  return (x: number) => {
+    const idx = d3.bisectCenter(xList, x);
+    return [xList[idx], domain[idx]] as const;
+  };
+};
+
 const getYScale = (range: number[], domain: number[]) => {
   return d3.scaleLog().range(range).domain(domain);
 };
@@ -109,23 +126,22 @@ const initCanvas = (canvas: HTMLCanvasElement, dms: Dimensions) => {
   return context;
 };
 
-const updateXScale = (xScale: d3.ScaleBand<Date>, transform: d3.ZoomTransform, plotWidth: number) => {
+const updateXScale = (xScale: XScale, transform: d3.ZoomTransform, plotWidth: number) => {
   return xScale.range([0, plotWidth].map((d) => transform.applyX(d)));
 };
 
 const updateYScale = (
-  xScale: d3.ScaleBand<Date>,
-  yScale: d3.ScaleLogarithmic<number, number>,
+  xScale: XScale,
+  yScale: YScale,
   transform: d3.ZoomTransform,
   series: StockDataPoint[],
   plotWidth: number
 ) => {
   const visibleDomain: number[] = [];
-  const bandWidth = xScale.bandwidth();
 
   // find min & max visible price
   series.forEach((d) => {
-    const x = (xScale(d.date) ?? 0) + bandWidth / 2;
+    const x = xScale(d.date) ?? 0;
     const boundStart = x + transform.x + 10;
     const boundEnd = x + transform.x - 10;
     if (boundStart > 0 && boundEnd <= plotWidth) {
@@ -170,12 +186,16 @@ const plotChart = (
   const colorRs = getCssVar('--chakra-colors-blue-300');
 
   // loop data & draw on canvas
-  series.forEach((d) => {
+  series.forEach((d, i) => {
     const x = Math.floor(xScale(d.date) ?? 0) + correction;
     const low = yScale(d.low);
     const high = yScale(d.high);
     const close = Math.round(yScale(d.close));
     const open = Math.round(yScale(d.open));
+
+    // if (i > 490) {
+    //   console.log(x, d.date);
+    // }
 
     // draw price bar
     context.strokeStyle = d.close > d.open ? colorUp : colorDown;
@@ -268,7 +288,7 @@ const plotChart = (
   context.restore();
 };
 
-const drawYAxis = (context: CanvasRenderingContext2D, yScale: d3.ScaleLogarithmic<number, number>) => {
+const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
   const [min, max] = yScale.domain();
   const priceFormatFnc = priceFormat(max);
   const tickValues = logTicks(min * 0.9, max);
@@ -288,13 +308,13 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: d3.ScaleLogarithmi
 };
 
 // TODO: implement new logic to find proper steps
-const drawXAxis = (context: CanvasRenderingContext2D, xScale: d3.ScaleBand<Date>, transform: d3.ZoomTransform) => {
+const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform: d3.ZoomTransform) => {
   const tickValues = xScale.domain();
   const step = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
   const canvasWidth = context.canvas.width;
   const pixelRatio = window.devicePixelRatio || 1;
   const fontSize = 12 * pixelRatio;
-  const y = 14 * pixelRatio;
+  const y = 15 * pixelRatio;
   let willDraw = true;
   tickValues.forEach((d, i) => {
     const x = Math.round((xScale(d) ?? 0) + transform.x);
@@ -311,6 +331,8 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: d3.ScaleBand<Date>
   context.restore();
 };
 
+// const drawCrosshair = (context: CanvasRenderingContext2D) => {};
+
 export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   // console.log('MyStockChart', ticker);
 
@@ -323,8 +345,13 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
 
   // Element Refs
   const [plotAreaRef, plotDms] = useDimensions<HTMLCanvasElement>();
-  const [yAxisRef, yAxisDms] = useDimensions<HTMLCanvasElement>();
+  const [crosshairRef, crosshairDms] = useDimensions<HTMLCanvasElement>();
   const [xAxisRef, XAxisDms] = useDimensions<HTMLCanvasElement>();
+  const [xAxisTooltipRef, xAxisTooltipDms] = useDimensions<HTMLCanvasElement>();
+  const [yAxisRef, yAxisDms] = useDimensions<HTMLCanvasElement>();
+  const [yAxisTooltipRef, yAxisTooltipDms] = useDimensions<HTMLCanvasElement>();
+  const xScaleRef = useRef<XScale | null>(null);
+  const yScaleRef = useRef<YScale | null>(null);
 
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
 
@@ -370,6 +397,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
             volumeScale,
             rsScale
           };
+          xScaleRef.current = xScale;
+          yScaleRef.current = yScale;
           plotChart(plotContext, series, scales, plotDms, transform, ticker !== 'SPY');
 
           // draw x axis
@@ -400,19 +429,155 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         plotCanvas.on('zoom', null);
       };
     }
-  }, [series, ticker, chartDms, plotAreaRef, plotDms, yAxisRef, yAxisDms, xAxisRef, XAxisDms, currentTransform]);
+  }, [
+    series,
+    ticker,
+    currentTransform,
+    chartDms,
+    plotAreaRef,
+    plotDms,
+    yAxisRef,
+    yAxisDms,
+    xAxisRef,
+    XAxisDms,
+    crosshairRef,
+    crosshairDms
+  ]);
+
+  const drawCrosshair = (
+    event: MouseEvent,
+    xScale: XScale | null,
+    yScale: YScale | null,
+    currentTransform: d3.ZoomTransform | null
+  ) => {
+    if (!xScale || !yScale) return;
+    const transform = currentTransform ? currentTransform : d3.zoomIdentity;
+    const pixelRatio = crosshairDms.pixelRatio;
+    const crosshairElement = crosshairRef.current as HTMLCanvasElement;
+    const context = initCanvas(crosshairElement, crosshairDms);
+    context.translate(Math.floor(transform.x), 0);
+
+    const [px, py] = d3.pointer(event);
+    // x
+    const canvasX = px * pixelRatio - transform.x;
+    const [x, date] = getInvertXScale(xScale)(canvasX);
+    const adjustX = Math.floor(x) + 0.5;
+    // y
+    const canvasY = py * pixelRatio;
+    const price = yScale.invert(canvasY);
+    const adjustY = Math.ceil(canvasY) + 0.5;
+
+    // draw vertical line
+    context.beginPath();
+    context.strokeStyle = getCssVar('--chakra-colors-gray-400');
+    context.lineWidth = 1;
+    context.setLineDash([8, 4]);
+    context.moveTo(adjustX, 0);
+    context.lineTo(adjustX, crosshairDms.bitmapHeight);
+    context.stroke();
+
+    // draw horizontal line
+    context.beginPath();
+    context.moveTo(-transform.x, adjustY);
+    context.lineTo(-transform.x + crosshairDms.bitmapWidth, adjustY);
+    context.stroke();
+
+    // draw x axis tooltip
+    const xTooltip = xAxisTooltipRef.current as HTMLCanvasElement;
+    const xTooltipContext = initCanvas(xTooltip, xAxisTooltipDms);
+    xTooltipContext.translate(Math.floor(transform.x), 0);
+    drawXToolTip(xTooltipContext, adjustX, date);
+
+    // draw y axis tooltip
+    const yTooltip = yAxisTooltipRef.current as HTMLCanvasElement;
+    const yTooltipContext = initCanvas(yTooltip, yAxisTooltipDms);
+    drawYToolTip(yTooltipContext, adjustY, price);
+  };
+
+  const drawXToolTip = (context: CanvasRenderingContext2D, x: number, date: Date) => {
+    const pixelRatio = window.devicePixelRatio || 1;
+    const fontSize = 12 * pixelRatio;
+    const y = 15 * pixelRatio;
+    context.font = `${fontSize}px Outfit`;
+    const text = `${dateTooltipFormat(date)}`;
+    const textWidth = Math.floor(context.measureText(text).width + 10);
+
+    const transformX = context.getTransform().e;
+    const boundLeft = -transformX;
+    const boundRight = -transformX + context.canvas.width;
+
+    // draw wrapper rect
+    const xRect =
+      x - textWidth / 2 < boundLeft
+        ? boundLeft
+        : x + textWidth / 2 > boundRight
+          ? boundRight - textWidth
+          : x - textWidth / 2;
+    context.fillStyle = 'black';
+    context.fillRect(Math.floor(xRect), 0, textWidth, context.canvas.height);
+
+    // fill date text
+    context.fillStyle = 'white';
+    context.textBaseline = 'middle';
+    context.textAlign = 'center';
+    context.fillText(text, xRect + textWidth / 2, y);
+    context.restore();
+  };
+
+  const drawYToolTip = (context: CanvasRenderingContext2D, y: number, price: number) => {
+    const pixelRatio = window.devicePixelRatio || 1;
+    const fontSize = 12 * pixelRatio;
+    const x = 10 * pixelRatio;
+    const text = `${priceTooltipFormat(price)}`;
+    const rectHeight = pixelRatio * 20;
+
+    // draw wrapper rect
+    context.fillStyle = 'black';
+    context.fillRect(0, y - rectHeight / 2, context.canvas.width, rectHeight);
+    context.font = `${fontSize}px Outfit`;
+    context.fillStyle = 'white';
+    context.textBaseline = 'middle';
+    context.fillText(text, x, y);
+    context.restore();
+  };
 
   return (
-    <div ref={wrapperRef} {...props}>
+    <div
+      ref={wrapperRef}
+      {...props}
+      onMouseMove={(e) => drawCrosshair(e, xScaleRef.current, yScaleRef.current, currentTransform)}>
       <canvas
-        ref={plotAreaRef}
-        id="canvas"
+        ref={crosshairRef}
+        id="crosshair"
         style={{
           position: 'absolute',
           top: chartDms.marginTop,
           left: chartDms.marginLeft,
           width: chartDms.plotWidth,
           height: chartDms.plotHeight
+        }}
+      />
+      <canvas
+        ref={plotAreaRef}
+        id="plotarea"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop,
+          left: chartDms.marginLeft,
+          width: chartDms.plotWidth,
+          height: chartDms.plotHeight
+        }}
+      />
+      <canvas
+        ref={yAxisTooltipRef}
+        id="yAxisTooltip"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop,
+          right: 0,
+          width: chartDms.width - chartDms.plotWidth,
+          height: chartDms.plotHeight,
+          zIndex: 1
         }}
       />
       <canvas
@@ -424,6 +589,18 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           right: 0,
           width: chartDms.width - chartDms.plotWidth,
           height: chartDms.plotHeight
+        }}
+      />
+      <canvas
+        ref={xAxisTooltipRef}
+        id="xAxisTooltip"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop + chartDms.plotHeight,
+          left: chartDms.marginLeft,
+          width: chartDms.plotWidth,
+          height: chartDms.height - chartDms.plotHeight,
+          zIndex: 1
         }}
       />
       <canvas

@@ -68,6 +68,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
         setStatus('normal');
       })
       .catch(() => {
+        setSeries([]);
         setStatus('error');
       });
   }, [ticker, retry]);
@@ -94,7 +95,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     <>
       <Flex height="full" direction="column">
         <Flex margin={2} gap={2}>
-          {isLoading ? <Text flexGrow={1}>Loading...</Text> : <HeadLine stockInfo={stockInfo} />}
+          {isLoading ? <Text flexGrow={1}>Loading {ticker}...</Text> : <HeadLine stockInfo={stockInfo} />}
           <Group attached>
             <Button
               size="2xs"

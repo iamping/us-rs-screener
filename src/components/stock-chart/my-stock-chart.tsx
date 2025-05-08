@@ -491,7 +491,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       // prepare zoom
       const extent = [
         [0, 0],
-        [plotDms.bitmapWidth / 2 + 1, 0]
+        [plotDms.bitmapWidth / 2, 0]
       ] as [[number, number], [number, number]];
       const zoom = d3
         .zoom<HTMLCanvasElement, unknown>()
@@ -545,7 +545,13 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
 
       // draw canvas with initial zoom
       if (currentTransform) {
-        plotCanvas.call(zoom.transform, currentTransform);
+        const translateLimit = (-plotDms.bitmapWidth * (currentTransform.k - 1)) / 2;
+        plotCanvas.call(
+          zoom.transform,
+          currentTransform.x < translateLimit
+            ? d3.zoomIdentity.translate(translateLimit, 0).scale(currentTransform.k)
+            : currentTransform
+        );
       } else {
         plotCanvas.call(zoom.transform, d3.zoomIdentity.translate(initialTranX, 0).scale(initialScale));
       }

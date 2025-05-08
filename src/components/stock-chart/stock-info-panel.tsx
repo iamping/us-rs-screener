@@ -1,26 +1,12 @@
-import {
-  Box,
-  Button,
-  CloseButton,
-  Flex,
-  Group,
-  Heading,
-  HStack,
-  Link,
-  SegmentGroup,
-  Spacer,
-  Text
-} from '@chakra-ui/react';
+import { Button, CloseButton, Flex, Group, Heading, Link, SegmentGroup, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { LuChartCandlestick, LuInfo } from 'react-icons/lu';
-import { useMediaQuery } from 'usehooks-ts';
 import { calculateEMA, calculateSMA } from '@/helpers/chart.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
 import { Stock } from '@/types/stock';
 import { StockDataPoint } from '@/types/stock-chart';
-import { mobileMediaQuery } from '@/utils/common.utils';
 import { MyStockChart } from './my-stock-chart';
 
 interface StockInfoPanelProps {
@@ -108,8 +94,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     <>
       <Flex height="full" direction="column">
         <Flex margin={2} gap={2}>
-          <Box>{isLoading ? <Text>Loading...</Text> : <HeadLine stockInfo={stockInfo} />}</Box>
-          <Spacer />
+          {isLoading ? <Text flexGrow={1}>Loading...</Text> : <HeadLine stockInfo={stockInfo} />}
           <Group attached>
             <Button
               size="2xs"
@@ -152,25 +137,14 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   );
 };
 
-// check stockInfo null
 const HeadLine = ({ stockInfo }: { stockInfo: Stock }) => {
-  const isSmallScreen = useMediaQuery(mobileMediaQuery);
+  if (!stockInfo) return null;
   return (
-    <HStack>
-      <Heading
-        size="md"
-        fontWeight="500"
-        truncate={isSmallScreen}
-        maxWidth={isSmallScreen ? 60 : undefined}
-        title={stockInfo?.companyName}>
+    <Heading flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stockInfo?.ticker}>
+      {stockInfo?.ticker} {' - '}
+      <Text as="span" fontSize="sm" fontWeight="500" color="gray.500">
         {stockInfo?.companyName}
-      </Heading>
-      <Text fontWeight="500" color="gray.500">
-        ({stockInfo?.ticker})
       </Text>
-      {/* <Text>{stockInfo.close}</Text>
-        <Text>{stockInfo.change}</Text>
-        <Text>{stockInfo.percentChange}</Text> */}
-    </HStack>
+    </Heading>
   );
 };

@@ -353,6 +353,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   });
 
   // Element Refs
+  const eventHandlerRef = useRef<HTMLDivElement>(null);
   const [plotAreaRef, plotDms] = useDimensions<HTMLCanvasElement>();
   const [crosshairRef, crosshairDms] = useDimensions<HTMLCanvasElement>();
   const [xAxisRef, XAxisDms] = useDimensions<HTMLCanvasElement>();
@@ -372,8 +373,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       pointer: [number, number],
       xScale: XScale | null,
       yScale: YScale | null,
-      currentTransform: d3.ZoomTransform | null,
-      marginTop: number
+      currentTransform: d3.ZoomTransform | null
     ) => {
       if (!xScale || !yScale) return;
       const [px, py] = pointer;
@@ -392,7 +392,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       const lineWidth = Math.floor(pixelRatio);
       const correction = lineWidth % 2 === 0 ? 0 : 0.5;
       // y
-      const canvasY = (py - marginTop) * pixelRatio;
+      const canvasY = py * pixelRatio;
       const price = yScale.invert(canvasY);
       const adjustY = Math.ceil(canvasY);
 
@@ -464,11 +464,11 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     const fontSize = 12 * pixelRatio;
     const x = 10 * pixelRatio;
     const text = `${priceTooltipFormat(price)}`;
-    const rectHeight = pixelRatio * 28;
+    const rectHeight = Math.floor(pixelRatio * 28);
 
     // draw wrapper rect
     context.fillStyle = getCssVar('--chakra-colors-gray-700');
-    context.fillRect(0, y - rectHeight / 2, context.canvas.width, rectHeight);
+    context.fillRect(0, Math.floor(y - rectHeight / 2), context.canvas.width, rectHeight);
     context.font = `${fontSize}px Outfit`;
     context.fillStyle = getCssVar('--chakra-colors-white');
     context.textBaseline = 'middle';
@@ -486,8 +486,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     const isFew = series.length <= 80;
     const initialScale = isFew ? 1 : 3;
     const initialTranX = (-plotDms.bitmapWidth * (initialScale - 1)) / 2;
-    const plotElement = plotAreaRef.current as HTMLCanvasElement;
-    const plotCanvas = d3.select(plotElement);
+    const eventHandler = d3.select(eventHandlerRef.current as HTMLDivElement);
     if (series.length > 0) {
       // prepare X & Y Scale
       const minLow = (d3.min(series.map((d) => d.low)) ?? 0) * (1 - lowerDomainMultiplier);
@@ -512,15 +511,16 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         [plotDms.bitmapWidth / 2, 0]
       ] as [[number, number], [number, number]];
       const zoom = d3
-        .zoom<HTMLCanvasElement, unknown>()
+        .zoom<HTMLDivElement, unknown>()
         .scaleExtent([1, 10])
         .translateExtent(extent)
         .extent(extent)
         .on('start', () => {
-          const wrapper = wrapperRef.current as HTMLDivElement;
-          wrapper.style.cursor = 'grabbing';
+          const eventHandler = eventHandlerRef.current as HTMLDivElement;
+          eventHandler.style.cursor = 'grabbing';
         })
         .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
+          const plotElement = plotAreaRef.current as HTMLCanvasElement;
           const plotContext = initCanvas(plotElement, plotDms);
           const scales: ChartScales = {
             xScale: updateXScale(xScale, transform, plotDms.bitmapWidth), // update inplace
@@ -544,10 +544,10 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
 
           if (currentPointer.current) {
             if (sourceEvent instanceof MouseEvent) {
-              const pointer = d3.pointer(sourceEvent, wrapperRef.current);
-              drawCrosshair(pointer, xScale, yScale, transform, chartDms.marginTop);
+              const pointer = d3.pointer(sourceEvent, eventHandlerRef.current);
+              drawCrosshair(pointer, xScale, yScale, transform);
             } else {
-              drawCrosshair(currentPointer.current, xScale, yScale, transform, chartDms.marginTop);
+              drawCrosshair(currentPointer.current, xScale, yScale, transform);
             }
           }
 
@@ -555,28 +555,28 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           setCurrentTransform(transform);
         })
         .on('end', () => {
-          const wrapper = wrapperRef.current as HTMLDivElement;
-          wrapper.style.cursor = 'unset';
+          const eventHandler = eventHandlerRef.current as HTMLDivElement;
+          eventHandler.style.cursor = 'unset';
         });
 
       // bind zoom event
-      plotCanvas.call(zoom);
+      eventHandler.call(zoom);
 
       // draw canvas with initial zoom
       if (currentTransform) {
         const translateLimit = (-plotDms.bitmapWidth * (currentTransform.k - 1)) / 2;
-        plotCanvas.call(
+        eventHandler.call(
           zoom.transform,
           currentTransform.x < translateLimit
             ? d3.zoomIdentity.translate(translateLimit, 0).scale(currentTransform.k)
             : currentTransform
         );
       } else {
-        plotCanvas.call(zoom.transform, d3.zoomIdentity.translate(initialTranX, 0).scale(initialScale));
+        eventHandler.call(zoom.transform, d3.zoomIdentity.translate(initialTranX, 0).scale(initialScale));
       }
 
       return () => {
-        plotCanvas.on('zoom', null);
+        eventHandler.on('zoom', null);
       };
     }
   }, [
@@ -597,19 +597,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   ]);
 
   return (
-    <div
-      ref={wrapperRef}
-      {...props}
-      onMouseMove={(e) =>
-        drawCrosshair(d3.pointer(e), xScaleRef.current, yScaleRef.current, currentTransform, chartDms.marginTop)
-      }
-      onMouseOut={() =>
-        clearCrosshairAndTooltip([
-          crosshairRef.current as HTMLCanvasElement,
-          xAxisTooltipRef.current as HTMLCanvasElement,
-          yAxisTooltipRef.current as HTMLCanvasElement
-        ])
-      }>
+    <div ref={wrapperRef} {...props}>
       <StockQuote
         series={series}
         index={currentDataIndex}
@@ -686,6 +674,25 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           width: chartDms.plotWidth,
           height: chartDms.height - chartDms.plotHeight
         }}
+      />
+      <div
+        ref={eventHandlerRef}
+        id="event-handler"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop,
+          left: chartDms.marginLeft,
+          width: chartDms.plotWidth,
+          height: chartDms.plotHeight
+        }}
+        onMouseMove={(e) => drawCrosshair(d3.pointer(e), xScaleRef.current, yScaleRef.current, currentTransform)}
+        onMouseOut={() =>
+          clearCrosshairAndTooltip([
+            crosshairRef.current as HTMLCanvasElement,
+            xAxisTooltipRef.current as HTMLCanvasElement,
+            yAxisTooltipRef.current as HTMLCanvasElement
+          ])
+        }
       />
     </div>
   );

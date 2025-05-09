@@ -264,35 +264,36 @@ const plotChart = (
     // context.textBaseline = 'middle';
     // context.fillText('RS 99', lastX, lastY);
     // loop data & draw on canvas
-    series.forEach((d) => {
-      const x = Math.floor(xScale(d.date) ?? 0) + correction;
-      const low = yScale(d.low);
-      const high = yScale(d.high);
-      const close = Math.round(yScale(d.close));
-      const open = Math.round(yScale(d.open));
-
-      // draw price bar
-      context.strokeStyle = d.close > d.open ? colorUp : colorDown;
-      context.lineWidth = bandWidth;
-      context.beginPath();
-      context.moveTo(x, Math.round(low + bandWidth / 2));
-      context.lineTo(x, Math.round(high - bandWidth / 2));
-
-      context.moveTo(x, open + correction);
-      context.lineTo(Math.floor(x - tickLength), open + correction);
-      context.moveTo(x, close + correction);
-      context.lineTo(Math.floor(x + tickLength), close + correction);
-      context.stroke();
-
-      // draw volume bar
-      const volumeBarHeight = Math.floor(volumeScale(d.volume));
-      context.lineWidth = bandWidth * 2;
-      context.beginPath();
-      context.moveTo(x - correction, plotDms.bitmapHeight);
-      context.lineTo(x - correction, plotDms.bitmapHeight - volumeBarHeight);
-      context.stroke();
-    });
   }
+
+  series.forEach((d) => {
+    const x = Math.floor(xScale(d.date) ?? 0) + correction;
+    const low = yScale(d.low);
+    const high = yScale(d.high);
+    const close = Math.round(yScale(d.close));
+    const open = Math.round(yScale(d.open));
+
+    // draw price bar
+    context.strokeStyle = d.close > d.open ? colorUp : colorDown;
+    context.lineWidth = bandWidth;
+    context.beginPath();
+    context.moveTo(x, Math.round(low + bandWidth / 2));
+    context.lineTo(x, Math.round(high - bandWidth / 2));
+
+    context.moveTo(x, open + correction);
+    context.lineTo(Math.floor(x - tickLength), open + correction);
+    context.moveTo(x, close + correction);
+    context.lineTo(Math.floor(x + tickLength), close + correction);
+    context.stroke();
+
+    // draw volume bar
+    const volumeBarHeight = Math.floor(volumeScale(d.volume));
+    context.lineWidth = bandWidth * 2;
+    context.beginPath();
+    context.moveTo(x - correction, plotDms.bitmapHeight);
+    context.lineTo(x - correction, plotDms.bitmapHeight - volumeBarHeight);
+    context.stroke();
+  });
   context.restore();
 };
 
@@ -515,10 +516,11 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         .scaleExtent([1, 10])
         .translateExtent(extent)
         .extent(extent)
-        .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
+        .on('start', () => {
           const wrapper = wrapperRef.current as HTMLDivElement;
           wrapper.style.cursor = 'grabbing';
-
+        })
+        .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
           const plotContext = initCanvas(plotElement, plotDms);
           const scales: ChartScales = {
             xScale: updateXScale(xScale, transform, plotDms.bitmapWidth), // update inplace

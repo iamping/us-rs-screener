@@ -2,7 +2,7 @@ import { Stock } from '@/types/stock';
 import { HistoricalData } from '@/types/stock-chart';
 
 const cacheKey = 'historical-' + new Date().toISOString().substring(0, 13);
-const timeout = 5000;
+const timeout = 10000;
 
 export const fetchStockRsList = async (): Promise<Stock[]> => {
   const url = './api/us_rs_list.json';

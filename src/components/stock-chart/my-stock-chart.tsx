@@ -331,7 +331,7 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
       context.textAlign = 'center';
       context.fillText(dateFormat(d), x, y);
     }
-    if (step < 2) {
+    if (step < Math.ceil(pixelRatio)) {
       willDraw = !willDraw;
     }
   });
@@ -385,6 +385,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       const boundRight = -transform.x + context.canvas.width - 5;
       const [x, date] = getInvertXScale(xScale)(canvasX > boundRight ? boundRight : canvasX);
       const adjustX = Math.floor(x);
+      const lineWidth = Math.floor(pixelRatio);
+      const correction = lineWidth % 2 === 0 ? 0 : 0.5;
       // y
       const canvasY = py * pixelRatio;
       const price = yScale.invert(canvasY);
@@ -393,16 +395,16 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       // draw vertical line
       context.beginPath();
       context.strokeStyle = getCssVar('--chakra-colors-gray-400');
-      context.lineWidth = 2;
+      context.lineWidth = lineWidth;
       context.setLineDash([8, 4]);
-      context.moveTo(adjustX, 0);
-      context.lineTo(adjustX, crosshairDms.bitmapHeight);
+      context.moveTo(adjustX - correction, 0);
+      context.lineTo(adjustX - correction, crosshairDms.bitmapHeight);
       context.stroke();
 
       // draw horizontal line
       context.beginPath();
-      context.moveTo(-transform.x, adjustY);
-      context.lineTo(-transform.x + crosshairDms.bitmapWidth, adjustY);
+      context.moveTo(-transform.x, adjustY - correction);
+      context.lineTo(-transform.x + crosshairDms.bitmapWidth, adjustY - correction);
       context.stroke();
       context.restore();
 

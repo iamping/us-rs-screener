@@ -19,16 +19,11 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, series, ...rest }) => {
     return null;
   }
   const d = index < 0 ? series.slice(-1)[0] : series[index];
+  const isDown = d.change < 0;
   const open = `${formatDecimal(d.open)}`;
   const high = `${formatDecimal(d.high)}`;
   const low = `${formatDecimal(d.low)}`;
-
-  const preCloseIndex = series.length > 1 ? (index < 0 ? series.length - 2 : Math.max(index - 1, 0)) : 0;
-  const preClose = series[preCloseIndex].close;
-  const isDown = preClose > d.close;
-  const change = d.close - preClose;
-  const changePercent = (change / preClose) * 100;
-  const close = `${formatDecimal(d.close)} ${formatDecimal(change, true)} (${formatDecimal(changePercent, true)}%)`;
+  const close = `${formatDecimal(d.close)} ${formatDecimal(d.change, true)} (${formatDecimal(d.changePercent, true)}%)`;
 
   const volUnit = d.volume < 1000000 ? 'k' : 'm';
   const adjustVolume = d.volume < 1000000 ? d.volume / 1000 : d.volume / 1000000;

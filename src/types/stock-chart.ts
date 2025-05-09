@@ -21,6 +21,8 @@ export interface StockDataPoint {
   ema200: number | null;
   avgVol: number | null;
   rs: number;
+  change: number;
+  changePercent: number;
 }
 
 export interface ChartSeries {

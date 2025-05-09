@@ -371,7 +371,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       pointer: [number, number],
       xScale: XScale | null,
       yScale: YScale | null,
-      currentTransform: d3.ZoomTransform | null
+      currentTransform: d3.ZoomTransform | null,
+      marginTop: number
     ) => {
       if (!xScale || !yScale) return;
       const [px, py] = pointer;
@@ -390,7 +391,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       const lineWidth = Math.floor(pixelRatio);
       const correction = lineWidth % 2 === 0 ? 0 : 0.5;
       // y
-      const canvasY = py * pixelRatio;
+      const canvasY = (py - marginTop) * pixelRatio;
       const price = yScale.invert(canvasY);
       const adjustY = Math.ceil(canvasY);
 
@@ -542,9 +543,9 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           if (currentPointer.current) {
             if (sourceEvent instanceof MouseEvent) {
               const pointer = d3.pointer(sourceEvent, wrapperRef.current);
-              drawCrosshair(pointer, xScale, yScale, transform);
+              drawCrosshair(pointer, xScale, yScale, transform, chartDms.marginTop);
             } else {
-              drawCrosshair(currentPointer.current, xScale, yScale, transform);
+              drawCrosshair(currentPointer.current, xScale, yScale, transform, chartDms.marginTop);
             }
           }
 
@@ -597,7 +598,9 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     <div
       ref={wrapperRef}
       {...props}
-      onMouseMove={(e) => drawCrosshair(d3.pointer(e), xScaleRef.current, yScaleRef.current, currentTransform)}
+      onMouseMove={(e) =>
+        drawCrosshair(d3.pointer(e), xScaleRef.current, yScaleRef.current, currentTransform, chartDms.marginTop)
+      }
       onMouseOut={() =>
         clearCrosshairAndTooltip([
           crosshairRef.current as HTMLCanvasElement,

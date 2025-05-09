@@ -1,6 +1,13 @@
 import Highcharts from 'highcharts';
 import { Stock, StockInfo } from '@/types/stock';
-import { ChartSeries, CustomPoint, CustomSeries, HistoricalData, SeriePoint } from '@/types/stock-chart';
+import {
+  ChartSeries,
+  CustomPoint,
+  CustomSeries,
+  HistoricalData,
+  SeriePoint,
+  StockDataPoint
+} from '@/types/stock-chart';
 import { findMax } from '@/utils/common.utils';
 
 export const prepareSeries = (
@@ -497,4 +504,31 @@ export const calculateSMA = (values: number[], period: number) => {
     }
   });
   return smaArray;
+};
+
+export const computeDataSeries = (stockData: HistoricalData, spyData: HistoricalData) => {
+  const series: StockDataPoint[] = [];
+  const spyPriceData = spyData.close.slice(-stockData.close.length);
+  const ema21 = calculateEMA(stockData.close, 21);
+  const ema50 = calculateEMA(stockData.close, 50);
+  const ema200 = calculateEMA(stockData.close, 200);
+  const volSma50 = calculateSMA(stockData.volume, 50);
+  for (let i = 0; i < stockData.date.length; i++) {
+    series.push({
+      close: stockData.close[i],
+      high: stockData.high[i],
+      low: stockData.low[i],
+      open: stockData.open[i],
+      volume: stockData.volume[i],
+      date: new Date(stockData.date[i] * 1000),
+      ema21: ema21[i],
+      ema50: ema50[i],
+      ema200: ema200[i],
+      avgVol: volSma50[i],
+      rs: stockData.close[i] / spyPriceData[i],
+      change: i === 0 ? 0 : stockData.close[i] - stockData.close[i - 1],
+      changePercent: i === 0 ? 0 : ((stockData.close[i] - stockData.close[i - 1]) / stockData.close[i - 1]) * 100
+    });
+  }
+  return series;
 };

@@ -4,6 +4,7 @@ import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
 import { getCssVar } from '@/utils/common.utils';
+import { StockQuote } from './stock-quote';
 
 interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
   ticker: string;
@@ -109,7 +110,7 @@ const getInvertXScale = (xScale: XScale) => {
   // console.log('tail =>', xList.slice(-10), domain.slice(-10));
   return (x: number) => {
     const idx = d3.bisectCenter(xList, x);
-    return [xList[idx], domain[idx]] as const;
+    return [xList[idx], domain[idx], idx] as const;
   };
 };
 
@@ -346,7 +347,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   const [wrapperRef, chartDms] = useChartDimensions<HTMLDivElement>({
     marginRight: 55,
     marginBottom: 30,
-    marginTop: 0,
+    marginTop: 25,
     marginLeft: 0
   });
 
@@ -363,6 +364,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
 
   // state
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
+  const [currentDataIndex, setCurrentDataIndex] = useState(-1);
 
   const drawCrosshair = useCallback(
     (
@@ -383,7 +385,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       // x
       const canvasX = px * pixelRatio - transform.x;
       const boundRight = -transform.x + context.canvas.width - 5;
-      const [x, date] = getInvertXScale(xScale)(canvasX > boundRight ? boundRight : canvasX);
+      const [x, date, idx] = getInvertXScale(xScale)(canvasX > boundRight ? boundRight : canvasX);
       const adjustX = Math.floor(x);
       const lineWidth = Math.floor(pixelRatio);
       const correction = lineWidth % 2 === 0 ? 0 : 0.5;
@@ -418,6 +420,9 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       const yTooltip = yAxisTooltipRef.current as HTMLCanvasElement;
       const yTooltipContext = initCanvas(yTooltip, yAxisTooltipDms);
       drawYToolTip(yTooltipContext, adjustY, price);
+
+      // set current point
+      setCurrentDataIndex(idx);
     },
     [crosshairDms, crosshairRef, xAxisTooltipDms, xAxisTooltipRef, yAxisTooltipDms, yAxisTooltipRef]
   );
@@ -467,6 +472,12 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     context.textBaseline = 'middle';
     context.fillText(text, x, y);
     context.restore();
+  };
+
+  const clearCrosshairAndTooltip = (canvaList: HTMLCanvasElement[]) => {
+    clearCanvas(canvaList);
+    setCurrentDataIndex(-1);
+    currentPointer.current = null;
   };
 
   useEffect(() => {
@@ -588,12 +599,21 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       {...props}
       onMouseMove={(e) => drawCrosshair(d3.pointer(e), xScaleRef.current, yScaleRef.current, currentTransform)}
       onMouseOut={() =>
-        clearCanvas([
+        clearCrosshairAndTooltip([
           crosshairRef.current as HTMLCanvasElement,
           xAxisTooltipRef.current as HTMLCanvasElement,
           yAxisTooltipRef.current as HTMLCanvasElement
         ])
       }>
+      <StockQuote
+        series={series}
+        index={currentDataIndex}
+        gapX={1}
+        paddingX={2}
+        flexWrap="wrap"
+        maxWidth={plotDms.width}
+        marginTop={-1}
+      />
       <canvas
         ref={crosshairRef}
         id="crosshair"

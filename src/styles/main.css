@@ -277,6 +277,6 @@ div[data-highcharts-chart] {
   overflow: hidden;
   position: relative;
   &[data-loading='true'] {
-    opacity: 0.4;
+    opacity: 0.2;
   }
 }

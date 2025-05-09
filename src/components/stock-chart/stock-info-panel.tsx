@@ -94,7 +94,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   return (
     <>
       <Flex height="full" direction="column">
-        <Flex margin={2} gap={2}>
+        <Flex margin={2} marginBottom={1} gap={2}>
           {isLoading ? <Text flexGrow={1}>Loading {ticker}...</Text> : <HeadLine stockInfo={stockInfo} />}
           <Group attached>
             <Button

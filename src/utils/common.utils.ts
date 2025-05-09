@@ -17,6 +17,7 @@ export const formatNumber = (val: string | number) => {
 };
 
 export const mobileMediaQuery = '(max-width: 680px)';
+export const touchDevice = '(pointer: coarse)';
 
 export const findMax = (arr: number[]) => {
   return Math.max(...arr);

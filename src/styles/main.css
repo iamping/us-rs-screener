@@ -19,6 +19,11 @@ body {
   min-width: 380px;
   font-optical-sizing: auto;
   font-variant-numeric: lining-nums tabular-nums;
+  -webkit-touch-callout: none; /* Safari */
+  -webkit-user-select: none; /* Chrome */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
 }
 
 .scrollbar {
@@ -276,6 +281,7 @@ div[data-highcharts-chart] {
   height: 100%;
   overflow: hidden;
   position: relative;
+  touch-action: none;
   &[data-loading='true'] {
     opacity: 0.2;
   }

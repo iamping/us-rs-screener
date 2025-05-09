@@ -1,9 +1,10 @@
 import * as d3 from 'd3';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { useMediaQuery } from 'usehooks-ts';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
 import { StockDataPoint } from '@/types/stock-chart';
-import { getCssVar } from '@/utils/common.utils';
+import { getCssVar, touchDevice } from '@/utils/common.utils';
 import { StockQuote } from './stock-quote';
 
 interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
@@ -13,12 +14,14 @@ interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
 
 type XScale = d3.ScaleBand<Date>;
 type YScale = d3.ScaleLogarithmic<number, number>;
+type VolScale = d3.ScaleLinear<number, number>;
+type RsScale = d3.ScaleLinear<number, number>;
 
 interface ChartScales {
   xScale: XScale;
   yScale: YScale;
-  volumeScale: d3.ScaleLinear<number, number>;
-  rsScale: d3.ScaleLinear<number, number>;
+  volumeScale: VolScale;
+  rsScale: RsScale;
 }
 
 // interface ElementRefs {
@@ -340,15 +343,13 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
   context.restore();
 };
 
-// const drawCrosshair = (context: CanvasRenderingContext2D) => {};
-
 export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   // console.log('MyStockChart', ticker);
 
   const [wrapperRef, chartDms] = useChartDimensions<HTMLDivElement>({
     marginRight: 55,
     marginBottom: 30,
-    marginTop: 25,
+    marginTop: 10,
     marginLeft: 0
   });
 
@@ -362,11 +363,19 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   const [yAxisTooltipRef, yAxisTooltipDms] = useDimensions<HTMLCanvasElement>();
   const xScaleRef = useRef<XScale | null>(null);
   const yScaleRef = useRef<YScale | null>(null);
+  const volScaleRef = useRef<VolScale | null>(null);
+  const rsScaleRef = useRef<RsScale | null>(null);
   const currentPointer = useRef<[number, number] | null>(null);
 
   // state
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
   const [currentDataIndex, setCurrentDataIndex] = useState(-1);
+  const [zoomEnabled, setZoomEnabled] = useState(true);
+
+  // for touch events
+  const timer = useRef<NodeJS.Timeout | null>(null);
+  const isTap = useRef(false);
+  const isTouchDevice = useMediaQuery(touchDevice);
 
   const drawCrosshair = useCallback(
     (
@@ -530,6 +539,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           };
           xScaleRef.current = xScale;
           yScaleRef.current = yScale;
+          volScaleRef.current = volumeScale;
+          rsScaleRef.current = rsScale;
           plotChart(plotContext, series, scales, plotDms, transform, ticker !== 'SPY');
 
           // draw x axis
@@ -560,7 +571,9 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         });
 
       // bind zoom event
-      eventHandler.call(zoom);
+      if (zoomEnabled) {
+        eventHandler.call(zoom);
+      }
 
       // draw canvas with initial zoom
       if (currentTransform) {
@@ -576,7 +589,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
       }
 
       return () => {
-        eventHandler.on('zoom', null);
+        eventHandler.on('.zoom', null);
       };
     }
   }, [
@@ -593,11 +606,51 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     XAxisDms,
     crosshairRef,
     crosshairDms,
-    drawCrosshair
+    drawCrosshair,
+    zoomEnabled
   ]);
 
   return (
-    <div ref={wrapperRef} {...props}>
+    <div
+      ref={wrapperRef}
+      {...props}
+      onTouchStartCapture={(e) => {
+        if (e.touches.length > 1) return;
+        isTap.current = true;
+        timer.current = setTimeout(() => {
+          isTap.current = false;
+          setZoomEnabled(false);
+          drawCrosshair(
+            d3.pointer(e.touches[0], eventHandlerRef.current),
+            xScaleRef.current,
+            yScaleRef.current,
+            currentTransform
+          );
+        }, 800);
+      }}
+      onTouchMoveCapture={(e) => {
+        if (e.touches.length > 1) return;
+        if (!zoomEnabled) {
+          isTap.current = false;
+          drawCrosshair(
+            d3.pointer(e.touches[0], eventHandlerRef.current),
+            xScaleRef.current,
+            yScaleRef.current,
+            currentTransform
+          );
+        }
+      }}
+      onTouchEndCapture={() => {
+        clearTimeout(timer.current ?? undefined);
+        setZoomEnabled(isTap.current);
+        if (isTap.current) {
+          clearCrosshairAndTooltip([
+            crosshairRef.current as HTMLCanvasElement,
+            xAxisTooltipRef.current as HTMLCanvasElement,
+            yAxisTooltipRef.current as HTMLCanvasElement
+          ]);
+        }
+      }}>
       <StockQuote
         series={series}
         index={currentDataIndex}
@@ -685,7 +738,9 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           width: chartDms.plotWidth,
           height: chartDms.plotHeight
         }}
-        onMouseMove={(e) => drawCrosshair(d3.pointer(e), xScaleRef.current, yScaleRef.current, currentTransform)}
+        onMouseMove={(e) => {
+          if (!isTouchDevice) drawCrosshair(d3.pointer(e), xScaleRef.current, yScaleRef.current, currentTransform);
+        }}
         onMouseOut={() =>
           clearCrosshairAndTooltip([
             crosshairRef.current as HTMLCanvasElement,

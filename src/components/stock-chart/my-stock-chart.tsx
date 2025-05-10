@@ -361,11 +361,11 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   const [xAxisTooltipRef, xAxisTooltipDms] = useDimensions<HTMLCanvasElement>();
   const [yAxisRef, yAxisDms] = useDimensions<HTMLCanvasElement>();
   const [yAxisTooltipRef, yAxisTooltipDms] = useDimensions<HTMLCanvasElement>();
-  const xScaleRef = useRef<XScale | null>(null);
-  const yScaleRef = useRef<YScale | null>(null);
-  const volScaleRef = useRef<VolScale | null>(null);
-  const rsScaleRef = useRef<RsScale | null>(null);
-  const currentPointer = useRef<[number, number] | null>(null);
+  const xScaleRef = useRef<XScale>(null);
+  const yScaleRef = useRef<YScale>(null);
+  const volScaleRef = useRef<VolScale>(null);
+  const rsScaleRef = useRef<RsScale>(null);
+  const currentPointer = useRef<[number, number]>(null);
 
   // state
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
@@ -373,7 +373,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   const [zoomEnabled, setZoomEnabled] = useState(true);
 
   // for touch events
-  const timer = useRef<NodeJS.Timeout | null>(null);
+  const timer = useRef<NodeJS.Timeout>(null);
   const isTap = useRef(false);
   const isTouchDevice = useMediaQuery(touchDevice);
 

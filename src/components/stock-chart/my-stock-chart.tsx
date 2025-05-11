@@ -28,7 +28,7 @@ interface ChartScales {
 }
 
 // constant
-const domainMultiplier = 0.01;
+const domainMultiplier = 0.04;
 const lowerDomainMultiplier = 0.1;
 const barArea = 0.8;
 const volumeArea = 0.2;
@@ -50,35 +50,29 @@ const priceFormat = (max: number) => (value: d3.NumberValue) => {
   return max > 1000 ? d3.format('.2f')(price / 1000) + 'k' : d3.format(',.2f')(price);
 };
 
-// const dateTicks = (dates: Date[]) => {
-//   const dateSet: string[] = [];
-//   return dates
-//     .filter((date) => {
-//       const key = `${date.getMonth()},${date.getFullYear()}`;
-//       if (dateSet.includes(key)) {
-//         return false;
-//       } else {
-//         dateSet.push(key);
-//         return true;
-//       }
-//     })
-//     .slice(1);
-// };
+const dateTicks = (dates: Date[]) => {
+  const dateSet: string[] = [];
+  return dates.filter((date) => {
+    const key = `${date.getMonth()},${date.getFullYear()}`;
+    if (dateSet.includes(key)) {
+      return false;
+    } else {
+      dateSet.push(key);
+      return true;
+    }
+  });
+};
 
-// TODO: implement new logic to find proper steps
-const logTicks = (start: number, stop: number) => {
-  const noOfTicks = 10;
-  const diff = stop - start;
-  const distance = diff / noOfTicks;
-  return [
-    ...new Set(
-      Array(noOfTicks)
-        .fill(0)
-        .map((_, i) => (stop < 10 ? start + distance * i : Math.round(start + distance * i)))
-        .slice(1)
-        .sort(d3.ascending)
-    )
-  ];
+const logTicks = (min: number, max: number) => {
+  const noOfTicks = 9;
+  const multiplier = (max / min) ** (1 / noOfTicks);
+  const ticks = [];
+  let start = min;
+  for (let i = 1; i <= noOfTicks; i++) {
+    ticks.push(max < 10 ? start : Math.round(start));
+    start *= multiplier;
+  }
+  return ticks.slice(1);
 };
 
 const getXScale = (range: number[], dates: Date[]) => {
@@ -171,6 +165,8 @@ const plotChart = (
   const bandWidth = Math.max(Math.ceil(xScale.bandwidth()), 2);
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
   const tickLength = Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) / 3);
+  const barWidth = Math.max(2, Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) - 5));
+  const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
   const lineWidth = Math.min(plotDms.pixelRatio, 2);
   const colors = getChartColors();
   const isDaily = series.some((d) => d.isDaily);
@@ -259,6 +255,7 @@ const plotChart = (
 
   series.forEach((d) => {
     const x = Math.floor(xScale(d.date) ?? 0) + correction;
+    const barX = Math.floor(xScale(d.date) ?? 0);
     const low = yScale(d.low);
     const high = yScale(d.high);
     const close = Math.round(yScale(d.close));
@@ -291,10 +288,10 @@ const plotChart = (
     } else {
       context.strokeStyle = isGainer ? colors.gainerVolume : isLoser ? colors.loserVolume : colors.normalVolume;
     }
-    context.lineWidth = bandWidth * 2;
+    context.lineWidth = barWidth; // bandWidth * 2;
     context.beginPath();
-    context.moveTo(x - correction, plotDms.bitmapHeight);
-    context.lineTo(x - correction, plotDms.bitmapHeight - volumeBarHeight);
+    context.moveTo(barX - barCorrection, plotDms.bitmapHeight);
+    context.lineTo(barX - barCorrection, plotDms.bitmapHeight - volumeBarHeight);
     context.stroke();
 
     // draw small circle for rs new high
@@ -331,25 +328,26 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
   context.restore();
 };
 
-// TODO: implement new logic to find proper steps
 const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform: d3.ZoomTransform) => {
-  const tickValues = xScale.domain();
-  const step = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
+  const tickValues = dateTicks(xScale.domain());
   const canvasWidth = context.canvas.width;
   const pixelRatio = window.devicePixelRatio || 1;
   const fontSize = 12 * pixelRatio;
   const y = 15 * pixelRatio;
-  let willDraw = true;
+  const offScreen = 10 * pixelRatio;
+  const minDistance = 30 * pixelRatio;
+  const diffX = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
+  const step = Math.ceil(minDistance / diffX);
+  const firstJanIndex = tickValues.findIndex((d) => d.getMonth() === 0);
+  const startIndex = Math.min(...d3.range(firstJanIndex, -1, -step));
+  const displayIndex = d3.range(startIndex, tickValues.length, step);
   tickValues.forEach((d, i) => {
     const x = Math.round((xScale(d) ?? 0) + transform.x);
-    if (i % 21 === 0 && x > 10 && x < canvasWidth - 10 && willDraw) {
+    if (displayIndex.includes(i) && x > offScreen && x < canvasWidth - offScreen) {
       context.font = `${fontSize}px Outfit`;
       context.textBaseline = 'middle';
       context.textAlign = 'center';
       context.fillText(dateFormat(d), x, y);
-    }
-    if (step < Math.ceil(pixelRatio)) {
-      willDraw = !willDraw;
     }
   });
   context.restore();
@@ -640,7 +638,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
             yScaleRef.current,
             currentTransform
           );
-        }, 800);
+        }, 500);
       }}
       onTouchMoveCapture={(e) => {
         if (e.touches.length > 1) return;
@@ -652,6 +650,8 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
             yScaleRef.current,
             currentTransform
           );
+        } else {
+          clearTimeout(timer.current ?? undefined);
         }
       }}
       onTouchEndCapture={() => {

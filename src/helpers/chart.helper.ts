@@ -8,7 +8,7 @@ import {
   SeriePoint,
   StockDataPoint
 } from '@/types/stock-chart';
-import { findMax } from '@/utils/common.utils';
+import { findMax, getCssVar } from '@/utils/common.utils';
 
 export const prepareSeries = (
   historicalData: HistoricalData | null,
@@ -531,4 +531,19 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
     });
   }
   return series;
+};
+
+export const getChartColors = () => {
+  return {
+    up: getCssVar('--chakra-colors-black'),
+    down: getCssVar('--chakra-colors-red-400'),
+    ema21: getCssVar('--chakra-colors-gray-300'),
+    ema50: getCssVar('--chakra-colors-gray-400'),
+    ema200: getCssVar('--chakra-colors-gray-600'),
+    rs: getCssVar('--chakra-colors-blue-600'),
+    label: getCssVar('--chakra-colors-black'),
+    crosshair: getCssVar('--chakra-colors-gray-400'),
+    overlayText: getCssVar('--chakra-colors-white'),
+    overlayBg: getCssVar('--chakra-colors-gray-700')
+  };
 };

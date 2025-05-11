@@ -1,14 +1,17 @@
 import * as d3 from 'd3';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
+import { getChartColors } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
+import { Stock } from '@/types/stock';
 import { StockDataPoint } from '@/types/stock-chart';
-import { getCssVar, touchDevice } from '@/utils/common.utils';
+import { touchDevice } from '@/utils/common.utils';
 import { StockQuote } from './stock-quote';
 
 interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
   ticker: string;
+  stock: Stock;
   series: StockDataPoint[];
 }
 
@@ -192,16 +195,8 @@ const plotChart = (
   const bandWidth = Math.max(Math.ceil(xScale.bandwidth()), 2);
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
   const tickLength = Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) / 3);
-
-  // colors
-  const colorUp = getCssVar('--colors-up');
-  const colorDown = getCssVar('--colors-down');
-  const colorEma21 = getCssVar('--chakra-colors-gray-300');
-  const colorEma50 = getCssVar('--chakra-colors-gray-400');
-  const colorEma200 = getCssVar('--chakra-colors-black');
-  const colorRs = getCssVar('--chakra-colors-blue-300');
-
   const lineWidth = Math.min(plotDms.pixelRatio, 2);
+  const colors = getChartColors();
 
   // draw ema 21
   const ema21Line = d3
@@ -213,7 +208,7 @@ const plotChart = (
   context.beginPath();
   ema21Line(series.filter((d) => !!d.ema21));
   context.lineWidth = lineWidth;
-  context.strokeStyle = colorEma21;
+  context.strokeStyle = colors.ema21;
   context.stroke();
 
   // draw ema 50
@@ -226,7 +221,7 @@ const plotChart = (
   context.beginPath();
   ema50Line(series.filter((d) => !!d.ema50));
   context.lineWidth = lineWidth;
-  context.strokeStyle = colorEma50;
+  context.strokeStyle = colors.ema50;
   context.stroke();
 
   // draw ema 200
@@ -239,7 +234,7 @@ const plotChart = (
   context.beginPath();
   ema200Line(series.filter((d) => !!d.ema200));
   context.lineWidth = lineWidth;
-  context.strokeStyle = colorEma200;
+  context.strokeStyle = colors.ema200;
   context.stroke();
 
   // draw rs line + rs rating
@@ -253,20 +248,20 @@ const plotChart = (
     context.beginPath();
     rsLine(series);
     context.lineWidth = lineWidth;
-    context.strokeStyle = colorRs;
+    context.strokeStyle = colors.rs;
     context.stroke();
 
-    // const xCorrection = 30 * window.devicePixelRatio;
+    // const xCorrection = 40 * window.devicePixelRatio;
     // const lastPoint = series.slice(-1)[0];
     // const lastX = (xScale(lastPoint.date) ?? 0) - xCorrection;
     // const lastY = rsScale(lastPoint.rs) + plotDms.bitmapHeight * 0.5;
     // // console.log('lastPoint', lastPoint);
     // const pixelRatio = window.devicePixelRatio || 1;
-    // const fontSize = 12 * pixelRatio;
-    // context.font = `${fontSize}px Outfit`;
+    // context.font = `${10 * pixelRatio}px Outfit`;
     // context.textBaseline = 'middle';
-    // context.fillText('RS 99', lastX, lastY);
-    // loop data & draw on canvas
+    // context.fillText(`RS Rating`, lastX, lastY);
+    // context.font = `${12 * pixelRatio}px Outfit`;
+    // context.fillText(`${rsRating}`, lastX, lastY + 15 * pixelRatio);
   }
 
   series.forEach((d) => {
@@ -277,7 +272,7 @@ const plotChart = (
     const open = Math.round(yScale(d.open));
 
     // draw price bar
-    context.strokeStyle = d.close > d.open ? colorUp : colorDown;
+    context.strokeStyle = d.change > 0 ? colors.up : colors.down;
     context.lineWidth = bandWidth;
     context.beginPath();
     context.moveTo(x, Math.round(low + bandWidth / 2));
@@ -407,7 +402,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
 
       // draw vertical line
       context.beginPath();
-      context.strokeStyle = getCssVar('--chakra-colors-gray-400');
+      context.strokeStyle = getChartColors().crosshair;
       context.lineWidth = lineWidth;
       context.setLineDash([8, 4]);
       context.moveTo(adjustX - correction, 0);
@@ -445,6 +440,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     context.font = `${fontSize}px Outfit`;
     const text = `${dateTooltipFormat(date)}`;
     const textWidth = Math.floor(context.measureText(text).width + pixelRatio * 10);
+    const colors = getChartColors();
 
     const transformX = context.getTransform().e;
     const boundLeft = -transformX;
@@ -457,11 +453,11 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
         : x + textWidth / 2 > boundRight
           ? boundRight - textWidth
           : x - textWidth / 2;
-    context.fillStyle = getCssVar('--chakra-colors-gray-700');
+    context.fillStyle = colors.overlayBg;
     context.fillRect(Math.floor(xRect), 0, textWidth, context.canvas.height);
 
     // fill date text
-    context.fillStyle = getCssVar('--chakra-colors-white');
+    context.fillStyle = colors.overlayText;
     context.textBaseline = 'middle';
     context.textAlign = 'center';
     context.fillText(text, xRect + textWidth / 2, y);
@@ -474,12 +470,13 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
     const x = 10 * pixelRatio;
     const text = `${priceTooltipFormat(price)}`;
     const rectHeight = Math.floor(pixelRatio * 28);
+    const colors = getChartColors();
 
     // draw wrapper rect
-    context.fillStyle = getCssVar('--chakra-colors-gray-700');
+    context.fillStyle = colors.overlayBg;
     context.fillRect(0, Math.floor(y - rectHeight / 2), context.canvas.width, rectHeight);
     context.font = `${fontSize}px Outfit`;
-    context.fillStyle = getCssVar('--chakra-colors-white');
+    context.fillStyle = colors.overlayText;
     context.textBaseline = 'middle';
     context.fillText(text, x, y);
     context.restore();

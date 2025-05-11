@@ -25,7 +25,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const isNormal = status === 'normal';
   const isError = status === 'error';
 
-  const stockInfo = useMemo(() => {
+  const stock = useMemo(() => {
     return stockList.find((e) => e.ticker === nextTicker)!;
   }, [nextTicker, stockList]);
 
@@ -65,7 +65,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     <>
       <Flex height="full" direction="column">
         <Flex margin={2} marginBottom={1} gap={2}>
-          {isLoading ? <Text flexGrow={1}>Loading {ticker}...</Text> : <HeadLine stockInfo={stockInfo} />}
+          {isLoading ? <Text flexGrow={1}>Loading {ticker}...</Text> : <HeadLine stock={stock} />}
           <CloseButton size="2xs" variant="subtle" zIndex={1} loading={isLoading} onClick={() => setTicker('')} />
         </Flex>
         <MyStockChart
@@ -73,6 +73,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           className="stock-chart"
           data-loading={isLoading}
           ticker={nextTicker}
+          stock={stock}
           series={series}
         />
         {nextTicker.length > 0 && (
@@ -102,13 +103,13 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   );
 };
 
-const HeadLine = ({ stockInfo }: { stockInfo: Stock }) => {
-  if (!stockInfo) return null;
+const HeadLine = ({ stock }: { stock: Stock }) => {
+  if (!stock) return null;
   return (
-    <Heading flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stockInfo?.ticker}>
-      {stockInfo?.ticker} {' - '}
+    <Heading flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stock?.ticker}>
+      {stock?.ticker} {' - '}
       <Text as="span" fontSize="sm" fontWeight="500" color="gray.500">
-        {stockInfo?.companyName}
+        {stock?.companyName}
       </Text>
     </Heading>
   );

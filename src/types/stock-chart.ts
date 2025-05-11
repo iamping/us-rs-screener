@@ -23,6 +23,7 @@ export interface StockDataPoint {
   rs: number;
   change: number;
   changePercent: number;
+  volumeStatus: { isPocketPivot: boolean; isGainer: boolean; isLoser: boolean };
 }
 
 export interface ChartSeries {

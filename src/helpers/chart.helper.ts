@@ -493,7 +493,7 @@ export const calculateEMA = (values: number[], period: number) => {
   return emaArray;
 };
 
-export const calculateSMA = (values: number[], period: number) => {
+export const calculateSMA = (values: number[], period: number, fillNull = false) => {
   const smaArray: Array<number | null> = [];
   values.forEach((_, index) => {
     if (index < period - 1) {
@@ -503,6 +503,10 @@ export const calculateSMA = (values: number[], period: number) => {
       smaArray.push(sum / period);
     }
   });
+  if (fillNull) {
+    const firstNotNull = smaArray.find((e) => e) ?? 0;
+    return smaArray.map((e) => e ?? firstNotNull);
+  }
   return smaArray;
 };
 
@@ -512,8 +516,28 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
   const ema21 = calculateEMA(stockData.close, 21);
   const ema50 = calculateEMA(stockData.close, 50);
   const ema200 = calculateEMA(stockData.close, 200);
-  const volSma50 = calculateSMA(stockData.volume, 50);
+  const volSma50 = calculateSMA(stockData.volume, 50, true);
+  const pocketPivotPeriod = 10;
+  const volumeSlice: { volume: number; isLoser: boolean }[] = [];
   for (let i = 0; i < stockData.date.length; i++) {
+    const change = i === 0 ? 0 : stockData.close[i] - stockData.close[i - 1];
+    // find pocket pivot volume
+    const volumeStatus = { isPocketPivot: false, isGainer: false, isLoser: false };
+    const [vol, avgVol] = [stockData.volume[i], volSma50[i]!];
+    const isDataEnough = i >= pocketPivotPeriod;
+    if (isDataEnough) {
+      const volumeLosingDay = volumeSlice.filter((e) => e.isLoser).sort((a, b) => Number(b.volume) - Number(a.volume));
+      const maxVolumeOnLosingDay = volumeLosingDay[0]?.volume ?? 0;
+      const isGainer = change >= 0;
+      const isGreatVolume = vol > avgVol;
+      const isVolumeGreaterThanLosingDay = vol > maxVolumeOnLosingDay;
+      volumeStatus.isPocketPivot = isGreatVolume && isGainer && isVolumeGreaterThanLosingDay;
+      volumeStatus.isGainer = isGainer && isGreatVolume;
+      volumeStatus.isLoser = !isGainer && isGreatVolume;
+      volumeSlice.shift();
+    }
+    volumeSlice.push({ volume: vol, isLoser: change < 0 });
+
     series.push({
       close: stockData.close[i],
       high: stockData.high[i],
@@ -526,8 +550,9 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
       ema200: ema200[i],
       avgVol: volSma50[i],
       rs: stockData.close[i] / spyPriceData[i],
-      change: i === 0 ? 0 : stockData.close[i] - stockData.close[i - 1],
-      changePercent: i === 0 ? 0 : ((stockData.close[i] - stockData.close[i - 1]) / stockData.close[i - 1]) * 100
+      change: change,
+      changePercent: i === 0 ? 0 : (change / stockData.close[i - 1]) * 100,
+      volumeStatus
     });
   }
   return series;
@@ -540,10 +565,14 @@ export const getChartColors = () => {
     ema21: getCssVar('--chakra-colors-gray-300'),
     ema50: getCssVar('--chakra-colors-gray-400'),
     ema200: getCssVar('--chakra-colors-gray-600'),
-    rs: getCssVar('--chakra-colors-blue-600'),
+    rs: getCssVar('--chakra-colors-blue-500'),
     label: getCssVar('--chakra-colors-black'),
     crosshair: getCssVar('--chakra-colors-gray-400'),
     overlayText: getCssVar('--chakra-colors-white'),
-    overlayBg: getCssVar('--chakra-colors-gray-700')
+    overlayBg: getCssVar('--chakra-colors-gray-700'),
+    pocketPivotVolume: getCssVar('--chakra-colors-blue-500'),
+    gainerVolume: getCssVar('--chakra-colors-green-500'),
+    loserVolume: getCssVar('--chakra-colors-red-400'),
+    normalVolume: getCssVar('--chakra-colors-gray-200')
   };
 };

@@ -286,6 +286,14 @@ const plotChart = (
 
     // draw volume bar
     const volumeBarHeight = Math.floor(volumeScale(d.volume));
+    const { isPocketPivot, isGainer, isLoser } = d.volumeStatus;
+    context.strokeStyle = isPocketPivot
+      ? colors.pocketPivotVolume
+      : isGainer
+        ? colors.gainerVolume
+        : isLoser
+          ? colors.loserVolume
+          : colors.normalVolume;
     context.lineWidth = bandWidth * 2;
     context.beginPath();
     context.moveTo(x - correction, plotDms.bitmapHeight);

@@ -8,7 +8,7 @@ export interface Dimensions {
   pixelRatio: number;
 }
 
-export const useDimensions = <T>(): [RefObject<T>, Dimensions] => {
+export const useDimensions = <T>(): [RefObject<T | null>, Dimensions] => {
   const [dimensions, setDimensions] = useState<Dimensions>({
     width: 0,
     height: 0,

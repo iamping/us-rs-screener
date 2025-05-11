@@ -19,8 +19,10 @@ export interface ChartDimensions {
   plotWidth: number;
 }
 
-export const useChartDimensions = <T>(margins?: ChartMargins): [RefObject<T>, ChartDimensions] => {
-  const ref = useRef(null);
+export const useChartDimensions = <T extends HTMLElement>(
+  margins?: ChartMargins
+): [RefObject<T | null>, ChartDimensions] => {
+  const ref = useRef<T>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
 
@@ -36,7 +38,8 @@ export const useChartDimensions = <T>(margins?: ChartMargins): [RefObject<T>, Ch
     setHeight(Math.round(size.height));
   }, 0);
 
-  useResizeObserver({ ref, box: 'border-box', onResize });
+  const resizeRef = ref as RefObject<HTMLElement>;
+  useResizeObserver({ ref: resizeRef, box: 'border-box', onResize });
 
   const updatedDimensions: ChartDimensions = {
     ...plotMargins,

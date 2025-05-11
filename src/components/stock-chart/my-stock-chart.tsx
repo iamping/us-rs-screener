@@ -730,7 +730,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           top: chartDms.marginTop + chartDms.plotHeight,
           left: chartDms.marginLeft,
           width: chartDms.plotWidth,
-          height: chartDms.height - chartDms.plotHeight,
+          height: chartDms.height - chartDms.plotHeight - chartDms.marginTop,
           zIndex: 1
         }}
       />
@@ -742,7 +742,7 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
           top: chartDms.marginTop + chartDms.plotHeight,
           left: chartDms.marginLeft,
           width: chartDms.plotWidth,
-          height: chartDms.height - chartDms.plotHeight
+          height: chartDms.height - chartDms.plotHeight - chartDms.marginTop
         }}
       />
       <div

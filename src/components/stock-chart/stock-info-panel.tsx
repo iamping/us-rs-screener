@@ -6,6 +6,7 @@ import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
 import { Stock } from '@/types/stock';
 import { StockDataPoint } from '@/types/stock-chart';
+import { formatDecimal } from '@/utils/common.utils';
 import { MyStockChart } from './my-stock-chart';
 
 interface StockInfoPanelProps {
@@ -77,26 +78,71 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           series={series}
         />
         {nextTicker.length > 0 && (
-          <Group padding={2} borderTopWidth={1}>
-            <Button
-              size="2xs"
-              width="24px"
-              // borderRadius="none"
-              variant={interval === 'D' ? 'solid' : 'subtle'}
-              disabled={isLoading}
-              onClick={() => setInterval('D')}>
-              D
-            </Button>
-            <Button
-              size="2xs"
-              width="24px"
-              // borderRadius="none"
-              variant={interval === 'W' ? 'solid' : 'subtle'}
-              disabled={isLoading}
-              onClick={() => setInterval('W')}>
-              W
-            </Button>
-          </Group>
+          <>
+            <Flex borderTopWidth={1}>
+              <Group padding={2}>
+                <Button
+                  size="2xs"
+                  width="24px"
+                  // borderRadius="none"
+                  variant={interval === 'D' ? 'solid' : 'subtle'}
+                  disabled={isLoading}
+                  onClick={() => setInterval('D')}>
+                  D
+                </Button>
+                <Button
+                  size="2xs"
+                  width="24px"
+                  // borderRadius="none"
+                  variant={interval === 'W' ? 'solid' : 'subtle'}
+                  disabled={isLoading}
+                  onClick={() => setInterval('W')}>
+                  W
+                </Button>
+              </Group>
+              <Text
+                lineHeight="40px"
+                paddingX={2}
+                borderLeftWidth={1}
+                fontSize="xs"
+                opacity={isLoading ? 0.2 : undefined}>
+                <Text as="span" fontWeight="500">
+                  M.Cap
+                </Text>
+                <Text as="span" color={'gray.500'}>
+                  {formatDecimal(stock.marketCap / 1000000000)}B
+                </Text>
+              </Text>
+              <Text
+                lineHeight="40px"
+                paddingX={2}
+                borderLeftWidth={1}
+                fontSize="xs"
+                opacity={isLoading ? 0.2 : undefined}>
+                <Text as="span" fontWeight="500">
+                  RS
+                </Text>
+                <Text as="span" color={'gray.500'}>
+                  {stock.rsRating}
+                </Text>
+              </Text>
+              <Text
+                lineHeight="40px"
+                paddingX={2}
+                borderLeftWidth={1}
+                fontSize="xs"
+                opacity={isLoading ? 0.2 : undefined}
+                truncate
+                flexGrow={1}>
+                <Text as="span" fontWeight="500">
+                  In{' '}
+                </Text>
+                <Text as="span" color={'gray.500'}>
+                  {stock.industry}
+                </Text>
+              </Text>
+            </Flex>
+          </>
         )}
       </Flex>
     </>

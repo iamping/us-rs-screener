@@ -1,7 +1,7 @@
 import { Button, CloseButton, Flex, Group, Heading, Link, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { computeDataSeries } from '@/helpers/chart.helper';
+import { computeDataSeries, convertDailyToWeekly } from '@/helpers/chart.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
 import { Stock } from '@/types/stock';
@@ -14,10 +14,11 @@ interface StockInfoPanelProps {
 }
 
 export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
-  const [series, setSeries] = useState<StockDataPoint[]>([]);
+  const [dailySeries, setDailySeries] = useState<StockDataPoint[]>([]);
+  const [weeklySeries, setWeeklySeries] = useState<StockDataPoint[]>([]);
   const [nextTicker, setNewTicker] = useState('');
   const [status, setStatus] = useState<'loading' | 'normal' | 'error'>('normal');
-  const [interval, setInterval] = useState<'D' | 'W'>('D');
+  const [interval, setInterval] = useState<'D' | 'W' | 'NW'>('D');
   const [retry, setRetry] = useState(0);
   const stockList = useAtomValue(stockListAtom);
   const setTicker = useSetAtom(tickerAtom);
@@ -25,6 +26,8 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const isLoading = status === 'loading';
   const isNormal = status === 'normal';
   const isError = status === 'error';
+  const isDaily = interval === 'D' || interval === 'NW';
+  const intervalDisabled = interval === 'NW';
 
   const stock = useMemo(() => {
     return stockList.find((e) => e.ticker === nextTicker)!;
@@ -34,19 +37,26 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     setStatus('loading');
     Promise.all([fetchHistoricalData(ticker), fetchHistoricalData('SPY')])
       .then((data) => {
-        setSeries(computeDataSeries(data[0], data[1]));
+        const dataLength = data[0].close.length;
+        setDailySeries(computeDataSeries(data[0], data[1], true));
+        if (dataLength > 50) {
+          setWeeklySeries(computeDataSeries(convertDailyToWeekly(data[0]), convertDailyToWeekly(data[1]), false));
+          setInterval((val) => (val === 'NW' ? 'D' : val));
+        } else {
+          setWeeklySeries([]);
+          setInterval('NW');
+        }
         setNewTicker(ticker);
         setStatus('normal');
       })
       .catch(() => {
-        setSeries([]);
+        setDailySeries([]);
+        setWeeklySeries([]);
         setStatus('error');
       });
   }, [ticker, retry]);
 
-  // console.log('render stockInfoPanel');
-
-  if (isError || (isNormal && series.length === 0)) {
+  if (isError || (isNormal && dailySeries.length === 0)) {
     const msg = isError ? 'Something went wrong.' : 'No data.';
     return (
       <Flex margin={2} gap={2}>
@@ -75,7 +85,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           data-loading={isLoading}
           ticker={nextTicker}
           stock={stock}
-          series={series}
+          series={interval === 'W' ? weeklySeries : dailySeries}
         />
         {nextTicker.length > 0 && (
           <>
@@ -85,8 +95,8 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                   size="2xs"
                   width="24px"
                   // borderRadius="none"
-                  variant={interval === 'D' ? 'solid' : 'subtle'}
-                  disabled={isLoading}
+                  variant={isDaily ? 'solid' : 'subtle'}
+                  disabled={isLoading || intervalDisabled}
                   onClick={() => setInterval('D')}>
                   D
                 </Button>
@@ -95,7 +105,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                   width="24px"
                   // borderRadius="none"
                   variant={interval === 'W' ? 'solid' : 'subtle'}
-                  disabled={isLoading}
+                  disabled={isLoading || intervalDisabled}
                   onClick={() => setInterval('W')}>
                   W
                 </Button>

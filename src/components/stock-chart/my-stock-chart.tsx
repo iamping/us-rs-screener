@@ -27,12 +27,6 @@ interface ChartScales {
   rsScale: RsScale;
 }
 
-// interface ElementRefs {
-//   canvasRef: HTMLCanvasElement;
-//   xRef: SVGGElement;
-//   yRef: SVGGElement;
-// }
-
 // constant
 const domainMultiplier = 0.01;
 const lowerDomainMultiplier = 0.1;
@@ -86,24 +80,6 @@ const logTicks = (start: number, stop: number) => {
     )
   ];
 };
-
-// Custom Band Scale for canvas
-// const bandScale = (range: number[], domain: Date[]) => {
-//   const min = range[0];
-//   const max = range[1];
-//   const length = domain.length;
-//   const step = Math.max(Math.ceil((max - min) / length), 3);
-//   const offset = Math.max(step * (length - 1) - max, 0);
-//   const fnc = (d: Date) => {
-//     const index = domain.findIndex((date) => date.getTime() === d.getTime());
-//     return index >= 0 ? min + step * index - offset - step : 0; // return x
-//   };
-//   fnc.invert = (x: number) => {
-//     const index = (x + offset + step - min) / step;
-//     return index >= 0 && index < length ? domain[index] : new Date(0); // return Date
-//   };
-//   return fnc;
-// };
 
 const getXScale = (range: number[], dates: Date[]) => {
   return d3.scaleBand<Date>().range(range).domain(dates).padding(0.8);
@@ -197,45 +173,74 @@ const plotChart = (
   const tickLength = Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) / 3);
   const lineWidth = Math.min(plotDms.pixelRatio, 2);
   const colors = getChartColors();
+  const isDaily = series.some((d) => d.isDaily);
 
   // draw ema 21
-  const ema21Line = d3
-    .line<StockDataPoint>(
-      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-      (d) => yScale(d.ema21 ?? 0)
-    )
-    .context(context);
-  context.beginPath();
-  ema21Line(series.filter((d) => !!d.ema21));
-  context.lineWidth = lineWidth;
-  context.strokeStyle = colors.ema21;
-  context.stroke();
+  if (isDaily) {
+    const ema21Line = d3
+      .line<StockDataPoint>(
+        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (d) => yScale(d.ema21 ?? 0)
+      )
+      .context(context);
+    context.beginPath();
+    ema21Line(series.filter((d) => !!d.ema21));
+    context.lineWidth = lineWidth;
+    context.strokeStyle = colors.ema21;
+    context.stroke();
 
-  // draw ema 50
-  const ema50Line = d3
-    .line<StockDataPoint>(
-      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-      (d) => yScale(d.ema50 ?? 0)
-    )
-    .context(context);
-  context.beginPath();
-  ema50Line(series.filter((d) => !!d.ema50));
-  context.lineWidth = lineWidth;
-  context.strokeStyle = colors.ema50;
-  context.stroke();
+    // draw ema 50
+    const ema50Line = d3
+      .line<StockDataPoint>(
+        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (d) => yScale(d.ema50 ?? 0)
+      )
+      .context(context);
+    context.beginPath();
+    ema50Line(series.filter((d) => !!d.ema50));
+    context.lineWidth = lineWidth;
+    context.strokeStyle = colors.ema50;
+    context.stroke();
 
-  // draw ema 200
-  const ema200Line = d3
-    .line<StockDataPoint>(
-      (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-      (d) => yScale(d.ema200 ?? 0)
-    )
-    .context(context);
-  context.beginPath();
-  ema200Line(series.filter((d) => !!d.ema200));
-  context.lineWidth = lineWidth;
-  context.strokeStyle = colors.ema200;
-  context.stroke();
+    // draw ema 200
+    const ema200Line = d3
+      .line<StockDataPoint>(
+        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (d) => yScale(d.ema200 ?? 0)
+      )
+      .context(context);
+    context.beginPath();
+    ema200Line(series.filter((d) => !!d.ema200));
+    context.lineWidth = lineWidth;
+    context.strokeStyle = colors.ema200;
+    context.stroke();
+  } else {
+    // 10 week
+    const ema10Line = d3
+      .line<StockDataPoint>(
+        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (d) => yScale(d.ema10 ?? 0)
+      )
+      .context(context);
+    context.beginPath();
+    ema10Line(series.filter((d) => !!d.ema10));
+    context.lineWidth = lineWidth;
+    context.strokeStyle = colors.ema50;
+    context.stroke();
+
+    // 40 week
+    const ema40Line = d3
+      .line<StockDataPoint>(
+        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (d) => yScale(d.ema40 ?? 0)
+      )
+      .context(context);
+    context.beginPath();
+    ema40Line(series.filter((d) => !!d.ema40));
+    context.lineWidth = lineWidth;
+    context.strokeStyle = colors.ema200;
+    context.stroke();
+  }
 
   // draw rs line + rs rating
   if (showRs) {
@@ -250,18 +255,6 @@ const plotChart = (
     context.lineWidth = lineWidth;
     context.strokeStyle = colors.rs;
     context.stroke();
-
-    // const xCorrection = 40 * window.devicePixelRatio;
-    // const lastPoint = series.slice(-1)[0];
-    // const lastX = (xScale(lastPoint.date) ?? 0) - xCorrection;
-    // const lastY = rsScale(lastPoint.rs) + plotDms.bitmapHeight * 0.5;
-    // // console.log('lastPoint', lastPoint);
-    // const pixelRatio = window.devicePixelRatio || 1;
-    // context.font = `${10 * pixelRatio}px Outfit`;
-    // context.textBaseline = 'middle';
-    // context.fillText(`RS Rating`, lastX, lastY);
-    // context.font = `${12 * pixelRatio}px Outfit`;
-    // context.fillText(`${rsRating}`, lastX, lastY + 15 * pixelRatio);
   }
 
   series.forEach((d) => {
@@ -287,13 +280,17 @@ const plotChart = (
     // draw volume bar
     const volumeBarHeight = Math.floor(volumeScale(d.volume));
     const { isPocketPivot, isGainer, isLoser } = d.volumeStatus;
-    context.strokeStyle = isPocketPivot
-      ? colors.pocketPivotVolume
-      : isGainer
-        ? colors.gainerVolume
-        : isLoser
-          ? colors.loserVolume
-          : colors.normalVolume;
+    if (isDaily) {
+      context.strokeStyle = isPocketPivot
+        ? colors.pocketPivotVolume
+        : isGainer
+          ? colors.gainerVolume
+          : isLoser
+            ? colors.loserVolume
+            : colors.normalVolume;
+    } else {
+      context.strokeStyle = isGainer ? colors.gainerVolume : isLoser ? colors.loserVolume : colors.normalVolume;
+    }
     context.lineWidth = bandWidth * 2;
     context.beginPath();
     context.moveTo(x - correction, plotDms.bitmapHeight);
@@ -302,7 +299,7 @@ const plotChart = (
 
     // draw small circle for rs new high
     const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;
-    if (isNewHigh || isNewHighBeforePrice) {
+    if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
       const cx = (xScale(d.date) ?? 0) + bandWidth / 2;
       const cy = rsScale(d.rs) + plotDms.bitmapHeight * 0.5;
       const radius = devicePixelRatio * transform.k * 1.2;

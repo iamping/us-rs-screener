@@ -18,7 +18,7 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, series, ...rest }) => {
   if (series.length === 0) {
     return null;
   }
-  const d = index < 0 ? series.slice(-1)[0] : series[index];
+  const d = index < 0 || index > series.length - 1 ? series[series.length - 1] : series[index];
   const isDown = d.change < 0;
   const open = `${formatDecimal(d.open)}`;
   const high = `${formatDecimal(d.high)}`;

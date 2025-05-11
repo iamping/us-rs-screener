@@ -8,7 +8,7 @@ import {
   SeriePoint,
   StockDataPoint
 } from '@/types/stock-chart';
-import { findMax, getCssVar } from '@/utils/common.utils';
+import { findMax, getCssVar, getISOWeekAndYear } from '@/utils/common.utils';
 
 export const prepareSeries = (
   historicalData: HistoricalData | null,
@@ -510,13 +510,16 @@ export const calculateSMA = (values: number[], period: number, fillNull = false)
   return smaArray;
 };
 
-export const computeDataSeries = (stockData: HistoricalData, spyData: HistoricalData) => {
+export const computeDataSeries = (stockData: HistoricalData, spyData: HistoricalData, isDaily: boolean) => {
   const series: StockDataPoint[] = [];
   const spyPriceData = spyData.close.slice(-stockData.close.length);
   const len = stockData.date.length;
+  const ema10 = calculateEMA(stockData.close, 10);
   const ema21 = calculateEMA(stockData.close, 21);
+  const ema40 = calculateEMA(stockData.close, 40);
   const ema50 = calculateEMA(stockData.close, 50);
   const ema200 = calculateEMA(stockData.close, 200);
+  const volSma10 = calculateSMA(stockData.volume, 10, true);
   const volSma50 = calculateSMA(stockData.volume, 50, true);
   const rsLine = stockData.close.map((d, i) => d / spyPriceData[i]);
   const pocketPivotPeriod = 10;
@@ -529,7 +532,7 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
     // find pocket pivot volume
     // volumeData[i].isLoser = change >= 0;
     const volumeStatus = { isPocketPivot: false, isGainer: false, isLoser: false };
-    const [vol, avgVol] = [stockData.volume[i], volSma50[i]!];
+    const [vol, avgVol] = [stockData.volume[i], isDaily ? volSma50[i]! : volSma10[i]!];
     const isVolumeDataEnough = i >= pocketPivotPeriod;
     if (isVolumeDataEnough) {
       const volumeLosingDay = volumeSlice.filter((e) => e.isLoser).sort((a, b) => Number(b.volume) - Number(a.volume));
@@ -537,7 +540,7 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
       const isGainer = change >= 0;
       const isGreatVolume = vol > avgVol;
       const isVolumeGreaterThanLosingDay = vol > maxVolumeOnLosingDay;
-      volumeStatus.isPocketPivot = isGreatVolume && isGainer && isVolumeGreaterThanLosingDay;
+      volumeStatus.isPocketPivot = isDaily && isGreatVolume && isGainer && isVolumeGreaterThanLosingDay;
       volumeStatus.isGainer = isGainer && isGreatVolume;
       volumeStatus.isLoser = !isGainer && isGreatVolume;
       volumeSlice.shift();
@@ -547,7 +550,7 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
     // find rs new high
     const rsStatus = { isNewHigh: false, isNewHighBeforePrice: false };
     const isRsDataEnough = i >= newHighPeriod;
-    if (isRsDataEnough) {
+    if (isRsDataEnough && isDaily) {
       const rsSlide = rsLine.slice(i - newHighPeriod, i);
       const priceSlide = stockData.high.slice(i - newHighPeriod, i);
       const preMaxRs = findMax(rsSlide);
@@ -557,16 +560,18 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
     }
 
     series.push({
+      isDaily,
       close: stockData.close[i],
       high: stockData.high[i],
       low: stockData.low[i],
       open: stockData.open[i],
       volume: stockData.volume[i],
       date: new Date(stockData.date[i] * 1000),
+      ema10: ema10[i],
       ema21: ema21[i],
+      ema40: ema40[i],
       ema50: ema50[i],
       ema200: ema200[i],
-      avgVol: volSma50[i],
       rs: rsLine[i],
       change: change,
       changePercent: i === 0 ? 0 : (change / stockData.close[i - 1]) * 100,
@@ -574,8 +579,47 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
       rsStatus
     });
   }
-  console.log(series);
   return series;
+};
+
+export const convertDailyToWeekly = (data: HistoricalData) => {
+  const weekMap: Record<
+    string,
+    { date: number; high: number; low: number; open: number; close: number; noOfDays: number; volume: number }
+  > = {};
+  data.date.forEach((d, i) => {
+    const currentDate = new Date(d * 1000);
+    const { week, year } = getISOWeekAndYear(currentDate);
+    const key = `${year}-${week}`;
+    if (weekMap[key]) {
+      const weekData = weekMap[key];
+      weekData.high = Math.max(weekData.high, data.high[i]);
+      weekData.low = Math.min(weekData.low, data.low[i]);
+      weekData.close = data.close[i];
+      weekData.volume += data.volume[i];
+      weekData.noOfDays += 1;
+    } else {
+      weekMap[key] = {
+        date: data.date[i],
+        high: data.high[i],
+        low: data.low[i],
+        open: data.open[i],
+        close: data.close[i],
+        volume: data.volume[i],
+        noOfDays: 1
+      };
+    }
+  });
+  // skip first week data if less than 5 days of data
+  const values = Object.values(weekMap).filter((d, i) => (i === 0 && d.noOfDays === 5) || i > 0);
+  return {
+    date: values.flatMap((d) => d.date),
+    high: values.flatMap((d) => d.high),
+    low: values.flatMap((d) => d.low),
+    open: values.flatMap((d) => d.open),
+    close: values.flatMap((d) => d.close),
+    volume: values.flatMap((d) => d.volume)
+  } as HistoricalData;
 };
 
 export const getChartColors = () => {

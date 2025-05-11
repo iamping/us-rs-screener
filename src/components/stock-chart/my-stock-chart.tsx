@@ -299,6 +299,18 @@ const plotChart = (
     context.moveTo(x - correction, plotDms.bitmapHeight);
     context.lineTo(x - correction, plotDms.bitmapHeight - volumeBarHeight);
     context.stroke();
+
+    // draw small circle for rs new high
+    const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;
+    if (isNewHigh || isNewHighBeforePrice) {
+      const cx = (xScale(d.date) ?? 0) + bandWidth / 2;
+      const cy = rsScale(d.rs) + plotDms.bitmapHeight * 0.5;
+      const radius = devicePixelRatio * transform.k * 1.2;
+      context.beginPath();
+      context.fillStyle = isNewHighBeforePrice ? colors.rsNewHighBeforePrice : colors.rsNewHigh;
+      context.arc(cx, cy, radius, 0, 2 * Math.PI);
+      context.fill();
+    }
   });
   context.restore();
 };

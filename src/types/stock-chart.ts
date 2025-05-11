@@ -24,6 +24,7 @@ export interface StockDataPoint {
   change: number;
   changePercent: number;
   volumeStatus: { isPocketPivot: boolean; isGainer: boolean; isLoser: boolean };
+  rsStatus: { isNewHigh: boolean; isNewHighBeforePrice: boolean };
 }
 
 export interface ChartSeries {

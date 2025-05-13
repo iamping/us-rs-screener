@@ -26,3 +26,15 @@ export interface StockDataPoint {
   volumeStatus: { isPocketPivot: boolean; isGainer: boolean; isLoser: boolean };
   rsStatus: { isNewHigh: boolean; isNewHighBeforePrice: boolean };
 }
+
+export type XScale = d3.ScaleBand<Date>;
+export type YScale = d3.ScaleLogarithmic<number, number>;
+export type VolScale = d3.ScaleLinear<number, number>;
+export type RsScale = d3.ScaleLinear<number, number>;
+
+export interface ChartScales {
+  xScale: XScale;
+  yScale: YScale;
+  volumeScale: VolScale;
+  rsScale: RsScale;
+}

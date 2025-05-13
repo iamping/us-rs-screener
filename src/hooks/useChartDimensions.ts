@@ -17,6 +17,7 @@ export interface ChartDimensions {
   width: number;
   plotHeight: number;
   plotWidth: number;
+  diffWidth: number;
 }
 
 export const useChartDimensions = <T extends HTMLElement>(
@@ -25,6 +26,7 @@ export const useChartDimensions = <T extends HTMLElement>(
   const ref = useRef<T>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
+  const [diffWidth, setDiffWidth] = useState(0);
 
   const plotMargins = {
     marginTop: margins?.marginTop || 0,
@@ -34,8 +36,11 @@ export const useChartDimensions = <T extends HTMLElement>(
   };
 
   const onResize = useDebounceCallback((size) => {
-    setWidth(Math.round(size.width));
-    setHeight(Math.round(size.height));
+    if (Math.round(size.width) !== Math.round(width) || Math.round(size.height) !== Math.round(height)) {
+      setWidth(Math.round(size.width));
+      setHeight(Math.round(size.height));
+      setDiffWidth(Math.round(size.width) - Math.round(width));
+    }
   }, 0);
 
   const resizeRef = ref as RefObject<HTMLElement>;
@@ -45,6 +50,7 @@ export const useChartDimensions = <T extends HTMLElement>(
     ...plotMargins,
     height: height,
     width: width,
+    diffWidth: diffWidth,
     plotHeight: Math.max(height - plotMargins.marginTop - plotMargins.marginBottom, 0),
     plotWidth: Math.max(width - plotMargins.marginLeft - plotMargins.marginRight, 0)
   };

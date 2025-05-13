@@ -1,5 +1,45 @@
+import { format, utcFormat } from 'd3';
 import { HistoricalData, StockDataPoint } from '@/types/stock-chart';
 import { findMax, getCssVar, getISOWeekAndYear } from '@/utils/common.utils';
+
+export const getBitmapPixel = (pixel: number) => {
+  return Math.ceil(pixel * (devicePixelRatio || 1));
+};
+
+export const priceFormat = (max: number) => (value: d3.NumberValue) => {
+  const price = value as number;
+  return max > 1000 ? format('.2f')(price / 1000) + 'k' : format(',.2f')(price);
+};
+
+export const dateFormat = (date: Date) => {
+  const fnc = date.getMonth() === 0 ? utcFormat('%Y') : utcFormat('%b');
+  return fnc(date);
+};
+
+export const dateTicks = (dates: Date[]) => {
+  const dateSet: string[] = [];
+  return dates.filter((date) => {
+    const key = `${date.getMonth()},${date.getFullYear()}`;
+    if (dateSet.includes(key)) {
+      return false;
+    } else {
+      dateSet.push(key);
+      return true;
+    }
+  });
+};
+
+export const logTicks = (min: number, max: number) => {
+  const noOfTicks = 9;
+  const multiplier = (max / min) ** (1 / noOfTicks);
+  const ticks = [];
+  let start = min;
+  for (let i = 1; i <= noOfTicks; i++) {
+    ticks.push(max < 10 ? start : Math.round(start));
+    start *= multiplier;
+  }
+  return ticks.slice(1);
+};
 
 export const calculateEMA = (values: number[], period: number) => {
   const k = 2 / (period + 1);

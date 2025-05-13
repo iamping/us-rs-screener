@@ -7,7 +7,7 @@ import { stockListAtom, tickerAtom } from '@/states/atom';
 import { Stock } from '@/types/stock';
 import { StockDataPoint } from '@/types/stock-chart';
 import { formatDecimal } from '@/utils/common.utils';
-import { MyStockChart } from './my-stock-chart';
+import { StockChart } from './stock-chart';
 
 interface StockInfoPanelProps {
   ticker: string;
@@ -79,7 +79,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           {isLoading ? <Text flexGrow={1}>Loading {ticker}...</Text> : <HeadLine stock={stock} />}
           <CloseButton size="2xs" variant="subtle" zIndex={1} loading={isLoading} onClick={() => setTicker('')} />
         </Flex>
-        <MyStockChart
+        <StockChart
           id="stock-chart"
           className="stock-chart"
           data-loading={isLoading}

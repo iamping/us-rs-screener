@@ -23,6 +23,8 @@ interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
 type Dimensions = {
   plotWidth: number;
   plotHeight: number;
+  cssWidth: number;
+  cssHeight: number;
 };
 
 // constant
@@ -53,7 +55,9 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   const dms = useMemo(() => {
     return {
       plotWidth: bitmap(chartDms.plotWidth),
-      plotHeight: bitmap(chartDms.plotHeight)
+      plotHeight: bitmap(chartDms.plotHeight),
+      cssWidth: chartDms.plotWidth,
+      cssHeight: chartDms.plotHeight
     };
   }, [chartDms.plotHeight, chartDms.plotWidth]);
 
@@ -98,12 +102,12 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     const eventHandler = d3.select(eventHandlerRef.current as HTMLDivElement);
     const extent = [
       [0, 0],
-      [dms.plotWidth / 2, 0]
+      [dms.cssWidth, 0] // use view port width here
     ] as [[number, number], [number, number]];
     if (series.length > 0) {
       const zoom = d3
         .zoom<HTMLDivElement, unknown>()
-        .scaleExtent([1, 20])
+        .scaleExtent([1, 10])
         .translateExtent(extent)
         .extent(extent)
         .on('start', () => {
@@ -137,7 +141,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   const chartScales = useMemo(() => {
     const transform = transformRef.current ? transformRef.current : d3.zoomIdentity;
     const xScale = getXScale(
-      [0, dms.plotWidth].map((d) => transform.applyX(d)),
+      [0, dms.plotWidth * transform.k],
       series.map((d) => d.date)
     );
     const { visibleDomain } = getVisibleDomain(xScale, series, transform, dms.plotWidth);
@@ -170,8 +174,6 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         return;
     }
   };
-
-  // console.log('render');
 
   return (
     <div ref={chartRef} {...props}>
@@ -250,9 +252,9 @@ const getVisibleDomain = (xScale: XScale, series: StockDataPoint[], transform: d
   // find min & max visible price
   series.forEach((d, i) => {
     const x = xScale(d.date) ?? 0;
-    const boundStart = x + transform.x + 10;
-    const boundEnd = x + transform.x - 10;
-    if (boundStart > 0 && boundEnd <= plotWidth) {
+    const boundStart = -bitmap(transform.x);
+    const boundEnd = plotWidth - bitmap(transform.x);
+    if (x > boundStart && x <= boundEnd) {
       if (visibleIndex.length === 0) visibleIndex[0] = i;
       if (visibleIndex.length > 0) visibleIndex[1] = i;
       if (visibleDomain.length) {
@@ -280,15 +282,14 @@ const plotChart = (
   showRs = true
 ) => {
   // translate canvas on zoom event
-  context.translate(Math.floor(transform.x), 0);
-  const pixelRatio = devicePixelRatio || 1;
+  context.translate(bitmap(transform.x), 0);
   const { xScale, yScale, volumeScale, rsScale } = scales;
   const bandWidth = Math.max(Math.ceil(xScale.bandwidth()), 2);
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
   const tickLength = Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) / 3);
   const barWidth = Math.max(2, Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) - 5));
   const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
-  const lineWidth = Math.min(pixelRatio, 2);
+  const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors();
   const isDaily = series.some((d) => d.isDaily);
 
@@ -414,7 +415,6 @@ const plotChart = (
     context.beginPath();
     context.moveTo(barX - barCorrection, dms.plotHeight);
     context.lineTo(barX - barCorrection, dms.plotHeight - volumeBarHeight);
-    // console.log(dms.plotHeight, volumeBarHeight);
     context.stroke();
 
     // draw small circle for rs new high
@@ -432,21 +432,26 @@ const plotChart = (
 };
 
 const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform: d3.ZoomTransform) => {
+  context.translate(bitmap(transform.x), 0);
   const tickValues = dateTicks(xScale.domain());
   const canvasWidth = context.canvas.width;
-  const pixelRatio = window.devicePixelRatio || 1;
-  const fontSize = 12 * pixelRatio;
-  const y = 15 * pixelRatio;
-  const offScreen = 10 * pixelRatio;
-  const minDistance = 30 * pixelRatio;
+  const fontSize = bitmap(12);
+  const y = bitmap(15);
+  const minDistance = bitmap(30);
   const diffX = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
   const step = Math.ceil(minDistance / diffX);
   const firstJanIndex = tickValues.findIndex((d) => d.getMonth() === 0);
   const startIndex = Math.min(...d3.range(firstJanIndex, -1, -step));
   const displayIndex = d3.range(startIndex, tickValues.length, step);
+
+  // hide label if out of bound
+  const boundStart = -bitmap(transform.x);
+  const boundEnd = canvasWidth - bitmap(transform.x); // canvasWidth = dms.plotWidth :)
+  const offset = bitmap(10);
+
   tickValues.forEach((d, i) => {
-    const x = Math.round((xScale(d) ?? 0) + transform.x);
-    if (displayIndex.includes(i) && x > offScreen && x < canvasWidth - offScreen) {
+    const x = Math.round(xScale(d) ?? 0);
+    if (displayIndex.includes(i) && x > boundStart + offset && x < boundEnd - offset) {
       context.font = `${fontSize}px Outfit`;
       context.textBaseline = 'middle';
       context.textAlign = 'center';
@@ -461,9 +466,8 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
   const priceFormatFnc = priceFormat(max);
   const tickValues = logTicks(min * 0.9, max);
   const canvasHeight = context.canvas.height;
-  const pixelRatio = window.devicePixelRatio || 1;
-  const fontSize = 12 * pixelRatio;
-  const x = 10 * pixelRatio;
+  const fontSize = bitmap(12);
+  const x = bitmap(10);
   tickValues.forEach((d) => {
     const y = Math.round(yScale(d));
     if (y > 10 && y < canvasHeight) {

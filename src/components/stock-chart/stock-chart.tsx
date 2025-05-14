@@ -450,7 +450,7 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
   const y = bitmap(15);
   const minDistance = bitmap(30);
   const diffX = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
-  const step = Math.ceil(minDistance / diffX); // step should be 1,2,3,4 to always correctly get January
+  const step = Math.min(Math.ceil(minDistance / diffX), 4); // step should be 1,2,3,4 to always correctly get January
   const firstJanIndex = tickValues.findIndex((d) => d.getMonth() === 0);
   const startIndex = Math.min(...d3.range(firstJanIndex, -1, -step));
   const displayIndex = d3.range(startIndex, tickValues.length, step);
@@ -474,7 +474,7 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
 const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
   const [min, max] = yScale.domain();
   const priceFormatFnc = priceFormat(max);
-  const tickValues = logTicks(min * 0.9, max);
+  const tickValues = logTicks(min * 0.95, max);
   const canvasHeight = context.canvas.height;
   const fontSize = getLabelFont(12);
   const x = bitmap(10);

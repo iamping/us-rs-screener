@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { useDebounceValue } from 'usehooks-ts';
 import {
   dateFormat,
   dateOverlayFormat,
@@ -44,7 +45,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
 
   // state
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
-  const [currentDataPoint, setCurrentDataPoint] = useState<DataPoint | null>(null);
+  const [currentDataPoint, setCurrentDataPoint] = useDebounceValue<DataPoint | null>(null, 0);
   const [, setRedrawCount] = useState(0);
 
   const dms: CanvasDimensions = useMemo(() => {

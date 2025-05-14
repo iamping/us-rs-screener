@@ -25,7 +25,7 @@ const domainMultiplier = 0.04;
 const lowerDomainMultiplier = 0.1;
 const barArea = 0.8;
 const volumeArea = 0.2;
-const rsArea = 0.4;
+const rsArea = 0.3;
 
 export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   const [chartRef, chartDms] = useChartDimensions<HTMLDivElement>({
@@ -68,6 +68,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       // console.log('new =>', bitmap(chartDms.plotWidth * oldTrs.k) - bitmap(chartDms.plotWidth), oldTrs.x);
       //   console.log('old =>', oldTransform);
       //   return newTransform;
+      // transformRef.current = d3.zoomIdentity;
     }
   }, [chartDms.plotWidth, chartDms.diffWidth]);
 
@@ -137,17 +138,17 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       [0, dms.bitmapWidth * transform.k],
       series.map((d) => d.date)
     );
-    const { visibleDomain } = getVisibleDomain(xScale, series, transform, dms.bitmapWidth);
-    const [minLow, maxHigh] = visibleDomain;
-    // visibleIndexRef.current = visibleIndex;
-    const yScale = getYScale([dms.bitmapHeight * barArea, 0], [minLow, maxHigh]);
+    const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, transform, dms.bitmapWidth);
+    const yScale = getYScale([dms.bitmapHeight * barArea, 0], visibleDomain);
+    const firstVisibleIdx = Math.max(visibleIndex[0] - 2, 0);
+    const lastVisibleIdx = visibleIndex[1] + 2;
     const volumeScale = getLinearScale(
       [0, dms.bitmapHeight * volumeArea],
-      [0, d3.max(series.map((d) => d.volume)) ?? 0]
+      [0, d3.max(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.volume)) ?? 0]
     );
     const rsScale = getLinearScale(
       [dms.bitmapHeight * rsArea, 0],
-      d3.extent(series.map((d) => d.rs)) as [number, number]
+      d3.extent(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.rs)) as [number, number]
     );
     return { xScale, yScale, volumeScale, rsScale };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -372,11 +373,12 @@ const plotChart = (
   }
 
   // draw rs line + rs rating
+  const rsOffsetY = dms.bitmapHeight * 0.6;
   if (showRs) {
     const rsLine = d3
       .line<StockDataPoint>(
         (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-        (d) => rsScale(d.rs) + dms.bitmapHeight * 0.5
+        (d) => rsScale(d.rs) + rsOffsetY
       )
       .context(context);
     context.beginPath();
@@ -432,7 +434,7 @@ const plotChart = (
     const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;
     if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
       const cx = (xScale(d.date) ?? 0) + bandWidth / 2;
-      const cy = rsScale(d.rs) + dms.bitmapHeight * 0.5;
+      const cy = rsScale(d.rs) + rsOffsetY;
       const radius = devicePixelRatio * transform.k * 1.2;
       context.beginPath();
       context.fillStyle = isNewHighBeforePrice ? colors.rsNewHighBeforePrice : colors.rsNewHigh;

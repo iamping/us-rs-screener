@@ -45,3 +45,11 @@ export type CanvasDimensions = {
   cssWidth: number;
   cssHeight: number;
 };
+
+export type DataPoint = {
+  index: number;
+  x: number;
+  y: number;
+  price: number;
+  date: Date;
+};

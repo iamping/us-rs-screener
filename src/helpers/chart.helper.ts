@@ -1,5 +1,5 @@
-import { format, utcFormat } from 'd3';
-import { HistoricalData, StockDataPoint } from '@/types/stock-chart';
+import { bisectCenter, format, utcFormat } from 'd3';
+import { HistoricalData, StockDataPoint, XScale } from '@/types/stock-chart';
 import { findMax, getCssVar, getISOWeekAndYear } from '@/utils/common.utils';
 
 export const getBitmapPixel = (pixel: number) => {
@@ -11,10 +11,17 @@ export const priceFormat = (max: number) => (value: d3.NumberValue) => {
   return max > 1000 ? format('.2f')(price / 1000) + 'k' : format(',.2f')(price);
 };
 
+export const priceOverlayFormat = (value: d3.NumberValue) => {
+  const price = value as number;
+  return price > 1000 ? format(',.0f')(price) : format('.2f')(price);
+};
+
 export const dateFormat = (date: Date) => {
   const fnc = date.getMonth() === 0 ? utcFormat('%Y') : utcFormat('%b');
   return fnc(date);
 };
+
+export const dateOverlayFormat = utcFormat("%a %d %b '%y");
 
 export const dateTicks = (dates: Date[]) => {
   const dateSet: string[] = [];
@@ -39,6 +46,15 @@ export const logTicks = (min: number, max: number) => {
     start *= multiplier;
   }
   return ticks.slice(1);
+};
+
+export const getInvertXScale = (xScale: XScale) => {
+  const domain = xScale.domain();
+  const xList = domain.map((d) => xScale(d) ?? 0);
+  return (x: number) => {
+    const idx = bisectCenter(xList, x);
+    return [xList[idx], domain[idx], idx] as const;
+  };
 };
 
 export const calculateEMA = (values: number[], period: number) => {

@@ -2,15 +2,18 @@ import * as d3 from 'd3';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import {
   dateFormat,
+  dateOverlayFormat,
   dateTicks,
   getBitmapPixel as bitmap,
   getChartColors,
+  getInvertXScale,
   logTicks,
-  priceFormat
+  priceFormat,
+  priceOverlayFormat
 } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Stock } from '@/types/stock';
-import { CanvasDimensions, ChartScales, StockDataPoint, XScale, YScale } from '@/types/stock-chart';
+import { CanvasDimensions, ChartScales, DataPoint, StockDataPoint, XScale, YScale } from '@/types/stock-chart';
 import { Canvas } from './canvas';
 import { StockQuote } from './stock-quote';
 
@@ -40,6 +43,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   // const visibleIndexRef = useRef<number[]>(null);
   // const chartScalesRef = useRef<ChartScales>(null);
   const transformRef = useRef<d3.ZoomTransform>(null);
+  const currentPointer = useRef<[number, number]>(null);
+  const currentDataPoint = useRef<DataPoint>(null);
 
   // state
   // const [transform, setTransform] = useState<d3.ZoomTransform | null>(null);
@@ -53,44 +58,6 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       cssHeight: chartDms.plotHeight
     };
   }, [chartDms.plotHeight, chartDms.plotWidth]);
-
-  useEffect(() => {
-    // setTransform((oldTransform) => {
-    //   const newTransform = oldTransform ? oldTransform.translate(100, 0) : oldTransform;
-    //   console.log('old =>', oldTransform);
-    //   console.log('new =>', chartDms.plotWidth, chartDms.diffWidth, newTransform);
-    //   return newTransform;
-    // });con
-    if (transformRef.current) {
-      // const oldTrs = transformRef.current;
-      // console.log('width =>', chartDms.plotWidth, chartDms.diffWidth);
-      // transformRef.current = d3.zoomIdentity.translate(-bitmap(chartDms.plotWidth * oldTrs.k), 0).scale(oldTrs.k);
-      // console.log('new =>', bitmap(chartDms.plotWidth * oldTrs.k) - bitmap(chartDms.plotWidth), oldTrs.x);
-      //   console.log('old =>', oldTransform);
-      //   return newTransform;
-      // transformRef.current = d3.zoomIdentity;
-    }
-  }, [chartDms.plotWidth, chartDms.diffWidth]);
-
-  // useEffect(() => {
-  //   // update transform so that last bar won't move when resize
-  //   setTransform((oldTransform) => {
-  //     const plotWidth = bitmap(chartDms.plotWidth);
-  //     const xScale = getXScale(
-  //       [0, plotWidth].map((d) => oldTransform.applyX(d)),
-  //       series.map((d) => d.date)
-  //     );
-  //     const lastVisibleIndex = visibleIndexRef.current?.[1] ?? 0;
-  //     const x = xScale(series[lastVisibleIndex].date) ?? 0;
-  //     const transformX = -(x - plotWidth);
-
-  //     console.log('work ma => ', d3.zoomIdentity.translate(transformX, 0).scale(oldTransform.k));
-  //     // console.log(value, chartDms.plotWidth);
-  //     // console.log('size changed = > ', visibleIndexRef.current);
-  //     // const firstVisibleIndex = visibleIndexRef.current?.[0] ?? 0;
-  //     return d3.zoomIdentity.translate(transformX, 0).scale(oldTransform.k);
-  //   });
-  // }, [chartDms.plotWidth, series]);
 
   useEffect(() => {
     const eventHandler = d3.select(eventHandlerRef.current as HTMLDivElement);
@@ -108,10 +75,15 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           const eventHandler = eventHandlerRef.current as HTMLDivElement;
           eventHandler.style.cursor = 'grabbing';
         })
-        .on('zoom', ({ transform }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
+        .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
           // console.log(transform);
           // set transform for next redraw
           // setTransform(transform);
+          if (currentPointer.current) {
+            if (sourceEvent instanceof MouseEvent) {
+              currentPointer.current = d3.pointer(sourceEvent, eventHandlerRef.current);
+            }
+          }
           transformRef.current = transform;
           setRedrawCount((val) => val + 1);
         })
@@ -154,7 +126,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [series, dms, redrawCount]);
 
-  const draw = (context: CanvasRenderingContext2D, type: 'chart' | 'yAxis' | 'xAxis') => {
+  const draw = (
+    context: CanvasRenderingContext2D,
+    type: 'chart' | 'yAxis' | 'xAxis' | 'crosshair' | 'xAxisOverlay' | 'yAxisOverlay'
+  ) => {
     if (series.length === 0) return;
     const transform = transformRef.current ? transformRef.current : d3.zoomIdentity;
     switch (type) {
@@ -167,16 +142,37 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       case 'yAxis':
         drawYAxis(context, chartScales.yScale);
         break;
+      case 'crosshair':
+        drawCrosshair(
+          context,
+          currentPointer.current,
+          chartScales.xScale,
+          chartScales.yScale,
+          dms,
+          transform,
+          setCurrentDataPoint
+        );
+        break;
+      case 'xAxisOverlay':
+        drawXOverlay(context, transform, currentDataPoint.current);
+        break;
+      case 'yAxisOverlay':
+        drawYOverlay(context, currentDataPoint.current);
+        break;
       default:
         return;
     }
+  };
+
+  const setCurrentDataPoint = (dataPoint: DataPoint) => {
+    currentDataPoint.current = dataPoint;
   };
 
   return (
     <div ref={chartRef} {...props}>
       <StockQuote
         series={series}
-        index={-1} // TODO: update index later
+        index={currentDataPoint.current?.index ?? -1} // TODO: update index later
         gapX={1}
         paddingX={2}
         flexWrap="wrap"
@@ -195,6 +191,29 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         draw={(ctx) => draw(ctx, 'chart')}
       />
       <Canvas
+        id="crosshair"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop,
+          left: chartDms.marginLeft,
+          width: chartDms.plotWidth,
+          height: chartDms.plotHeight
+        }}
+        draw={(ctx) => draw(ctx, 'crosshair')}
+      />
+      <Canvas
+        id="xAxisOverlay"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop + chartDms.plotHeight,
+          left: chartDms.marginLeft,
+          width: chartDms.plotWidth,
+          height: chartDms.height - chartDms.plotHeight - chartDms.marginTop,
+          zIndex: 1
+        }}
+        draw={(ctx) => draw(ctx, 'xAxisOverlay')}
+      />
+      <Canvas
         id="xAxis"
         style={{
           position: 'absolute',
@@ -204,6 +223,18 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           height: chartDms.height - chartDms.plotHeight - chartDms.marginTop
         }}
         draw={(ctx) => draw(ctx, 'xAxis')}
+      />
+      <Canvas
+        id="yAxisOverlay"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop,
+          right: 0,
+          width: chartDms.width - chartDms.plotWidth,
+          height: chartDms.plotHeight,
+          zIndex: 1
+        }}
+        draw={(ctx) => draw(ctx, 'yAxisOverlay')}
       />
       <Canvas
         id="yAxis"
@@ -225,6 +256,15 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           left: chartDms.marginLeft,
           width: chartDms.plotWidth,
           height: chartDms.plotHeight
+        }}
+        onMouseMove={(e) => {
+          currentPointer.current = d3.pointer(e);
+          setRedrawCount((val) => val + 1);
+        }}
+        onMouseOut={() => {
+          currentPointer.current = null;
+          currentDataPoint.current = null;
+          setRedrawCount((val) => val + 1);
         }}
       />
     </div>
@@ -448,7 +488,7 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
   context.translate(bitmap(transform.x), 0);
   const tickValues = dateTicks(xScale.domain());
   const canvasWidth = context.canvas.width;
-  const fontSize = getLabelFont(12);
+  const font = getLabelFont(12);
   const y = bitmap(15);
   const minDistance = bitmap(30);
   const diffX = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
@@ -464,13 +504,12 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
   tickValues.forEach((d, i) => {
     const x = Math.round(xScale(d) ?? 0);
     if (displayIndex.includes(i) && x > rangeStart + offset && x < rangeEnd - offset) {
-      context.font = fontSize;
+      context.font = font;
       context.textBaseline = 'middle';
       context.textAlign = 'center';
       context.fillText(dateFormat(d), x, y);
     }
   });
-  context.restore();
 };
 
 const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
@@ -478,14 +517,107 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
   const priceFormatFnc = priceFormat(max);
   const tickValues = logTicks(min * 0.95, max);
   const canvasHeight = context.canvas.height;
-  const fontSize = getLabelFont(12);
+  const font = getLabelFont(12);
   const x = bitmap(10);
   tickValues.forEach((d) => {
     const y = Math.round(yScale(d));
     if (y > 10 && y < canvasHeight) {
-      context.font = fontSize;
+      context.font = font;
       context.textBaseline = 'middle';
       context.fillText(priceFormatFnc(d), x, y);
     }
   });
+};
+
+const drawCrosshair = (
+  context: CanvasRenderingContext2D,
+  pointer: [number, number] | null,
+  xScale: XScale | null,
+  yScale: YScale | null,
+  dms: CanvasDimensions,
+  transform: d3.ZoomTransform,
+  setCurrentDataPoint: (dataPoint: DataPoint) => void
+) => {
+  if (!xScale || !yScale || !pointer) return;
+  context.translate(bitmap(transform.x), 0);
+  const [px, py] = pointer;
+  const pixelRatio = devicePixelRatio || 1;
+
+  // x
+  const canvasX = bitmap(px - transform.x);
+  const [x, date, index] = getInvertXScale(xScale)(canvasX);
+  const lineWidth = Math.floor(pixelRatio);
+  const correction = lineWidth % 2 === 0 ? 0 : 0.5;
+  const adjustX = Math.floor(x) + correction;
+  // y
+  const canvasY = bitmap(py);
+  const price = yScale.invert(canvasY);
+  const adjustY = Math.ceil(canvasY) - correction;
+  const { rangeStart, rangeEnd } = getVisibleRange(dms.bitmapWidth, transform);
+
+  // draw vertical line
+  context.beginPath();
+  context.strokeStyle = getChartColors().crosshair;
+  context.lineWidth = lineWidth;
+  context.setLineDash([8, 4]);
+  context.moveTo(adjustX, 0);
+  context.lineTo(adjustX, dms.bitmapHeight);
+  context.stroke();
+
+  // draw horizontal line
+  context.beginPath();
+  context.moveTo(rangeStart, adjustY);
+  context.lineTo(rangeEnd, adjustY);
+  context.stroke();
+
+  // set current point
+  setCurrentDataPoint({ index: index, x: adjustX, y: adjustY, price, date });
+};
+
+const drawXOverlay = (context: CanvasRenderingContext2D, transform: d3.ZoomTransform, dataPoint: DataPoint | null) => {
+  if (!dataPoint) return;
+  context.translate(bitmap(transform.x), 0);
+  const { x, date } = dataPoint;
+  const { width, height } = context.canvas;
+  const y = bitmap(15);
+  const text = `${dateOverlayFormat(date)}`;
+  const textWidth = bitmap(context.measureText(text).width + 30);
+  const colors = getChartColors();
+  const { rangeStart, rangeEnd } = getVisibleRange(width, transform);
+
+  // draw wrapper rect
+  const xRect =
+    x - textWidth / 2 < rangeStart
+      ? rangeStart
+      : x + textWidth / 2 > rangeEnd
+        ? rangeEnd - textWidth
+        : x - textWidth / 2;
+  context.fillStyle = colors.overlayBg;
+  context.fillRect(Math.floor(xRect), 0, textWidth, height);
+
+  // fill date text
+  context.font = getLabelFont(12);
+  context.fillStyle = colors.overlayText;
+  context.textBaseline = 'middle';
+  context.textAlign = 'center';
+  context.fillText(text, xRect + textWidth / 2, y);
+};
+
+const drawYOverlay = (context: CanvasRenderingContext2D, dataPoint: DataPoint | null) => {
+  if (!dataPoint) return;
+  const { y, price } = dataPoint;
+  const x = bitmap(10);
+  const text = `${priceOverlayFormat(price)}`;
+  const rectHeight = bitmap(28);
+  const colors = getChartColors();
+  const width = context.canvas.width;
+
+  // draw wrapper rect
+  context.fillStyle = colors.overlayBg;
+  context.fillRect(0, Math.floor(y - rectHeight / 2), width, rectHeight);
+  context.font = getLabelFont(12);
+  context.fillStyle = colors.overlayText;
+  context.textBaseline = 'middle';
+  context.fillText(text, x, y);
+  context.restore();
 };

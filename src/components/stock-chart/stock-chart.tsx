@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { useDebounceValue } from 'usehooks-ts';
+import { useDebounceCallback } from 'usehooks-ts';
 import {
   dateFormat,
   dateOverlayFormat,
@@ -42,11 +42,12 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   // ref
   const eventHandlerRef = useRef<HTMLDivElement>(null);
   const currentPointer = useRef<[number, number]>(null);
+  const currentDataPoint = useRef<DataPoint>(null);
 
   // state
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
-  const [currentDataPoint, setCurrentDataPoint] = useDebounceValue<DataPoint | null>(null, 0);
   const [, setRedrawCount] = useState(0);
+  const debouncedRedraw = useDebounceCallback(setRedrawCount, 0);
 
   const dms: CanvasDimensions = useMemo(() => {
     return {
@@ -142,25 +143,30 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           chartScales.yScale,
           dms,
           transform,
-          setCurrentDataPoint
+          setDataPoint
         );
         break;
       case 'xAxisOverlay':
-        drawXOverlay(context, transform, currentDataPoint);
+        drawXOverlay(context, transform, currentDataPoint.current);
         break;
       case 'yAxisOverlay':
-        drawYOverlay(context, currentDataPoint);
+        drawYOverlay(context, currentDataPoint.current);
         break;
       default:
         return;
     }
   };
 
+  const setDataPoint = (dataPoint: DataPoint) => {
+    currentDataPoint.current = dataPoint;
+    debouncedRedraw((val) => val + 1);
+  };
+
   return (
     <div ref={chartRef} {...props}>
       <StockQuote
         series={series}
-        index={currentDataPoint?.index ?? -1}
+        index={currentDataPoint.current?.index ?? -1}
         gapX={1}
         paddingX={2}
         flexWrap="wrap"
@@ -247,11 +253,12 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         }}
         onMouseMove={(e) => {
           currentPointer.current = d3.pointer(e);
-          setRedrawCount((val) => val + 1);
+          debouncedRedraw((val) => val + 1);
         }}
         onMouseOut={() => {
           currentPointer.current = null;
-          setCurrentDataPoint(null);
+          currentDataPoint.current = null;
+          debouncedRedraw((val) => val + 1);
         }}
       />
     </div>
@@ -523,7 +530,7 @@ const drawCrosshair = (
   yScale: YScale | null,
   dms: CanvasDimensions,
   transform: d3.ZoomTransform,
-  setCurrentDataPoint: (dataPoint: DataPoint) => void
+  setDataPoint: (dataPoint: DataPoint) => void
 ) => {
   if (!xScale || !yScale || !pointer) return;
   context.translate(bitmap(transform.x), 0);
@@ -558,7 +565,7 @@ const drawCrosshair = (
   context.stroke();
 
   // set current point
-  setCurrentDataPoint({ index: index, x: adjustX, y: adjustY, price, date });
+  setDataPoint({ index: index, x: adjustX, y: adjustY, price, date });
 };
 
 const drawXOverlay = (context: CanvasRenderingContext2D, transform: d3.ZoomTransform, dataPoint: DataPoint | null) => {

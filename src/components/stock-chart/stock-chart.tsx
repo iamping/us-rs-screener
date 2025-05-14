@@ -40,15 +40,12 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
 
   // ref
   const eventHandlerRef = useRef<HTMLDivElement>(null);
-  // const visibleIndexRef = useRef<number[]>(null);
-  // const chartScalesRef = useRef<ChartScales>(null);
-  const transformRef = useRef<d3.ZoomTransform>(null);
   const currentPointer = useRef<[number, number]>(null);
   const currentDataPoint = useRef<DataPoint>(null);
 
   // state
-  // const [transform, setTransform] = useState<d3.ZoomTransform | null>(null);
-  const [redrawCount, setRedrawCount] = useState(0);
+  const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
+  const [, setRedrawCount] = useState(0);
 
   const dms: CanvasDimensions = useMemo(() => {
     return {
@@ -76,16 +73,12 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           eventHandler.style.cursor = 'grabbing';
         })
         .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
-          // console.log(transform);
-          // set transform for next redraw
-          // setTransform(transform);
           if (currentPointer.current) {
             if (sourceEvent instanceof MouseEvent) {
               currentPointer.current = d3.pointer(sourceEvent, eventHandlerRef.current);
             }
           }
-          transformRef.current = transform;
-          setRedrawCount((val) => val + 1);
+          setCurrentTransform(transform);
         })
         .on('end', () => {
           const eventHandler = eventHandlerRef.current as HTMLDivElement;
@@ -93,8 +86,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         });
       eventHandler.call(zoom);
 
-      if (transformRef.current) {
-        eventHandler.call(zoom.transform, transformRef.current);
+      if (currentTransform) {
+        eventHandler.call(zoom.transform, currentTransform);
       } else {
         eventHandler.call(zoom.transform, d3.zoomIdentity);
       }
@@ -102,10 +95,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     return () => {
       eventHandler.on('.zoom', null);
     };
-  }, [series, dms]);
+  }, [series, dms, currentTransform]);
 
   const chartScales = useMemo(() => {
-    const transform = transformRef.current ? transformRef.current : d3.zoomIdentity;
+    const transform = currentTransform ?? d3.zoomIdentity;
     const xScale = getXScale(
       [0, dms.bitmapWidth * transform.k],
       series.map((d) => d.date)
@@ -123,15 +116,14 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       d3.extent(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.rs)) as [number, number]
     );
     return { xScale, yScale, volumeScale, rsScale };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [series, dms, redrawCount]);
+  }, [series, dms, currentTransform]);
 
   const draw = (
     context: CanvasRenderingContext2D,
     type: 'chart' | 'yAxis' | 'xAxis' | 'crosshair' | 'xAxisOverlay' | 'yAxisOverlay'
   ) => {
     if (series.length === 0) return;
-    const transform = transformRef.current ? transformRef.current : d3.zoomIdentity;
+    const transform = currentTransform ?? d3.zoomIdentity;
     switch (type) {
       case 'chart':
         plotChart(context, series, chartScales, dms, transform, ticker !== 'SPY');

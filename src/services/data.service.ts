@@ -5,7 +5,9 @@ const cacheKey = 'historical-' + new Date().toISOString().substring(0, 13);
 const timeout = 10000;
 
 export const fetchStockRsList = async (): Promise<Stock[]> => {
-  const url = './api/us_rs_list.json';
+  // will change it back later
+  // const url = './api/us_rs_list.json';
+  const url = 'https://iamping.github.io/us-rs-screener/api/us_rs_list.json';
   return await fetchOrRetrieve(url, cacheKey);
 };
 

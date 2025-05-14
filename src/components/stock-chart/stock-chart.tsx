@@ -41,10 +41,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   // ref
   const eventHandlerRef = useRef<HTMLDivElement>(null);
   const currentPointer = useRef<[number, number]>(null);
-  const currentDataPoint = useRef<DataPoint>(null);
 
   // state
   const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null);
+  const [currentDataPoint, setCurrentDataPoint] = useState<DataPoint | null>(null);
   const [, setRedrawCount] = useState(0);
 
   const dms: CanvasDimensions = useMemo(() => {
@@ -57,7 +57,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   }, [chartDms.plotHeight, chartDms.plotWidth]);
 
   useEffect(() => {
-    const eventHandler = d3.select(eventHandlerRef.current as HTMLDivElement);
+    const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
+    const eventHandler = d3.select(eventHandlerElement);
     const extent = [
       [0, 0],
       [dms.cssWidth, 0] // use canvas css width
@@ -69,8 +70,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         .translateExtent(extent)
         .extent(extent)
         .on('start', () => {
-          const eventHandler = eventHandlerRef.current as HTMLDivElement;
-          eventHandler.style.cursor = 'grabbing';
+          eventHandlerElement.style.cursor = 'grabbing';
         })
         .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
           if (currentPointer.current) {
@@ -81,8 +81,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           setCurrentTransform(transform);
         })
         .on('end', () => {
-          const eventHandler = eventHandlerRef.current as HTMLDivElement;
-          eventHandler.style.cursor = 'unset';
+          eventHandlerElement.style.cursor = 'unset';
         });
       eventHandler.call(zoom);
 
@@ -146,25 +145,21 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         );
         break;
       case 'xAxisOverlay':
-        drawXOverlay(context, transform, currentDataPoint.current);
+        drawXOverlay(context, transform, currentDataPoint);
         break;
       case 'yAxisOverlay':
-        drawYOverlay(context, currentDataPoint.current);
+        drawYOverlay(context, currentDataPoint);
         break;
       default:
         return;
     }
   };
 
-  const setCurrentDataPoint = (dataPoint: DataPoint) => {
-    currentDataPoint.current = dataPoint;
-  };
-
   return (
     <div ref={chartRef} {...props}>
       <StockQuote
         series={series}
-        index={currentDataPoint.current?.index ?? -1} // TODO: update index later
+        index={currentDataPoint?.index ?? -1}
         gapX={1}
         paddingX={2}
         flexWrap="wrap"
@@ -255,8 +250,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         }}
         onMouseOut={() => {
           currentPointer.current = null;
-          currentDataPoint.current = null;
-          setRedrawCount((val) => val + 1);
+          setCurrentDataPoint(null);
         }}
       />
     </div>

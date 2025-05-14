@@ -38,3 +38,10 @@ export interface ChartScales {
   volumeScale: VolScale;
   rsScale: RsScale;
 }
+
+export type CanvasDimensions = {
+  bitmapWidth: number;
+  bitmapHeight: number;
+  cssWidth: number;
+  cssHeight: number;
+};

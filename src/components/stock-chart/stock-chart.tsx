@@ -10,7 +10,7 @@ import {
 } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Stock } from '@/types/stock';
-import { ChartScales, StockDataPoint, XScale, YScale } from '@/types/stock-chart';
+import { CanvasDimensions, ChartScales, StockDataPoint, XScale, YScale } from '@/types/stock-chart';
 import { Canvas } from './canvas';
 import { StockQuote } from './stock-quote';
 
@@ -19,13 +19,6 @@ interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
   stock: Stock;
   series: StockDataPoint[];
 }
-
-type Dimensions = {
-  plotWidth: number;
-  plotHeight: number;
-  cssWidth: number;
-  cssHeight: number;
-};
 
 // constant
 const domainMultiplier = 0.04;
@@ -52,10 +45,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   // const [transform, setTransform] = useState<d3.ZoomTransform | null>(null);
   const [redrawCount, setRedrawCount] = useState(0);
 
-  const dms = useMemo(() => {
+  const dms: CanvasDimensions = useMemo(() => {
     return {
-      plotWidth: bitmap(chartDms.plotWidth),
-      plotHeight: bitmap(chartDms.plotHeight),
+      bitmapWidth: bitmap(chartDms.plotWidth),
+      bitmapHeight: bitmap(chartDms.plotHeight),
       cssWidth: chartDms.plotWidth,
       cssHeight: chartDms.plotHeight
     };
@@ -102,7 +95,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     const eventHandler = d3.select(eventHandlerRef.current as HTMLDivElement);
     const extent = [
       [0, 0],
-      [dms.cssWidth, 0] // use view port width here
+      [dms.cssWidth, 0] // use canvas css width
     ] as [[number, number], [number, number]];
     if (series.length > 0) {
       const zoom = d3
@@ -141,16 +134,19 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   const chartScales = useMemo(() => {
     const transform = transformRef.current ? transformRef.current : d3.zoomIdentity;
     const xScale = getXScale(
-      [0, dms.plotWidth * transform.k],
+      [0, dms.bitmapWidth * transform.k],
       series.map((d) => d.date)
     );
-    const { visibleDomain } = getVisibleDomain(xScale, series, transform, dms.plotWidth);
+    const { visibleDomain } = getVisibleDomain(xScale, series, transform, dms.bitmapWidth);
     const [minLow, maxHigh] = visibleDomain;
     // visibleIndexRef.current = visibleIndex;
-    const yScale = getYScale([dms.plotHeight * barArea, 0], [minLow, maxHigh]);
-    const volumeScale = getLinearScale([0, dms.plotHeight * volumeArea], [0, d3.max(series.map((d) => d.volume)) ?? 0]);
+    const yScale = getYScale([dms.bitmapHeight * barArea, 0], [minLow, maxHigh]);
+    const volumeScale = getLinearScale(
+      [0, dms.bitmapHeight * volumeArea],
+      [0, d3.max(series.map((d) => d.volume)) ?? 0]
+    );
     const rsScale = getLinearScale(
-      [dms.plotHeight * rsArea, 0],
+      [dms.bitmapHeight * rsArea, 0],
       d3.extent(series.map((d) => d.rs)) as [number, number]
     );
     return { xScale, yScale, volumeScale, rsScale };
@@ -246,15 +242,19 @@ const getLinearScale = (range: number[], domain: number[]) => {
   return d3.scaleLinear().range(range).domain(domain);
 };
 
-const getVisibleDomain = (xScale: XScale, series: StockDataPoint[], transform: d3.ZoomTransform, plotWidth: number) => {
+const getVisibleDomain = (
+  xScale: XScale,
+  series: StockDataPoint[],
+  transform: d3.ZoomTransform,
+  bitmapWidth: number
+) => {
   const visibleDomain: number[] = [];
   const visibleIndex: number[] = [];
   // find min & max visible price
   series.forEach((d, i) => {
     const x = xScale(d.date) ?? 0;
-    const boundStart = -bitmap(transform.x);
-    const boundEnd = plotWidth - bitmap(transform.x);
-    if (x > boundStart && x <= boundEnd) {
+    const { rangeStart, rangeEnd } = getVisibleRange(bitmapWidth, transform);
+    if (x > rangeStart && x <= rangeEnd) {
       if (visibleIndex.length === 0) visibleIndex[0] = i;
       if (visibleIndex.length > 0) visibleIndex[1] = i;
       if (visibleDomain.length) {
@@ -273,11 +273,22 @@ const getVisibleDomain = (xScale: XScale, series: StockDataPoint[], transform: d
   return { visibleDomain, visibleIndex };
 };
 
+const getVisibleRange = (bitmapWidth: number, transform: d3.ZoomTransform) => {
+  return {
+    rangeStart: -bitmap(transform.x),
+    rangeEnd: bitmapWidth - bitmap(transform.x)
+  };
+};
+
+const getLabelFont = (fontSize: number) => {
+  return `${bitmap(fontSize)}px Outfit`;
+};
+
 const plotChart = (
   context: CanvasRenderingContext2D,
   series: StockDataPoint[],
   scales: ChartScales,
-  dms: Dimensions,
+  dms: CanvasDimensions,
   transform: d3.ZoomTransform,
   showRs = true
 ) => {
@@ -365,7 +376,7 @@ const plotChart = (
     const rsLine = d3
       .line<StockDataPoint>(
         (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
-        (d) => rsScale(d.rs) + dms.plotHeight * 0.5
+        (d) => rsScale(d.rs) + dms.bitmapHeight * 0.5
       )
       .context(context);
     context.beginPath();
@@ -413,15 +424,15 @@ const plotChart = (
     }
     context.lineWidth = barWidth; // bandWidth * 2;
     context.beginPath();
-    context.moveTo(barX - barCorrection, dms.plotHeight);
-    context.lineTo(barX - barCorrection, dms.plotHeight - volumeBarHeight);
+    context.moveTo(barX - barCorrection, dms.bitmapHeight);
+    context.lineTo(barX - barCorrection, dms.bitmapHeight - volumeBarHeight);
     context.stroke();
 
     // draw small circle for rs new high
     const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;
     if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
       const cx = (xScale(d.date) ?? 0) + bandWidth / 2;
-      const cy = rsScale(d.rs) + dms.plotHeight * 0.5;
+      const cy = rsScale(d.rs) + dms.bitmapHeight * 0.5;
       const radius = devicePixelRatio * transform.k * 1.2;
       context.beginPath();
       context.fillStyle = isNewHighBeforePrice ? colors.rsNewHighBeforePrice : colors.rsNewHigh;
@@ -435,24 +446,23 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
   context.translate(bitmap(transform.x), 0);
   const tickValues = dateTicks(xScale.domain());
   const canvasWidth = context.canvas.width;
-  const fontSize = bitmap(12);
+  const fontSize = getLabelFont(12);
   const y = bitmap(15);
   const minDistance = bitmap(30);
   const diffX = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
-  const step = Math.ceil(minDistance / diffX);
+  const step = Math.ceil(minDistance / diffX); // step should be 1,2,3,4 to always correctly get January
   const firstJanIndex = tickValues.findIndex((d) => d.getMonth() === 0);
   const startIndex = Math.min(...d3.range(firstJanIndex, -1, -step));
   const displayIndex = d3.range(startIndex, tickValues.length, step);
 
-  // hide label if out of bound
-  const boundStart = -bitmap(transform.x);
-  const boundEnd = canvasWidth - bitmap(transform.x); // canvasWidth = dms.plotWidth :)
+  // hide label if out of visible range
+  const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, transform);
   const offset = bitmap(10);
 
   tickValues.forEach((d, i) => {
     const x = Math.round(xScale(d) ?? 0);
-    if (displayIndex.includes(i) && x > boundStart + offset && x < boundEnd - offset) {
-      context.font = `${fontSize}px Outfit`;
+    if (displayIndex.includes(i) && x > rangeStart + offset && x < rangeEnd - offset) {
+      context.font = fontSize;
       context.textBaseline = 'middle';
       context.textAlign = 'center';
       context.fillText(dateFormat(d), x, y);
@@ -466,12 +476,12 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
   const priceFormatFnc = priceFormat(max);
   const tickValues = logTicks(min * 0.9, max);
   const canvasHeight = context.canvas.height;
-  const fontSize = bitmap(12);
+  const fontSize = getLabelFont(12);
   const x = bitmap(10);
   tickValues.forEach((d) => {
     const y = Math.round(yScale(d));
     if (y > 10 && y < canvasHeight) {
-      context.font = `${fontSize}px Outfit`;
+      context.font = fontSize;
       context.textBaseline = 'middle';
       context.fillText(priceFormatFnc(d), x, y);
     }

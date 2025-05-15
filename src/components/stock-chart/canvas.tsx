@@ -1,15 +1,40 @@
-import { FC, useEffect, useRef } from 'react';
+import { FC, RefObject, useEffect, useImperativeHandle, useRef } from 'react';
 
+type DrawFunc = (context: CanvasRenderingContext2D) => void;
 interface CanvasProps extends React.HTMLAttributes<HTMLCanvasElement> {
-  draw: (context: CanvasRenderingContext2D) => void;
+  ref?: RefObject<CanvasHandle | null>;
+}
+export interface CanvasHandle {
+  canvasRef: RefObject<HTMLCanvasElement | null>;
+  draw: (drawFunc: DrawFunc) => void;
+  clear: () => void;
 }
 
-export const Canvas: FC<CanvasProps> = ({ draw, ...rest }) => {
-  const ref = useRef<HTMLCanvasElement>(null);
+export const Canvas: FC<CanvasProps> = ({ ref, ...rest }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drawRef = useRef<DrawFunc>(null);
+
+  useImperativeHandle(ref, () => {
+    const canvas = canvasRef.current as HTMLCanvasElement;
+    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+    return {
+      draw: (drawFunc) => {
+        drawRef.current = drawFunc;
+        predraw(context);
+        drawFunc(context);
+        postdraw(context);
+      },
+      clear: () => {
+        predraw(context);
+        postdraw(context);
+      },
+      canvasRef
+    };
+  });
 
   useEffect(() => {
     const observer = new ResizeObserver((entries = []) => {
-      const canvas = ref.current as HTMLCanvasElement;
+      const canvas = canvasRef.current as HTMLCanvasElement;
       const context = canvas.getContext('2d') as CanvasRenderingContext2D;
       entries.forEach((entry) => {
         const { width, height } = entry.contentRect || canvas.getBoundingClientRect();
@@ -24,31 +49,28 @@ export const Canvas: FC<CanvasProps> = ({ draw, ...rest }) => {
           canvas.style.width = `${canvas.width / pixelRatio}px`;
           canvas.style.height = `${canvas.height / pixelRatio}px`;
         }
-        render(context, draw);
+        // render here to prevent blank canvas when resize
+        if (drawRef.current) {
+          render(context, drawRef.current);
+        }
       });
     });
-    if (ref.current) {
+    if (canvasRef.current) {
       try {
-        observer.observe(ref.current, { box: 'device-pixel-content-box' });
+        observer.observe(canvasRef.current, { box: 'device-pixel-content-box' });
       } catch {
-        observer.observe(ref.current);
+        observer.observe(canvasRef.current);
       }
     }
     return () => {
       observer.disconnect();
     };
-  }, [draw]);
+  }, []);
 
-  useEffect(() => {
-    const canvas = ref.current as HTMLCanvasElement;
-    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
-    render(context, draw);
-  }, [draw]);
-
-  return <canvas ref={ref} {...rest}></canvas>;
+  return <canvas ref={canvasRef} {...rest}></canvas>;
 };
 
-const render = (context: CanvasRenderingContext2D, draw: (context: CanvasRenderingContext2D) => void) => {
+const render = (context: CanvasRenderingContext2D, draw: DrawFunc) => {
   predraw(context);
   draw(context);
   postdraw(context);

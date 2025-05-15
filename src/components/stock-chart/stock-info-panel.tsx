@@ -1,7 +1,7 @@
 import { Button, CloseButton, Flex, Group, Heading, Link, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { computeDataSeries, convertDailyToWeekly } from '@/helpers/chart.helper';
+import { computeDataSeries, convertDailyToWeekly } from '@/helpers/data.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
 import { Stock } from '@/types/stock';

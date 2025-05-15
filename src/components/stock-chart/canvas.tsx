@@ -9,24 +9,30 @@ export const Canvas: FC<CanvasProps> = ({ draw, ...rest }) => {
 
   useEffect(() => {
     const observer = new ResizeObserver((entries = []) => {
+      const canvas = ref.current as HTMLCanvasElement;
+      const context = canvas.getContext('2d') as CanvasRenderingContext2D;
       entries.forEach((entry) => {
-        const { width, height } = entry.contentRect;
+        const { width, height } = entry.contentRect || canvas.getBoundingClientRect();
         const pixelRatio = devicePixelRatio || 1;
-        const canvas = ref.current as HTMLCanvasElement;
-        const context = canvas.getContext('2d') as CanvasRenderingContext2D;
         if (entry.devicePixelContentBoxSize) {
           const { inlineSize, blockSize } = entry.devicePixelContentBoxSize[0];
           canvas.width = inlineSize;
           canvas.height = blockSize;
         } else {
-          canvas.width = width * pixelRatio;
-          canvas.height = height * pixelRatio;
+          canvas.width = Math.floor(width * pixelRatio);
+          canvas.height = Math.floor(height * pixelRatio);
+          canvas.style.width = `${canvas.width / pixelRatio}px`;
+          canvas.style.height = `${canvas.height / pixelRatio}px`;
         }
         render(context, draw);
       });
     });
     if (ref.current) {
-      observer.observe(ref.current);
+      try {
+        observer.observe(ref.current, { box: 'device-pixel-content-box' });
+      } catch {
+        observer.observe(ref.current);
+      }
     }
     return () => {
       observer.disconnect();

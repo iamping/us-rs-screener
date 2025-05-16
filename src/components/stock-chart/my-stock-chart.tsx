@@ -4,8 +4,8 @@ import { useMediaQuery } from 'usehooks-ts';
 import { getChartColors } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
-import { Stock } from '@/types/stock.type';
 import { StockDataPoint } from '@/types/chart.type';
+import { Stock } from '@/types/stock.type';
 import { touchDevice } from '@/utils/common.utils';
 import { StockQuote } from './stock-quote';
 

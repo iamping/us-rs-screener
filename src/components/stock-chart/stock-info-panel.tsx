@@ -4,8 +4,8 @@ import { FC, useEffect, useMemo, useState } from 'react';
 import { computeDataSeries, convertDailyToWeekly } from '@/helpers/data.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
-import { Stock } from '@/types/stock.type';
 import { StockDataPoint } from '@/types/chart.type';
+import { Stock } from '@/types/stock.type';
 import { formatDecimal } from '@/utils/common.utils';
 import { StockChart } from './stock-chart';
 

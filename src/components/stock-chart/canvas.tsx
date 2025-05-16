@@ -35,6 +35,7 @@ export const Canvas: FC<CanvasProps> = ({ ref, ...rest }) => {
 
   useEffect(() => {
     const observer = new ResizeObserver((entries = []) => {
+      if (!canvasRef.current) return;
       const canvas = canvasRef.current as HTMLCanvasElement;
       const context = canvas.getContext('2d') as CanvasRenderingContext2D;
       entries.forEach((entry) => {

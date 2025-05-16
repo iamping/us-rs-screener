@@ -17,7 +17,6 @@ export const formatNumber = (val: string | number) => {
 };
 
 export const mobileMediaQuery = '(max-width: 680px)';
-export const touchDevice = '(pointer: coarse)';
 
 export const findMax = (arr: number[]) => {
   return Math.max(...arr);
@@ -61,4 +60,13 @@ export const getISOWeekAndYear = (date: Date) => {
   const weekNo = Math.ceil(dayOfYear / 7);
 
   return { week: weekNo, year: isoYear };
+};
+
+export const isTouchDeviceMatchMedia = () => {
+  return (
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.matchMedia('(any-pointer: coarse)').matches ||
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0
+  );
 };

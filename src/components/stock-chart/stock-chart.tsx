@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
 // import { useDebounceCallback } from 'usehooks-ts';
-import { useInterval } from 'usehooks-ts';
+// import { useInterval } from 'usehooks-ts';
 import {
   dateFormat,
   dateOverlayFormat,
@@ -16,6 +16,7 @@ import {
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { CanvasDimensions, ChartScales, DataPoint, StockDataPoint, XScale, YScale } from '@/types/chart.type';
 import { Stock } from '@/types/stock.type';
+import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
 import { Canvas, CanvasHandle } from './canvas';
 import { StockQuote } from './stock-quote';
 
@@ -31,6 +32,7 @@ const lowerDomainMultiplier = 0.1;
 const barArea = 0.8;
 const volumeArea = 0.2;
 const rsArea = 0.3;
+const isTouchDevice = isTouchDeviceMatchMedia();
 
 export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   const [chartRef, chartDms] = useChartDimensions<HTMLDivElement>({
@@ -54,19 +56,24 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   // const currentDataPoint = useRef<DataPoint>(null);
   const chartScalesRef = useRef<ChartScales>(null);
   const transformRef = useRef<d3.ZoomTransform>(null);
-  const firstRender = useRef(false);
-  useInterval(() => {
-    firstRender.current = true;
-  }, 500);
+  const timerRef = useRef<NodeJS.Timeout>(null);
+  const isTapRef = useRef(false);
+
+  // may use later
+  // const firstRender = useRef(false);
+  // useInterval(() => {
+  //   firstRender.current = true;
+  // }, 500);
 
   // state
   const [transform, setTransform] = useState<d3.ZoomTransform | null>(null);
   const [dataPoint, setDataPoint] = useState<DataPoint | null>(null);
+  const [zoomEnabled, setZoomEnabled] = useState(true);
   // const [redrawCount, setRedrawCount] = useState(0);
   // const debouncedRedraw = useDebounceCallback(setRedrawCount, 0);
 
   const dms: CanvasDimensions = useMemo(() => {
-    console.log(firstRender.current);
+    // console.log(firstRender.current);
     return {
       bitmapWidth: bitmap(chartDms.plotWidth),
       bitmapHeight: bitmap(chartDms.plotHeight),
@@ -85,24 +92,25 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     if (series.length > 0) {
       const zoom = d3
         .zoom<HTMLDivElement, unknown>()
-        .scaleExtent([1, 10])
+        .scaleExtent([1, 50])
         .translateExtent(extent)
         .extent(extent)
         .on('start', () => {
           eventHandlerElement.style.cursor = 'grabbing';
         })
         .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
-          console.log('test', firstRender.current);
           if (sourceEvent instanceof MouseEvent) {
-            // currentPointer.current = d3.pointer(sourceEvent, eventHandlerRef.current);
-            handleMouseMove(d3.pointer(sourceEvent, eventHandlerRef.current));
+            drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current));
           }
           setTransform(transform);
         })
         .on('end', () => {
           eventHandlerElement.style.cursor = 'unset';
         });
-      eventHandler.call(zoom);
+
+      if (zoomEnabled) {
+        eventHandler.call(zoom);
+      }
 
       // if (currentTransform) {
       //   eventHandler.call(zoom.transform, currentTransform);
@@ -113,7 +121,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     return () => {
       eventHandler.on('.zoom', null);
     };
-  }, [series, dms]);
+  }, [series, dms, zoomEnabled]);
 
   // plot chart, x&y axis
   useEffect(() => {
@@ -143,7 +151,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   //   }
   // }, [transform, redrawCount, debouncedRedraw]);
 
-  const handleMouseMove = (pointer: [number, number]) => {
+  const drawCrosshairAndOverlay = (pointer: [number, number]) => {
     if (!transformRef.current || !chartScalesRef.current) return;
     const transform = transformRef.current ?? d3.zoomIdentity;
     const dataPoint = findDataPoint(pointer, transform, chartScalesRef.current);
@@ -153,15 +161,51 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     setDataPoint(dataPoint);
   };
 
-  const handleMouseOut = () => {
+  const clearCrosshair = () => {
     crosshairRef.current?.clear();
     xOverlayRef.current?.clear();
     yOverlayRef.current?.clear();
     setDataPoint(null);
   };
 
+  const onTouchEnd = () => {
+    if (isTapRef.current) {
+      setZoomEnabled(true);
+      clearCrosshair();
+    }
+    clearTimeout(timerRef.current ?? undefined);
+  };
+
   return (
-    <div ref={chartRef} {...props}>
+    <div
+      ref={chartRef}
+      {...props}
+      onTouchStartCapture={(e) => {
+        if (e.touches.length > 1) {
+          clearTimeout(timerRef.current ?? undefined);
+          clearCrosshair();
+          setZoomEnabled(true);
+          return;
+        }
+        isTapRef.current = true;
+        timerRef.current = setTimeout(() => {
+          isTapRef.current = false;
+          setZoomEnabled(false);
+          drawCrosshairAndOverlay(d3.pointer(e.touches[0], eventHandlerRef.current));
+        }, 200);
+      }}
+      onTouchMoveCapture={(e) => {
+        if (!zoomEnabled) {
+          isTapRef.current = false;
+          const [x, y] = d3.pointer(e.touches[0], eventHandlerRef.current);
+          if (x > 0 && x < dms.cssWidth && y > 0 && y < dms.cssHeight - 5) {
+            drawCrosshairAndOverlay([x, y]);
+          }
+        }
+        clearTimeout(timerRef.current ?? undefined);
+      }}
+      onTouchEndCapture={onTouchEnd}
+      onTouchCancelCapture={onTouchEnd}>
       <StockQuote
         series={series}
         index={dataPoint?.index ?? -1}
@@ -250,16 +294,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           height: chartDms.plotHeight
         }}
         onMouseMove={(e) => {
-          handleMouseMove(d3.pointer(e));
-          // currentPointer.current = d3.pointer(e);
-          // debouncedRedraw((val) => val + 1);
+          if (isTouchDevice) return;
+          drawCrosshairAndOverlay(d3.pointer(e));
         }}
-        onMouseOut={() => {
-          handleMouseOut();
-          // currentPointer.current = null;
-          // currentDataPoint.current = null;
-          // debouncedRedraw((val) => val + 1);
-        }}
+        onMouseOut={clearCrosshair}
       />
     </div>
   );

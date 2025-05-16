@@ -1,12 +1,11 @@
 import * as d3 from 'd3';
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
-import { useMediaQuery } from 'usehooks-ts';
 import { getChartColors } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { Dimensions, useDimensions } from '@/hooks/useDimensions';
 import { StockDataPoint } from '@/types/chart.type';
 import { Stock } from '@/types/stock.type';
-import { touchDevice } from '@/utils/common.utils';
+import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
 import { StockQuote } from './stock-quote';
 
 interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
@@ -353,6 +352,8 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
   context.restore();
 };
 
+const isTouchDevice = isTouchDeviceMatchMedia();
+
 export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   // console.log('MyStockChart', ticker);
 
@@ -385,7 +386,6 @@ export const MyStockChart: FC<StockChartProps> = ({ ticker, series, ...props }) 
   // for touch events
   const timer = useRef<NodeJS.Timeout>(null);
   const isTap = useRef(false);
-  const isTouchDevice = useMediaQuery(touchDevice);
 
   const drawCrosshair = useCallback(
     (

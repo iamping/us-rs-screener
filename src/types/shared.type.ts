@@ -1,5 +1,5 @@
 import { ColumnFiltersState } from '@tanstack/react-table';
-import { Stock } from './stock';
+import { Stock } from './stock.type';
 
 export type ColumnVisibility = { [P in keyof Stock]?: boolean };
 export type FilterVariant = 'range' | 'combo-box' | 'radio-select' | 'multi-select' | undefined;

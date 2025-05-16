@@ -17,7 +17,7 @@ import { useEventListener } from 'usehooks-ts';
 import { EmptyState } from '@/components/ui/empty-state';
 import { defaultPinnedColumns, tableGlobal } from '@/helpers/table.helper';
 import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerAtom } from '@/states/atom';
-import { Stock } from '@/types/stock';
+import { Stock } from '@/types/stock.type';
 import { columns } from './column-defs';
 import { DataCell } from './data-cell';
 import { HeaderCell } from './header-cell';

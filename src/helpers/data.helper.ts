@@ -1,4 +1,4 @@
-import { HistoricalData, StockDataPoint } from '@/types/stock-chart';
+import { HistoricalData, StockDataPoint } from '@/types/chart.type';
 import { findMax, getISOWeekAndYear } from '@/utils/common.utils';
 
 export const calculateEMA = (values: number[], period: number) => {

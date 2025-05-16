@@ -1,6 +1,6 @@
 import { Flex, FlexProps, Text } from '@chakra-ui/react';
 import { FC } from 'react';
-import { StockDataPoint } from '@/types/stock-chart';
+import { StockDataPoint } from '@/types/chart.type';
 import { formatDecimal } from '@/utils/common.utils';
 
 interface StockQuoteProps extends FlexProps {

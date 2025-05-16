@@ -1,7 +1,7 @@
 import { Box, HStack, Separator, Show, Text, VStack } from '@chakra-ui/react';
 import { ChangeEvent, CSSProperties, FC, Fragment, useEffect, useState } from 'react';
 import { PiCheckBold } from 'react-icons/pi';
-import { SelectOption } from '@/types/shared';
+import { SelectOption } from '@/types/shared.type';
 
 interface MultiSelectFilterProps {
   id?: string;

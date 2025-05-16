@@ -11,7 +11,7 @@ import {
   relativeVolOptions,
   rsRatingOptions
 } from '@/helpers/table.helper';
-import { Stock } from '@/types/stock';
+import { Stock } from '@/types/stock.type';
 import { formatDecimal, formatNumber } from '@/utils/common.utils';
 import { CellTemplate } from './cell-template';
 

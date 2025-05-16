@@ -6,7 +6,7 @@ import { useMediaQuery } from 'usehooks-ts';
 import { Filter } from '@/components/filter/filter';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
 import { appDropdownAtom, dropdownFnAtom, manualFilterAtom } from '@/states/atom';
-import { PresetOption, SelectOption } from '@/types/shared';
+import { PresetOption, SelectOption } from '@/types/shared.type';
 import { getAbbreviation, mobileMediaQuery } from '@/utils/common.utils';
 
 interface PresetSelectionProps {

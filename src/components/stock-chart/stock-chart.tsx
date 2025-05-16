@@ -14,8 +14,8 @@ import {
   priceOverlayFormat
 } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
-import { Stock } from '@/types/stock';
-import { CanvasDimensions, ChartScales, DataPoint, StockDataPoint, XScale, YScale } from '@/types/stock-chart';
+import { Stock } from '@/types/stock.type';
+import { CanvasDimensions, ChartScales, DataPoint, StockDataPoint, XScale, YScale } from '@/types/chart.type';
 import { Canvas, CanvasHandle } from './canvas';
 import { StockQuote } from './stock-quote';
 

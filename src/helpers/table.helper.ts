@@ -1,6 +1,6 @@
 import { ColumnFiltersState, Row, Table } from '@tanstack/react-table';
-import { ColumnVisibility, Operator, SelectOption, Settings } from '@/types/shared';
-import { Stock } from '@/types/stock';
+import { ColumnVisibility, Operator, SelectOption, Settings } from '@/types/shared.type';
+import { Stock } from '@/types/stock.type';
 
 type TRecord<T> = Row<T & Record<string, number>>;
 

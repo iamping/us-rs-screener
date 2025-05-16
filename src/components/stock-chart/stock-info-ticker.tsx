@@ -2,7 +2,7 @@ import { Text } from '@chakra-ui/react';
 import { useAtomValue } from 'jotai';
 import { FC } from 'react';
 import { stockInfoAtom } from '@/states/atom';
-import { Stock } from '@/types/stock';
+import { Stock } from '@/types/stock.type';
 import { formatDecimal } from '@/utils/common.utils';
 
 export const StockInfoTicker: FC<{ stock: Stock }> = ({ stock }) => {

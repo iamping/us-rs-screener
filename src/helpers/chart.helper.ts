@@ -1,5 +1,5 @@
 import { bisectCenter, format, utcFormat } from 'd3';
-import { XScale } from '@/types/stock-chart';
+import { XScale } from '@/types/chart.type';
 import { getCssVar } from '@/utils/common.utils';
 
 export const getBitmapPixel = (pixel: number) => {

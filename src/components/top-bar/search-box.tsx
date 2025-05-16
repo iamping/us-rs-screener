@@ -6,7 +6,7 @@ import { PiMagnifyingGlassBold, PiXDuotone } from 'react-icons/pi';
 import { useDebounceCallback, useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
 import { InputGroup } from '@/components/ui/input-group';
 import { fuzzyListAtom, preFilteredListAtom, searchBoxOpenAtom, tickerAtom } from '@/states/atom';
-import { Stock } from '@/types/stock';
+import { Stock } from '@/types/stock.type';
 import { mobileMediaQuery } from '@/utils/common.utils';
 
 export const SearchBox = () => {

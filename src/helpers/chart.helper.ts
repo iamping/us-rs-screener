@@ -45,7 +45,7 @@ export const logTicks = (min: number, max: number) => {
     ticks.push(max < 10 ? start : Math.round(start));
     start *= multiplier;
   }
-  return ticks.slice(1);
+  return [...new Set(ticks)].slice(1);
 };
 
 export const getInvertXScale = (xScale: XScale) => {

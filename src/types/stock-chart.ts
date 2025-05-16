@@ -52,4 +52,6 @@ export type DataPoint = {
   y: number;
   price: number;
   date: Date;
+  px: number;
+  py: number;
 };

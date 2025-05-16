@@ -25,6 +25,7 @@ export const Canvas: FC<CanvasProps> = ({ ref, ...rest }) => {
         postdraw(context);
       },
       clear: () => {
+        drawRef.current = null;
         predraw(context);
         postdraw(context);
       },

@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { useDebounceCallback } from 'usehooks-ts';
+// import { useDebounceCallback } from 'usehooks-ts';
+import { useInterval } from 'usehooks-ts';
 import {
   dateFormat,
   dateOverlayFormat,
@@ -49,16 +50,23 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
 
   // ref
   const eventHandlerRef = useRef<HTMLDivElement>(null);
-  const currentPointer = useRef<[number, number]>(null);
-  const currentDataPoint = useRef<DataPoint>(null);
+  // const currentPointer = useRef<[number, number]>(null);
+  // const currentDataPoint = useRef<DataPoint>(null);
   const chartScalesRef = useRef<ChartScales>(null);
+  const transformRef = useRef<d3.ZoomTransform>(null);
+  const firstRender = useRef(false);
+  useInterval(() => {
+    firstRender.current = true;
+  }, 500);
 
   // state
   const [transform, setTransform] = useState<d3.ZoomTransform | null>(null);
-  const [redrawCount, setRedrawCount] = useState(0);
-  const debouncedRedraw = useDebounceCallback(setRedrawCount, 0);
+  const [dataPoint, setDataPoint] = useState<DataPoint | null>(null);
+  // const [redrawCount, setRedrawCount] = useState(0);
+  // const debouncedRedraw = useDebounceCallback(setRedrawCount, 0);
 
   const dms: CanvasDimensions = useMemo(() => {
+    console.log(firstRender.current);
     return {
       bitmapWidth: bitmap(chartDms.plotWidth),
       bitmapHeight: bitmap(chartDms.plotHeight),
@@ -84,8 +92,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           eventHandlerElement.style.cursor = 'grabbing';
         })
         .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
+          console.log('test', firstRender.current);
           if (sourceEvent instanceof MouseEvent) {
-            currentPointer.current = d3.pointer(sourceEvent, eventHandlerRef.current);
+            // currentPointer.current = d3.pointer(sourceEvent, eventHandlerRef.current);
+            handleMouseMove(d3.pointer(sourceEvent, eventHandlerRef.current));
           }
           setTransform(transform);
         })
@@ -110,6 +120,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     if (series.length === 0) return;
     const zoomTransform = transform ?? d3.zoomIdentity;
     const chartScales = getChartScales(series, zoomTransform, dms);
+    transformRef.current = zoomTransform;
     chartScalesRef.current = chartScales;
     mainRef.current?.draw((context) => plotChart(context, series, chartScales, dms, zoomTransform, ticker !== 'SPY'));
     xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, zoomTransform));
@@ -117,26 +128,43 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   }, [series, ticker, dms, transform]);
 
   // draw crosshair & overlay
-  useEffect(() => {
-    const zoomTransform = transform ?? d3.zoomIdentity;
-    if (chartScalesRef.current) {
-      const scales = chartScalesRef.current;
-      const pointer = currentPointer.current;
-      const setDataPoint = (dataPoint: DataPoint) => {
-        currentDataPoint.current = dataPoint;
-        debouncedRedraw((val) => val + 1);
-      };
-      crosshairRef.current?.draw((context) => drawCrosshair(context, pointer, scales, zoomTransform, setDataPoint));
-      xOverlayRef.current?.draw((context) => drawXOverlay(context, zoomTransform, currentDataPoint.current));
-      yOverlayRef.current?.draw((context) => drawYOverlay(context, currentDataPoint.current));
-    }
-  }, [transform, redrawCount, debouncedRedraw]);
+  // useEffect(() => {
+  //   const zoomTransform = transform ?? d3.zoomIdentity;
+  //   if (chartScalesRef.current) {
+  //     const scales = chartScalesRef.current;
+  //     const pointer = currentPointer.current;
+  //     const setDataPoint = (dataPoint: DataPoint) => {
+  //       currentDataPoint.current = dataPoint;
+  //       debouncedRedraw((val) => val + 1);
+  //     };
+  //     crosshairRef.current?.draw((context) => drawCrosshair(context, pointer, scales, zoomTransform, setDataPoint));
+  //     xOverlayRef.current?.draw((context) => drawXOverlay(context, zoomTransform, currentDataPoint.current));
+  //     yOverlayRef.current?.draw((context) => drawYOverlay(context, currentDataPoint.current));
+  //   }
+  // }, [transform, redrawCount, debouncedRedraw]);
+
+  const handleMouseMove = (pointer: [number, number]) => {
+    if (!transformRef.current || !chartScalesRef.current) return;
+    const transform = transformRef.current ?? d3.zoomIdentity;
+    const dataPoint = findDataPoint(pointer, transform, chartScalesRef.current);
+    crosshairRef.current?.draw((context) => drawCrosshair(context, transform, dataPoint));
+    xOverlayRef.current?.draw((context) => drawXOverlay(context, transform, dataPoint));
+    yOverlayRef.current?.draw((context) => drawYOverlay(context, dataPoint));
+    setDataPoint(dataPoint);
+  };
+
+  const handleMouseOut = () => {
+    crosshairRef.current?.clear();
+    xOverlayRef.current?.clear();
+    yOverlayRef.current?.clear();
+    setDataPoint(null);
+  };
 
   return (
     <div ref={chartRef} {...props}>
       <StockQuote
         series={series}
-        index={currentDataPoint.current?.index ?? -1}
+        index={dataPoint?.index ?? -1}
         gapX={1}
         paddingX={2}
         flexWrap="wrap"
@@ -222,13 +250,15 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           height: chartDms.plotHeight
         }}
         onMouseMove={(e) => {
-          currentPointer.current = d3.pointer(e);
-          debouncedRedraw((val) => val + 1);
+          handleMouseMove(d3.pointer(e));
+          // currentPointer.current = d3.pointer(e);
+          // debouncedRedraw((val) => val + 1);
         }}
         onMouseOut={() => {
-          currentPointer.current = null;
-          currentDataPoint.current = null;
-          debouncedRedraw((val) => val + 1);
+          handleMouseOut();
+          // currentPointer.current = null;
+          // currentDataPoint.current = null;
+          // debouncedRedraw((val) => val + 1);
         }}
       />
     </div>
@@ -493,31 +523,75 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
   });
 };
 
-const drawCrosshair = (
-  context: CanvasRenderingContext2D,
-  pointer: [number, number] | null,
-  scales: ChartScales | null,
-  transform: d3.ZoomTransform,
-  setDataPoint: (dataPoint: DataPoint) => void
-) => {
-  if (!scales || !pointer) return;
-  context.translate(bitmap(transform.x), 0);
+const findDataPoint = (pointer: [number, number], transform: d3.ZoomTransform, scales: ChartScales): DataPoint => {
+  const [px, py] = pointer;
   const { xScale, yScale } = scales;
+  const canvasX = bitmap(px - transform.x);
+  const canvasY = bitmap(py);
+  const [x, date, index] = getInvertXScale(xScale)(canvasX);
+  const price = yScale.invert(canvasY);
+  return { index, x, y: canvasY, price, date, px, py };
+};
+
+// const drawCrosshair = (
+//   context: CanvasRenderingContext2D,
+//   pointer: [number, number] | null,
+//   scales: ChartScales | null,
+//   transform: d3.ZoomTransform,
+//   setDataPoint: (dataPoint: DataPoint) => void
+// ) => {
+//   if (!scales || !pointer) return;
+//   context.translate(bitmap(transform.x), 0);
+//   const { xScale, yScale } = scales;
+//   const canvasWidth = context.canvas.width;
+//   const canvasHeight = context.canvas.height;
+//   const [px, py] = pointer;
+//   const pixelRatio = devicePixelRatio || 1;
+
+//   // x
+//   const canvasX = bitmap(px - transform.x);
+//   const [x, date, index] = getInvertXScale(xScale)(canvasX);
+//   const lineWidth = Math.floor(pixelRatio);
+//   const correction = lineWidth % 2 === 0 ? 0 : 0.5;
+//   const adjustX = Math.floor(x) + correction;
+//   // y
+//   const canvasY = bitmap(py);
+//   const price = yScale.invert(canvasY);
+//   const adjustY = Math.ceil(canvasY) - correction;
+//   const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, transform);
+
+//   // draw vertical line
+//   context.beginPath();
+//   context.strokeStyle = getChartColors().crosshair;
+//   context.lineWidth = lineWidth;
+//   context.setLineDash([8, 4]);
+//   context.moveTo(adjustX, 0);
+//   context.lineTo(adjustX, canvasHeight);
+//   context.stroke();
+
+//   // draw horizontal line
+//   context.beginPath();
+//   context.moveTo(rangeStart, adjustY);
+//   context.lineTo(rangeEnd, adjustY);
+//   context.stroke();
+
+//   // set current point
+//   setDataPoint({ index: index, x: adjustX, y: adjustY, price, date, px, py });
+// };
+
+const drawCrosshair = (context: CanvasRenderingContext2D, transform: d3.ZoomTransform, dataPoint: DataPoint) => {
+  context.translate(bitmap(transform.x), 0);
   const canvasWidth = context.canvas.width;
   const canvasHeight = context.canvas.height;
-  const [px, py] = pointer;
   const pixelRatio = devicePixelRatio || 1;
+  const { x, y } = dataPoint;
 
   // x
-  const canvasX = bitmap(px - transform.x);
-  const [x, date, index] = getInvertXScale(xScale)(canvasX);
   const lineWidth = Math.floor(pixelRatio);
   const correction = lineWidth % 2 === 0 ? 0 : 0.5;
   const adjustX = Math.floor(x) + correction;
   // y
-  const canvasY = bitmap(py);
-  const price = yScale.invert(canvasY);
-  const adjustY = Math.ceil(canvasY) - correction;
+  const adjustY = Math.ceil(y) - correction;
   const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, transform);
 
   // draw vertical line
@@ -534,9 +608,6 @@ const drawCrosshair = (
   context.moveTo(rangeStart, adjustY);
   context.lineTo(rangeEnd, adjustY);
   context.stroke();
-
-  // set current point
-  setDataPoint({ index: index, x: adjustX, y: adjustY, price, date });
 };
 
 const drawXOverlay = (context: CanvasRenderingContext2D, transform: d3.ZoomTransform, dataPoint: DataPoint | null) => {

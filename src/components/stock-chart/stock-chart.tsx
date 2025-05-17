@@ -1,7 +1,6 @@
 import * as d3 from 'd3';
 import { FC, TouchEvent, useEffect, useMemo, useRef, useState } from 'react';
-// import { useDebounceCallback } from 'usehooks-ts';
-// import { useInterval } from 'usehooks-ts';
+import { useInterval } from 'usehooks-ts';
 import {
   dateFormat,
   dateOverlayFormat,
@@ -64,20 +63,16 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   const momentumRef = useRef({ isDragging: true, lastX: 0, velocity: 0, animationFrame: -1, time: 0 });
 
   // may use later
-  // const firstRender = useRef(false);
-  // useInterval(() => {
-  //   firstRender.current = true;
-  // }, 500);
+  const afterMounted = useRef(false);
+  useInterval(() => {
+    afterMounted.current = true;
+  }, 1000);
 
   // state
-  const [transform, setTransform] = useState<d3.ZoomTransform | null>(null);
   const [dataPoint, setDataPoint] = useState<DataPoint | null>(null);
   const [zoomEnabled, setZoomEnabled] = useState(true);
-  // const [redrawCount, setRedrawCount] = useState(0);
-  // const debouncedRedraw = useDebounceCallback(setRedrawCount, 0);
 
   const dms: CanvasDimensions = useMemo(() => {
-    // console.log(firstRender.current);
     return {
       bitmapWidth: bitmap(chartDms.plotWidth),
       bitmapHeight: bitmap(chartDms.plotHeight),
@@ -87,77 +82,25 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   }, [chartDms.plotHeight, chartDms.plotWidth]);
 
   useEffect(() => {
-    const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
-    const eventHandlerSelection = d3.select(eventHandlerElement);
-    const extent = [
-      [0, 0],
-      [dms.cssWidth, 0] // use canvas css width
-    ] as [[number, number], [number, number]];
-    if (series.length > 0) {
-      zoomRef.current = d3
-        .zoom<HTMLDivElement, unknown>()
-        .scaleExtent([1, 50])
-        .translateExtent(extent)
-        .extent(extent)
-        .on('start', () => {
-          eventHandlerElement.style.cursor = 'grabbing';
-        })
-        .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
-          if (sourceEvent instanceof MouseEvent) {
-            drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current));
-          }
-          setTransform(transform);
-        })
-        .on('end', () => {
-          eventHandlerElement.style.cursor = 'unset';
-        });
-
-      if (zoomEnabled) {
-        eventHandlerSelection.call(zoomRef.current);
-      }
-
-      // if (currentTransform) {
-      //   eventHandler.call(zoom.transform, currentTransform);
-      // } else {
-      //   eventHandler.call(zoom.transform, d3.zoomIdentity);
-      // }
+    if (afterMounted.current) {
+      console.log('do something here after resize');
+      // setZoomEnabled(false);
     }
-    return () => {
-      eventHandlerSelection.on('.zoom', null);
-    };
-  }, [series, dms, zoomEnabled]);
+  }, [chartDms.plotWidth]);
 
-  // plot chart, x&y axis
-  useEffect(() => {
-    if (series.length === 0) return;
-    const zoomTransform = transform ?? d3.zoomIdentity;
-    const chartScales = getChartScales(series, zoomTransform, dms);
-    transformRef.current = zoomTransform;
-    chartScalesRef.current = chartScales;
-    mainRef.current?.draw((context) => plotChart(context, series, chartScales, dms, zoomTransform, ticker !== 'SPY'));
-    xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, zoomTransform));
+  const updateChartScales = (series: StockDataPoint[], transform: d3.ZoomTransform, dms: CanvasDimensions) => {
+    transformRef.current = transform;
+    chartScalesRef.current = getChartScales(series, transform, dms);
+    return { transform: transformRef.current, chartScales: chartScalesRef.current };
+  };
+
+  const plotChartAndAxis = (series: StockDataPoint[], dms: CanvasDimensions, drawRS = true) => {
+    const transform = transformRef.current as d3.ZoomTransform;
+    const chartScales = chartScalesRef.current as ChartScales;
+    mainRef.current?.draw((context) => plotChart(context, series, chartScales, dms, transform, drawRS));
+    xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, transform));
     yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale));
-  }, [series, ticker, dms, transform]);
-
-  // draw crosshair & overlay
-  // useEffect(() => {
-  //   const zoomTransform = transform ?? d3.zoomIdentity;
-  //   if (chartScalesRef.current) {
-  //     const scales = chartScalesRef.current;
-  //     const pointer = currentPointer.current;
-  //     const setDataPoint = (dataPoint: DataPoint) => {
-  //       currentDataPoint.current = dataPoint;
-  //       debouncedRedraw((val) => val + 1);
-  //     };
-  //     crosshairRef.current?.draw((context) => drawCrosshair(context, pointer, scales, zoomTransform, setDataPoint));
-  //     xOverlayRef.current?.draw((context) => drawXOverlay(context, zoomTransform, currentDataPoint.current));
-  //     yOverlayRef.current?.draw((context) => drawYOverlay(context, currentDataPoint.current));
-  //   }
-  // }, [transform, redrawCount, debouncedRedraw]);
-
-  // const getZoomTransform = () => {
-  //   return eventHandlerRef.current ? d3.zoomTransform(eventHandlerRef.current) : d3.zoomIdentity;
-  // };
+  };
 
   const drawCrosshairAndOverlay = (pointer: [number, number]) => {
     if (!transformRef.current || !chartScalesRef.current) return;
@@ -251,6 +194,58 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       momentumRef.current.animationFrame = requestAnimationFrame(animateScroll);
     }
   };
+
+  useEffect(() => {
+    const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
+    const eventHandlerSelection = d3.select(eventHandlerElement);
+    const extent = [
+      [0, 0],
+      [dms.cssWidth, 0] // use canvas css width
+    ] as [[number, number], [number, number]];
+
+    if (series.length > 0) {
+      zoomRef.current = d3
+        .zoom<HTMLDivElement, unknown>()
+        .scaleExtent([1, 50])
+        .translateExtent(extent)
+        .extent(extent)
+        .on('start', () => {
+          eventHandlerElement.style.cursor = 'grabbing';
+        })
+        .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
+          // update crosshair when panning/zooming (Desktop only)
+          if (!isTouchDevice) {
+            drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current));
+          }
+
+          // update chart scales & plot chart with updated transform
+          updateChartScales(series, transform, dms);
+          plotChartAndAxis(series, dms, ticker !== 'SPY');
+        })
+        .on('end', () => {
+          eventHandlerElement.style.cursor = 'unset';
+        });
+
+      if (zoomEnabled) {
+        eventHandlerSelection.call(zoomRef.current);
+      }
+
+      // init plot chart
+      const transform = d3.zoomTransform(eventHandlerElement);
+      updateChartScales(series, transform, dms);
+      plotChartAndAxis(series, dms, ticker !== 'SPY');
+
+      // if (currentTransform) {
+      //   eventHandler.call(zoom.transform, currentTransform);
+      // } else {
+      //   eventHandler.call(zoom.transform, d3.zoomIdentity);
+      // }
+    }
+
+    return () => {
+      eventHandlerSelection.on('.zoom', null);
+    };
+  }, [series, ticker, dms, zoomEnabled]);
 
   return (
     <div
@@ -351,7 +346,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           if (isTouchDevice) return;
           drawCrosshairAndOverlay(d3.pointer(e));
         }}
-        onMouseOut={clearCrosshair}
+        onMouseOut={() => {
+          if (isTouchDevice) setZoomEnabled(true);
+          clearCrosshair();
+        }}
       />
     </div>
   );

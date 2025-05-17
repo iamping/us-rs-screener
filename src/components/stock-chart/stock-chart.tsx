@@ -61,7 +61,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   // ref for touch event & momentom scroll
   const timerRef = useRef<NodeJS.Timeout>(null);
   const isTapRef = useRef(false);
-  const momentumRef = useRef({ isDragging: true, lastX: 0, velocity: 0, animationFrame: -1 });
+  const momentumRef = useRef({ isDragging: true, lastX: 0, velocity: 0, animationFrame: -1, time: 0 });
 
   // may use later
   // const firstRender = useRef(false);
@@ -181,6 +181,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     momentumRef.current.isDragging = true;
     momentumRef.current.lastX = e.touches[0].clientX;
     momentumRef.current.velocity = 0;
+    momentumRef.current.time = performance.now();
     cancelAnimationFrame(momentumRef.current.animationFrame);
 
     // zoom/panning only if multi touch
@@ -231,16 +232,17 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   const momentumScroll = () => {
     const duration = 500; // ms
     const startTime = performance.now();
+    const elapsed = startTime - momentumRef.current.time;
     const dragging = momentumRef.current.isDragging;
-    if (zoomRef.current && eventHandlerRef.current && dragging) {
+    if (zoomRef.current && eventHandlerRef.current && dragging && elapsed < 250) {
       const zoom = zoomRef.current!;
+      const transform = d3.zoomTransform(eventHandlerRef.current);
       const eventHandlerSelection = d3.select(eventHandlerRef.current);
       const initialDelta = momentumRef.current.velocity;
       const animateScroll: FrameRequestCallback = (now) => {
-        console.log('animateScroll', momentumRef.current.velocity);
         const t = Math.min((now - startTime) / duration, 1); // normalized time [0,1]
         const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
-        const delta = initialDelta * (1 - ease); // decelerate
+        const delta = (initialDelta * (1 - ease) * devicePixelRatio) / transform.k; // decelerate
         eventHandlerSelection.call(zoom.translateBy, delta, 0);
         if (t < 1 && Math.abs(delta) > 0.2) {
           momentumRef.current.animationFrame = requestAnimationFrame(animateScroll);
@@ -756,8 +758,8 @@ const getChartScales = (series: StockDataPoint[], transform: d3.ZoomTransform, d
   );
   const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, transform, bitmapWidth);
   const yScale = getYScale([bitmapHeight * barArea, 0], visibleDomain);
-  const firstVisibleIdx = Math.max(visibleIndex[0] - 2, 0);
-  const lastVisibleIdx = visibleIndex[1] + 2;
+  const firstVisibleIdx = Math.max(visibleIndex[0] - 10, 0);
+  const lastVisibleIdx = visibleIndex[1] + 10;
   const volumeScale = getLinearScale(
     [0, bitmapHeight * volumeArea],
     [0, d3.max(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.volume)) ?? 0]

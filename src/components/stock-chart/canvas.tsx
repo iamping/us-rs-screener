@@ -13,6 +13,7 @@ export interface CanvasHandle {
 export const Canvas: FC<CanvasProps> = ({ ref, ...rest }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawRef = useRef<DrawFunc>(null);
+  const animationFrameRef = useRef(-1);
 
   useImperativeHandle(ref, () => {
     const canvas = canvasRef.current as HTMLCanvasElement;
@@ -20,9 +21,14 @@ export const Canvas: FC<CanvasProps> = ({ ref, ...rest }) => {
     return {
       draw: (drawFunc) => {
         drawRef.current = drawFunc;
-        predraw(context);
-        drawFunc(context);
-        postdraw(context);
+        const animateRender = () => {
+          predraw(context);
+          drawFunc(context);
+          postdraw(context);
+          animationFrameRef.current = -1;
+        };
+        if (animationFrameRef.current !== -1) return;
+        animationFrameRef.current = requestAnimationFrame(animateRender);
       },
       clear: () => {
         drawRef.current = null;

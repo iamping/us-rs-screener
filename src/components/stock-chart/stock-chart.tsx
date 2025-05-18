@@ -7,13 +7,12 @@ import {
   dateTicks,
   getBitmapPixel as bitmap,
   getChartColors,
-  getInvertXScale,
   logTicks,
   priceFormat,
   priceOverlayFormat
 } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
-import { CanvasDimensions, ChartScales, DataPoint, StockDataPoint, XScale, YScale } from '@/types/chart.type';
+import { CanvasDimensions, ChartScales, DataPoint, LinearScale, StockDataPoint } from '@/types/chart.type';
 import { Stock } from '@/types/stock.type';
 import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
 import { Canvas, CanvasHandle } from './canvas';
@@ -98,14 +97,14 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     const transform = transformRef.current as d3.ZoomTransform;
     const chartScales = chartScalesRef.current as ChartScales;
     mainRef.current?.draw((context) => plotChart(context, series, chartScales, dms, transform, drawRS));
-    xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, transform));
+    xAxisRef.current?.draw((context) => drawXAxis(context, series, chartScales.xScale, transform));
     yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale));
   };
 
-  const drawCrosshairAndOverlay = (pointer: [number, number]) => {
+  const drawCrosshairAndOverlay = (pointer: [number, number], series: StockDataPoint[]) => {
     if (!transformRef.current || !chartScalesRef.current) return;
     const transform = transformRef.current ?? d3.zoomIdentity;
-    const dataPoint = findDataPoint(pointer, transform, chartScalesRef.current);
+    const dataPoint = findDataPoint(pointer, series, transform, chartScalesRef.current);
     crosshairRef.current?.draw((context) => drawCrosshair(context, transform, dataPoint));
     xOverlayRef.current?.draw((context) => drawXOverlay(context, transform, dataPoint));
     yOverlayRef.current?.draw((context) => drawYOverlay(context, dataPoint));
@@ -141,7 +140,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     timerRef.current = setTimeout(() => {
       isTapRef.current = false;
       setZoomEnabled(false);
-      drawCrosshairAndOverlay(d3.pointer(e.touches[0], eventHandlerRef.current));
+      drawCrosshairAndOverlay(d3.pointer(e.touches[0], eventHandlerRef.current), series);
     }, 200);
   };
 
@@ -157,7 +156,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       isTapRef.current = false;
       const [x, y] = d3.pointer(e.touches[0], eventHandlerRef.current);
       if (x > 0 && x < dms.cssWidth && y > 0 && y < dms.cssHeight - 5) {
-        drawCrosshairAndOverlay([x, y]);
+        drawCrosshairAndOverlay([x, y], series);
       }
     }
     clearTimeout(timerRef.current ?? undefined);
@@ -215,7 +214,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
           // update crosshair when panning/zooming (Desktop only)
           if (!isTouchDevice) {
-            drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current));
+            drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current), series);
           }
 
           // update chart scales & plot chart with updated transform
@@ -344,7 +343,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         }}
         onMouseMove={(e) => {
           if (isTouchDevice) return;
-          drawCrosshairAndOverlay(d3.pointer(e));
+          drawCrosshairAndOverlay(d3.pointer(e), series);
         }}
         onMouseOut={() => {
           if (isTouchDevice) setZoomEnabled(true);
@@ -355,20 +354,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   );
 };
 
-const getXScale = (range: number[], dates: Date[]) => {
-  return d3.scaleBand<Date>().range(range).domain(dates).padding(0.8);
-};
-
-const getYScale = (range: number[], domain: number[]) => {
-  return d3.scaleLog().range(range).domain(domain);
-};
-
-const getLinearScale = (range: number[], domain: number[]) => {
-  return d3.scaleLinear().range(range).domain(domain);
-};
-
 const getVisibleDomain = (
-  xScale: XScale,
+  xScale: LinearScale,
   series: StockDataPoint[],
   transform: d3.ZoomTransform,
   bitmapWidth: number
@@ -377,7 +364,7 @@ const getVisibleDomain = (
   const visibleIndex: number[] = [];
   // find min & max visible price
   series.forEach((d, i) => {
-    const x = xScale(d.date) ?? 0;
+    const x = xScale(i);
     const { rangeStart, rangeEnd } = getVisibleRange(bitmapWidth, transform);
     if (x > rangeStart && x <= rangeEnd) {
       if (visibleIndex.length === 0) visibleIndex[0] = i;
@@ -420,10 +407,10 @@ const plotChart = (
   // translate canvas on zoom event
   context.translate(bitmap(transform.x), 0);
   const { xScale, yScale, volumeScale, rsScale } = scales;
-  const bandWidth = Math.max(Math.ceil(xScale.bandwidth()), 2);
+  const bandWidth = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 5);
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
-  const tickLength = Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) / 3);
-  const barWidth = Math.max(2, Math.ceil(Math.abs((xScale(series[1].date) ?? 0) - (xScale(series[0].date) ?? 0)) - 5));
+  const tickLength = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 3);
+  const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
   const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
   const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors();
@@ -433,12 +420,12 @@ const plotChart = (
   if (isDaily) {
     const ema21Line = d3
       .line<StockDataPoint>(
-        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (_, i) => xScale(i) + bandWidth / 2,
         (d) => yScale(d.ema21 ?? 0)
       )
       .context(context);
     context.beginPath();
-    ema21Line(series.filter((d) => !!d.ema21));
+    ema21Line(series);
     context.lineWidth = lineWidth;
     context.strokeStyle = colors.ema21;
     context.stroke();
@@ -446,12 +433,12 @@ const plotChart = (
     // draw ema 50
     const ema50Line = d3
       .line<StockDataPoint>(
-        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (_, i) => xScale(i) + bandWidth / 2,
         (d) => yScale(d.ema50 ?? 0)
       )
       .context(context);
     context.beginPath();
-    ema50Line(series.filter((d) => !!d.ema50));
+    ema50Line(series);
     context.lineWidth = lineWidth;
     context.strokeStyle = colors.ema50;
     context.stroke();
@@ -459,12 +446,12 @@ const plotChart = (
     // draw ema 200
     const ema200Line = d3
       .line<StockDataPoint>(
-        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (_, i) => xScale(i) + bandWidth / 2,
         (d) => yScale(d.ema200 ?? 0)
       )
       .context(context);
     context.beginPath();
-    ema200Line(series.filter((d) => !!d.ema200));
+    ema200Line(series);
     context.lineWidth = lineWidth;
     context.strokeStyle = colors.ema200;
     context.stroke();
@@ -472,12 +459,12 @@ const plotChart = (
     // 10 week
     const ema10Line = d3
       .line<StockDataPoint>(
-        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (_, i) => xScale(i) + bandWidth / 2,
         (d) => yScale(d.ema10 ?? 0)
       )
       .context(context);
     context.beginPath();
-    ema10Line(series.filter((d) => !!d.ema10));
+    ema10Line(series);
     context.lineWidth = lineWidth;
     context.strokeStyle = colors.ema50;
     context.stroke();
@@ -485,12 +472,12 @@ const plotChart = (
     // 40 week
     const ema40Line = d3
       .line<StockDataPoint>(
-        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (_, i) => xScale(i) + bandWidth / 2,
         (d) => yScale(d.ema40 ?? 0)
       )
       .context(context);
     context.beginPath();
-    ema40Line(series.filter((d) => !!d.ema40));
+    ema40Line(series);
     context.lineWidth = lineWidth;
     context.strokeStyle = colors.ema200;
     context.stroke();
@@ -501,7 +488,7 @@ const plotChart = (
   if (showRs) {
     const rsLine = d3
       .line<StockDataPoint>(
-        (d) => (xScale(d.date) ?? 0) + bandWidth / 2,
+        (_, i) => xScale(i) + bandWidth / 2,
         (d) => rsScale(d.rs) + rsOffsetY
       )
       .context(context);
@@ -512,15 +499,14 @@ const plotChart = (
     context.stroke();
   }
 
-  series.forEach((d) => {
-    const x = Math.floor(xScale(d.date) ?? 0) + correction;
-    const barX = Math.floor(xScale(d.date) ?? 0);
+  series.forEach((d, i) => {
+    const x = Math.floor(xScale(i)) + correction;
+    const barX = Math.floor(xScale(i));
     const low = yScale(d.low);
     const high = yScale(d.high);
     const close = Math.round(yScale(d.close));
     const open = Math.round(yScale(d.open));
 
-    // console.log(x, bandWidth);
     // draw price bar
     context.strokeStyle = d.change > 0 ? colors.up : colors.down;
     context.lineWidth = bandWidth;
@@ -557,7 +543,7 @@ const plotChart = (
     // draw small circle for rs new high
     const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;
     if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
-      const cx = (xScale(d.date) ?? 0) + bandWidth / 2;
+      const cx = xScale(i) + bandWidth / 2;
       const cy = rsScale(d.rs) + rsOffsetY;
       const radius = devicePixelRatio * transform.k * 1.2;
       context.beginPath();
@@ -568,16 +554,21 @@ const plotChart = (
   });
 };
 
-const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform: d3.ZoomTransform) => {
+const drawXAxis = (
+  context: CanvasRenderingContext2D,
+  series: StockDataPoint[],
+  xScale: LinearScale,
+  transform: d3.ZoomTransform
+) => {
   context.translate(bitmap(transform.x), 0);
-  const tickValues = dateTicks(xScale.domain());
+  const tickValues = dateTicks(series.map((d) => d.date));
   const canvasWidth = context.canvas.width;
   const font = getLabelFont(12);
   const y = bitmap(15);
   const minDistance = bitmap(30);
-  const diffX = Math.abs((xScale(tickValues[0]) ?? 0) - (xScale(tickValues[1]) ?? 0));
+  const diffX = Math.abs(xScale(tickValues[0].index) - xScale(tickValues[1].index));
   const step = Math.min(Math.ceil(minDistance / diffX), 4); // step should be 1,2,3,4 to always correctly get January
-  const firstJanIndex = tickValues.findIndex((d) => d.getMonth() === 0);
+  const firstJanIndex = tickValues.map((d) => d.date).findIndex((d) => d.getMonth() === 0);
   const startIndex = Math.min(...d3.range(firstJanIndex, -1, -step));
   const displayIndex = d3.range(startIndex, tickValues.length, step);
 
@@ -586,17 +577,17 @@ const drawXAxis = (context: CanvasRenderingContext2D, xScale: XScale, transform:
   const offset = bitmap(10);
 
   tickValues.forEach((d, i) => {
-    const x = Math.round(xScale(d) ?? 0);
+    const x = Math.round(xScale(d.index));
     if (displayIndex.includes(i) && x > rangeStart + offset && x < rangeEnd - offset) {
       context.font = font;
       context.textBaseline = 'middle';
       context.textAlign = 'center';
-      context.fillText(dateFormat(d), x, y);
+      context.fillText(dateFormat(d.date), x, y);
     }
   });
 };
 
-const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
+const drawYAxis = (context: CanvasRenderingContext2D, yScale: LinearScale) => {
   const [min, max] = yScale.domain();
   const priceFormatFnc = priceFormat(max);
   const tickValues = logTicks(min * 0.95, max);
@@ -613,61 +604,23 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale) => {
   });
 };
 
-const findDataPoint = (pointer: [number, number], transform: d3.ZoomTransform, scales: ChartScales): DataPoint => {
+const findDataPoint = (
+  pointer: [number, number],
+  series: StockDataPoint[],
+  transform: d3.ZoomTransform,
+  scales: ChartScales
+): DataPoint => {
   const [px, py] = pointer;
   const { xScale, yScale } = scales;
   const canvasX = bitmap(px - transform.x);
   const canvasY = bitmap(py);
-  const [x, date, index] = getInvertXScale(xScale)(canvasX);
+  const domain = xScale.invert(canvasX);
+  const index = domain < 0 ? 0 : Math.min(Math.round(domain), series.length - 1);
+  const x = xScale(index);
+  const date = series[index].date;
   const price = yScale.invert(canvasY);
   return { index, x, y: canvasY, price, date, px, py };
 };
-
-// const drawCrosshair = (
-//   context: CanvasRenderingContext2D,
-//   pointer: [number, number] | null,
-//   scales: ChartScales | null,
-//   transform: d3.ZoomTransform,
-//   setDataPoint: (dataPoint: DataPoint) => void
-// ) => {
-//   if (!scales || !pointer) return;
-//   context.translate(bitmap(transform.x), 0);
-//   const { xScale, yScale } = scales;
-//   const canvasWidth = context.canvas.width;
-//   const canvasHeight = context.canvas.height;
-//   const [px, py] = pointer;
-//   const pixelRatio = devicePixelRatio || 1;
-
-//   // x
-//   const canvasX = bitmap(px - transform.x);
-//   const [x, date, index] = getInvertXScale(xScale)(canvasX);
-//   const lineWidth = Math.floor(pixelRatio);
-//   const correction = lineWidth % 2 === 0 ? 0 : 0.5;
-//   const adjustX = Math.floor(x) + correction;
-//   // y
-//   const canvasY = bitmap(py);
-//   const price = yScale.invert(canvasY);
-//   const adjustY = Math.ceil(canvasY) - correction;
-//   const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, transform);
-
-//   // draw vertical line
-//   context.beginPath();
-//   context.strokeStyle = getChartColors().crosshair;
-//   context.lineWidth = lineWidth;
-//   context.setLineDash([8, 4]);
-//   context.moveTo(adjustX, 0);
-//   context.lineTo(adjustX, canvasHeight);
-//   context.stroke();
-
-//   // draw horizontal line
-//   context.beginPath();
-//   context.moveTo(rangeStart, adjustY);
-//   context.lineTo(rangeEnd, adjustY);
-//   context.stroke();
-
-//   // set current point
-//   setDataPoint({ index: index, x: adjustX, y: adjustY, price, date, px, py });
-// };
 
 const drawCrosshair = (context: CanvasRenderingContext2D, transform: d3.ZoomTransform, dataPoint: DataPoint) => {
   context.translate(bitmap(transform.x), 0);
@@ -750,21 +703,25 @@ const drawYOverlay = (context: CanvasRenderingContext2D, dataPoint: DataPoint | 
 
 const getChartScales = (series: StockDataPoint[], transform: d3.ZoomTransform, dms: CanvasDimensions) => {
   const { bitmapWidth, bitmapHeight } = dms;
-  const xScale = getXScale(
-    [0, bitmapWidth * transform.k],
-    series.map((d) => d.date)
-  );
+  const xScale = d3
+    .scaleLinear()
+    .range([0, bitmapWidth * transform.k])
+    .domain([-1, series.length]) // add a little bit margin for first & last point
+    .clamp(true);
   const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, transform, bitmapWidth);
-  const yScale = getYScale([bitmapHeight * barArea, 0], visibleDomain);
+  const yScale = d3
+    .scaleLog()
+    .range([bitmapHeight * barArea, 0])
+    .domain(visibleDomain);
   const firstVisibleIdx = Math.max(visibleIndex[0] - 10, 0);
   const lastVisibleIdx = visibleIndex[1] + 10;
-  const volumeScale = getLinearScale(
-    [0, bitmapHeight * volumeArea],
-    [0, d3.max(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.volume)) ?? 0]
-  );
-  const rsScale = getLinearScale(
-    [bitmapHeight * rsArea, 0],
-    d3.extent(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.rs)) as [number, number]
-  );
+  const volumeScale = d3
+    .scaleLinear()
+    .range([0, bitmapHeight * volumeArea])
+    .domain([0, d3.max(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.volume)) ?? 0]);
+  const rsScale = d3
+    .scaleLinear()
+    .range([bitmapHeight * rsArea, 0])
+    .domain(d3.extent(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.rs)) as [number, number]);
   return { xScale, yScale, volumeScale, rsScale };
 };

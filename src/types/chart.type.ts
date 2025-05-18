@@ -27,16 +27,15 @@ export interface StockDataPoint {
   rsStatus: { isNewHigh: boolean; isNewHighBeforePrice: boolean };
 }
 
-export type XScale = d3.ScaleBand<Date>;
-export type YScale = d3.ScaleLogarithmic<number, number>;
-export type VolScale = d3.ScaleLinear<number, number>;
-export type RsScale = d3.ScaleLinear<number, number>;
+export type BandScale = d3.ScaleBand<Date>;
+export type LogScale = d3.ScaleLogarithmic<number, number>;
+export type LinearScale = d3.ScaleLinear<number, number>;
 
 export interface ChartScales {
-  xScale: XScale;
-  yScale: YScale;
-  volumeScale: VolScale;
-  rsScale: RsScale;
+  xScale: LinearScale;
+  yScale: LogScale;
+  volumeScale: LinearScale;
+  rsScale: LinearScale;
 }
 
 export type CanvasDimensions = {

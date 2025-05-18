@@ -1,5 +1,5 @@
 import { bisectCenter, format, utcFormat } from 'd3';
-import { XScale } from '@/types/chart.type';
+import { BandScale } from '@/types/chart.type';
 import { getCssVar } from '@/utils/common.utils';
 
 export const getBitmapPixel = (pixel: number) => {
@@ -25,15 +25,17 @@ export const dateOverlayFormat = utcFormat("%a %d %b '%y");
 
 export const dateTicks = (dates: Date[]) => {
   const dateSet: string[] = [];
-  return dates.filter((date) => {
-    const key = `${date.getMonth()},${date.getFullYear()}`;
-    if (dateSet.includes(key)) {
-      return false;
-    } else {
-      dateSet.push(key);
-      return true;
-    }
-  });
+  return dates
+    .map((date, index) => ({ date, index }))
+    .filter(({ date }) => {
+      const key = `${date.getMonth()},${date.getFullYear()}`;
+      if (dateSet.includes(key)) {
+        return false;
+      } else {
+        dateSet.push(key);
+        return true;
+      }
+    });
 };
 
 export const logTicks = (min: number, max: number) => {
@@ -48,7 +50,8 @@ export const logTicks = (min: number, max: number) => {
   return [...new Set(ticks)].slice(1);
 };
 
-export const getInvertXScale = (xScale: XScale) => {
+// For band scale, not used anymore
+export const getInvertXScale = (xScale: BandScale) => {
   const domain = xScale.domain();
   const xList = domain.map((d) => xScale(d) ?? 0);
   return (x: number) => {

@@ -61,9 +61,9 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   const momentumRef = useRef({ isDragging: true, lastX: 0, velocity: 0, animationFrame: -1, time: 0 });
 
   // may use later
-  const afterMounted = useRef(false);
+  const firstDraw = useRef(true);
   useInterval(() => {
-    afterMounted.current = true;
+    firstDraw.current = false;
   }, 1000);
 
   // state
@@ -80,7 +80,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   }, [chartDms.plotHeight, chartDms.plotWidth]);
 
   useEffect(() => {
-    if (afterMounted.current) {
+    if (firstDraw.current) {
       console.log('do something here after resize');
       // setZoomEnabled(false);
     }
@@ -194,6 +194,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   };
 
   useEffect(() => {
+    const isFew = series.length <= 80;
+    const initialScale = isFew ? 1 : 3;
     const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
     const eventHandlerSelection = d3.select(eventHandlerElement);
     const extent = [
@@ -204,7 +206,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     if (series.length > 0) {
       zoomRef.current = d3
         .zoom<HTMLDivElement, unknown>()
-        .scaleExtent([1, 50])
+        .scaleExtent([1, 30])
         .translateExtent(extent)
         .extent(extent)
         .on('start', () => {
@@ -212,7 +214,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         })
         .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
           // update crosshair when panning/zooming (Desktop only)
-          if (!isTouchDevice) {
+          if (!isTouchDevice && sourceEvent) {
             drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current), series);
           }
 
@@ -226,6 +228,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
 
       if (zoomEnabled) {
         eventHandlerSelection.call(zoomRef.current);
+        if (firstDraw.current) {
+          eventHandlerSelection.call(zoomRef.current.transform, d3.zoomIdentity.scale(initialScale));
+          eventHandlerSelection.call(zoomRef.current.translateBy, -dms.cssWidth * 2, 0);
+        }
       }
 
       // init plot chart
@@ -705,7 +711,7 @@ const getChartScales = (series: StockDataPoint[], transform: d3.ZoomTransform, d
   const xScale = d3
     .scaleLinear()
     .range([0, bitmapWidth * transform.k])
-    .domain([-1, series.length]) // add a little bit margin for first & last point
+    .domain([-1, series.length + Math.floor(series.length / (transform.k * 100))]) // add a little bit margin for first & last point
     .clamp(true);
   const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, transform, bitmapWidth);
   const yScale = d3

@@ -31,6 +31,7 @@ const barArea = 0.8;
 const volumeArea = 0.2;
 const rsArea = 0.3;
 const isTouchDevice = isTouchDeviceMatchMedia();
+const rsRadius = 6;
 
 export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
   const [chartRef, chartDms] = useChartDimensions<HTMLDivElement>({
@@ -545,7 +546,7 @@ const plotChart = (
     if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
       const cx = xScale(i) + bandWidth / 2;
       const cy = rsScale(d.rs) + rsOffsetY;
-      const radius = devicePixelRatio * transform.k * 1.2;
+      const radius = devicePixelRatio * rsRadius;
       context.beginPath();
       context.fillStyle = isNewHighBeforePrice ? colors.rsNewHighBeforePrice : colors.rsNewHigh;
       context.arc(cx, cy, radius, 0, 2 * Math.PI);

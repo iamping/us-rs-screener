@@ -36,9 +36,6 @@ export default defineConfig({
           ) {
             return 'vendor-ui';
           }
-          if (id.includes('highcharts')) {
-            return 'vendor-chart';
-          }
           if (id.includes('node_modules')) {
             return 'vendor';
           }

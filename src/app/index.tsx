@@ -6,7 +6,7 @@ import { TopBar } from '@/components/top-bar/top-bar';
 import { dataMapping } from '@/helpers/table.helper';
 import { fetchStockRsList } from '@/services/data.service';
 import { filteredStockListAtom, stockListAtom } from '@/states/atom';
-import { Stock } from '@/types/stock';
+import { Stock } from '@/types/stock.type';
 
 export const App: FC = () => {
   const [error, setError] = useState<null | string>(null);

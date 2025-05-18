@@ -1,18 +1,19 @@
-import { Stock } from '@/types/stock';
-import { HistoricalData } from '@/types/stock-chart';
+import { HistoricalData } from '@/types/chart.type';
+import { Stock } from '@/types/stock.type';
 
 const cacheKey = 'historical-' + new Date().toISOString().substring(0, 13);
-const timeout = 5000;
+const timeout = 10000;
 
 export const fetchStockRsList = async (): Promise<Stock[]> => {
-  const url = './api/us_rs_list.json';
+  // will change it back later
+  // const url = './api/us_rs_list.json';
+  const url = 'https://iamping.github.io/us-rs-screener/api/us_rs_list.json';
   return await fetchOrRetrieve(url, cacheKey);
 };
 
 export const fetchHistoricalData = async (ticker: string): Promise<HistoricalData> => {
   const params = new URLSearchParams({ ticker: ticker }).toString();
-  // const path = import.meta.env.DEV ? './historical-api' : 'https://yf-proxy.koyeb.app/';
-  const path = 'https://yf-proxy.koyeb.app/';
+  const path = import.meta.env.DEV ? './historical-api' : 'https://yf-proxy.koyeb.app/';
   const url = `${path}?${params}`;
   return await fetchOrRetrieve(url, cacheKey);
 };

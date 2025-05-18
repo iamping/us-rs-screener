@@ -5,9 +5,11 @@
   --table-height: calc(100dvh - 48px);
   --preset-content-max-height: calc(100dvh - 100px);
   --filter-content-max-height: calc(100dvh / 3);
+  --font-outfit: 'Outfit', serif;
+
+  /* colors for chart */
   --colors-rs-new-high-before-price: rgb(0, 200, 0, 0.25);
   --colors-rs-new-high: rgb(0, 0, 0, 0.25);
-  --font-outfit: 'Outfit', serif;
 }
 
 body {
@@ -15,6 +17,11 @@ body {
   min-width: 380px;
   font-optical-sizing: auto;
   font-variant-numeric: lining-nums tabular-nums;
+  -webkit-touch-callout: none; /* Safari */
+  -webkit-user-select: none; /* Chrome */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
 }
 
 .scrollbar {
@@ -260,5 +267,20 @@ div[data-highcharts-chart] {
   }
   100% {
     transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* css for new chart*/
+.tick-value {
+  font-size: 12px;
+}
+
+.stock-chart {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  &[data-loading='true'] {
+    opacity: 0.2;
   }
 }

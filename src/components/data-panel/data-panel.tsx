@@ -4,9 +4,9 @@ import { useMemo, useRef } from 'react';
 import { ImperativePanelGroupHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
 import { DataTable, DataTableProps } from '@/components/data-table/data-table';
-import { StockChart } from '@/components/stock-chart/stock-chart';
 import { tickerAtom } from '@/states/atom';
 import { setCssVar } from '@/utils/common.utils';
+import { StockInfoPanel } from '../stock-chart/stock-info-panel';
 
 type DataPanelGroupProps = DataTableProps;
 
@@ -25,13 +25,13 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
     const isLandscape = windowSize.width > windowSize.height;
     if (isLandscape) {
       setCssVar('--table-height', computeHeight(windowSize.height, topMargin));
-      setCssVar('--chart-height', computeHeight(windowSize.height, topMargin));
+      setCssVar('--chart-panel-height', computeHeight(windowSize.height, topMargin));
     } else {
       if (panelGroupRef.current) {
         const layout = panelGroupRef.current.getLayout();
         const panelSize = layout.slice(-1).at(0) ?? 100; // only table panel size
         setCssVar('--table-height', computeHeight(windowSize.height, topMargin, panelSize));
-        setCssVar('--chart-height', computeHeight(windowSize.height, topMargin, 100 - panelSize));
+        setCssVar('--chart-panel-height', computeHeight(windowSize.height, topMargin, 100 - panelSize));
       }
     }
     return isLandscape;
@@ -40,10 +40,10 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
   const onPanelResize = (panelSize: number) => {
     if (isLandscape) {
       setCssVar('--table-height', computeHeight(windowSize.height, topMargin));
-      setCssVar('--chart-height', computeHeight(windowSize.height, topMargin));
+      setCssVar('--chart-panel-height', computeHeight(windowSize.height, topMargin));
     } else {
       setCssVar('--table-height', computeHeight(windowSize.height, topMargin, panelSize));
-      setCssVar('--chart-height', computeHeight(windowSize.height, topMargin, 100 - panelSize));
+      setCssVar('--chart-panel-height', computeHeight(windowSize.height, topMargin, 100 - panelSize));
     }
   };
   const onDebounceResize = useDebounceCallback(onPanelResize, 100);
@@ -55,12 +55,12 @@ export const DataPanelGroup = ({ data = [] }: DataPanelGroupProps) => {
       direction={isLandscape ? 'horizontal' : 'vertical'}
       className="data-panel-group">
       <Show when={ticker.length > 0}>
-        <Panel id="panel-chart" minSize={40} order={1}>
-          <StockChart ticker={ticker} />
+        <Panel id="panel-chart" minSize={40} order={1} style={{ height: 'var(--chart-panel-height)' }}>
+          <StockInfoPanel ticker={ticker} />
         </Panel>
         <PanelResizeHandle className={isLandscape ? 'resize-handle' : 'resize-handle portrait'}></PanelResizeHandle>
       </Show>
-      <Panel id="panel-stock" minSize={30} order={2} onResize={onDebounceResize}>
+      <Panel id="panel-table" minSize={30} order={2} onResize={onDebounceResize}>
         <DataTable data={data} />
       </Panel>
     </PanelGroup>

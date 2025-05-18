@@ -5,7 +5,7 @@ import { PiGearBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { appSettingsAtom } from '@/states/atom';
-import { Settings } from '@/types/shared';
+import { Settings } from '@/types/shared.type';
 
 interface SettingsProps {
   currentSettings?: Settings;

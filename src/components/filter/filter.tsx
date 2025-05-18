@@ -5,7 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 import { PiFunnelBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
 import { manualFilterAtom } from '@/states/atom';
-import { FilterVariant } from '@/types/shared';
+import { FilterVariant } from '@/types/shared.type';
 import { ComboBoxFilter } from './combobox-filter';
 import { EmptyFilter } from './empty-filter';
 import { MultiSelectFilter } from './multi-select-filter';

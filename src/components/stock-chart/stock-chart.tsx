@@ -51,8 +51,6 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
 
   // ref
   const eventHandlerRef = useRef<HTMLDivElement>(null);
-  // const currentPointer = useRef<[number, number]>(null);
-  // const currentDataPoint = useRef<DataPoint>(null);
   const chartScalesRef = useRef<ChartScales>(null);
   const transformRef = useRef<d3.ZoomTransform>(null);
   const zoomRef = useRef<d3.ZoomBehavior<HTMLDivElement, unknown>>(null);
@@ -408,7 +406,7 @@ const plotChart = (
   // translate canvas on zoom event
   context.translate(bitmap(transform.x), 0);
   const { xScale, yScale, volumeScale, rsScale } = scales;
-  const bandWidth = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 5);
+  const bandWidth = Math.max(Math.ceil(Math.abs(xScale(1) - xScale(0)) / 5), Math.floor(devicePixelRatio));
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
   const tickLength = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 3);
   const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
@@ -421,7 +419,7 @@ const plotChart = (
   if (isDaily) {
     const ema21Line = d3
       .line<StockDataPoint>(
-        (_, i) => xScale(i) + bandWidth / 2,
+        (_, i) => xScale(i),
         (d) => yScale(d.ema21 ?? 0)
       )
       .context(context);
@@ -434,7 +432,7 @@ const plotChart = (
     // draw ema 50
     const ema50Line = d3
       .line<StockDataPoint>(
-        (_, i) => xScale(i) + bandWidth / 2,
+        (_, i) => xScale(i),
         (d) => yScale(d.ema50 ?? 0)
       )
       .context(context);
@@ -447,7 +445,7 @@ const plotChart = (
     // draw ema 200
     const ema200Line = d3
       .line<StockDataPoint>(
-        (_, i) => xScale(i) + bandWidth / 2,
+        (_, i) => xScale(i),
         (d) => yScale(d.ema200 ?? 0)
       )
       .context(context);
@@ -460,7 +458,7 @@ const plotChart = (
     // 10 week
     const ema10Line = d3
       .line<StockDataPoint>(
-        (_, i) => xScale(i) + bandWidth / 2,
+        (_, i) => xScale(i),
         (d) => yScale(d.ema10 ?? 0)
       )
       .context(context);
@@ -473,7 +471,7 @@ const plotChart = (
     // 40 week
     const ema40Line = d3
       .line<StockDataPoint>(
-        (_, i) => xScale(i) + bandWidth / 2,
+        (_, i) => xScale(i),
         (d) => yScale(d.ema40 ?? 0)
       )
       .context(context);
@@ -489,7 +487,7 @@ const plotChart = (
   if (showRs) {
     const rsLine = d3
       .line<StockDataPoint>(
-        (_, i) => xScale(i) + bandWidth / 2,
+        (_, i) => xScale(i),
         (d) => rsScale(d.rs) + rsOffsetY
       )
       .context(context);
@@ -535,7 +533,7 @@ const plotChart = (
     } else {
       context.strokeStyle = isGainer ? colors.gainerVolume : isLoser ? colors.loserVolume : colors.normalVolume;
     }
-    context.lineWidth = barWidth; // bandWidth * 2;
+    context.lineWidth = barWidth;
     context.beginPath();
     context.moveTo(barX - barCorrection, dms.bitmapHeight);
     context.lineTo(barX - barCorrection, dms.bitmapHeight - volumeBarHeight);
@@ -544,7 +542,7 @@ const plotChart = (
     // draw small circle for rs new high
     const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;
     if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
-      const cx = xScale(i) + bandWidth / 2;
+      const cx = xScale(i);
       const cy = rsScale(d.rs) + rsOffsetY;
       const radius = devicePixelRatio * rsRadius;
       context.beginPath();

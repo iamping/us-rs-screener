@@ -249,7 +249,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
 
       // init plot chart
       if (isResizing.current) {
-        const lastIndex = lastVisibleIndex.current[1] + 1;
+        const lastIndex = Math.min(lastVisibleIndex.current[1] + 1, series.length);
         const transform = d3.zoomTransform(eventHandlerElement);
         const { chartScales } = updateChartScales(series, transform, dms); // need transform.k only :)
         const xScale = chartScales.xScale;

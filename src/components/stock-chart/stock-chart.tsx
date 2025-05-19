@@ -60,10 +60,12 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   const isTapRef = useRef(false);
   const momentumRef = useRef({ isDragging: true, lastX: 0, velocity: 0, animationFrame: -1, time: 0 });
 
-  // may use later
-  const firstDraw = useRef(true);
+  // ref for resizing
+  const isFirstRendering = useRef(true);
+  const isResizing = useRef(false);
+  const lastVisibleIndex = useRef<number[]>([]);
   useInterval(() => {
-    firstDraw.current = false;
+    isFirstRendering.current = false;
   }, 1000);
 
   // state
@@ -80,15 +82,22 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   }, [chartDms.plotHeight, chartDms.plotWidth]);
 
   useEffect(() => {
-    if (firstDraw.current) {
-      console.log('do something here after resize');
-      // setZoomEnabled(false);
+    if (!isFirstRendering.current) {
+      isResizing.current = true;
     }
   }, [chartDms.plotWidth]);
 
   const updateChartScales = (series: StockDataPoint[], transform: d3.ZoomTransform, dms: CanvasDimensions) => {
+    const { xScale, visibleDomain, visibleIndex } = updateXScale(series, transform, dms);
+    const { yScale, volumeScale, rsScale } = updateRemainingScales(series, visibleDomain, visibleIndex, dms);
     transformRef.current = transform;
-    chartScalesRef.current = getChartScales(series, transform, dms);
+    lastVisibleIndex.current = visibleIndex;
+    chartScalesRef.current = {
+      xScale,
+      yScale,
+      volumeScale,
+      rsScale
+    };
     return { transform: transformRef.current, chartScales: chartScalesRef.current };
   };
 
@@ -137,9 +146,12 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     // crosshair
     isTapRef.current = true;
     timerRef.current = setTimeout(() => {
-      isTapRef.current = false;
-      setZoomEnabled(false);
-      drawCrosshairAndOverlay(d3.pointer(e.touches[0], eventHandlerRef.current), series);
+      const pointer = d3.pointer(e.touches[0], eventHandlerRef.current);
+      if (pointer[0] <= dms.cssWidth) {
+        isTapRef.current = false;
+        setZoomEnabled(false);
+        drawCrosshairAndOverlay(pointer, series);
+      }
     }, 200);
   };
 
@@ -227,23 +239,30 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         });
 
       if (zoomEnabled) {
-        eventHandlerSelection.call(zoomRef.current);
-        if (firstDraw.current) {
-          eventHandlerSelection.call(zoomRef.current.transform, d3.zoomIdentity.scale(initialScale));
-          eventHandlerSelection.call(zoomRef.current.translateBy, -dms.cssWidth * 2, 0);
+        const zoom = zoomRef.current;
+        eventHandlerSelection.call(zoom);
+        if (isFirstRendering.current) {
+          eventHandlerSelection.call(zoom.transform, d3.zoomIdentity.scale(initialScale));
+          eventHandlerSelection.call(zoom.translateBy, -dms.cssWidth * 2, 0);
         }
       }
 
       // init plot chart
-      const transform = d3.zoomTransform(eventHandlerElement);
-      updateChartScales(series, transform, dms);
-      plotChartAndAxis(series, dms, ticker !== 'SPY');
-
-      // if (currentTransform) {
-      //   eventHandler.call(zoom.transform, currentTransform);
-      // } else {
-      //   eventHandler.call(zoom.transform, d3.zoomIdentity);
-      // }
+      if (isResizing.current) {
+        const lastIndex = lastVisibleIndex.current[1] + 1;
+        const transform = d3.zoomTransform(eventHandlerElement);
+        const { chartScales } = updateChartScales(series, transform, dms); // need transform.k only :)
+        const xScale = chartScales.xScale;
+        const lastX = xScale(lastIndex);
+        const newTransformX = -(lastX - dms.bitmapWidth) / devicePixelRatio;
+        const zoom = zoomRef.current;
+        eventHandlerSelection.call(zoom.transform, d3.zoomIdentity.translate(newTransformX, 0).scale(transform.k));
+        isResizing.current = false;
+      } else {
+        const transform = d3.zoomTransform(eventHandlerElement);
+        updateChartScales(series, transform, dms);
+        plotChartAndAxis(series, dms, ticker !== 'SPY');
+      }
     }
 
     return () => {
@@ -367,10 +386,10 @@ const getVisibleDomain = (
 ) => {
   const visibleDomain: number[] = [];
   const visibleIndex: number[] = [];
+  const { rangeStart, rangeEnd } = getVisibleRange(bitmapWidth, transform);
   // find min & max visible price
   series.forEach((d, i) => {
     const x = xScale(i);
-    const { rangeStart, rangeEnd } = getVisibleRange(bitmapWidth, transform);
     if (x > rangeStart && x <= rangeEnd) {
       if (visibleIndex.length === 0) visibleIndex[0] = i;
       if (visibleIndex.length > 0) visibleIndex[1] = i;
@@ -706,14 +725,24 @@ const drawYOverlay = (context: CanvasRenderingContext2D, dataPoint: DataPoint | 
   context.restore();
 };
 
-const getChartScales = (series: StockDataPoint[], transform: d3.ZoomTransform, dms: CanvasDimensions) => {
-  const { bitmapWidth, bitmapHeight } = dms;
+const updateXScale = (series: StockDataPoint[], transform: d3.ZoomTransform, dms: CanvasDimensions) => {
+  const { bitmapWidth } = dms;
   const xScale = d3
     .scaleLinear()
     .range([0, bitmapWidth * transform.k])
     .domain([-1, series.length + Math.floor(series.length / (transform.k * 100))]) // add a little bit margin for first & last point
     .clamp(true);
   const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, transform, bitmapWidth);
+  return { xScale, visibleDomain, visibleIndex };
+};
+
+const updateRemainingScales = (
+  series: StockDataPoint[],
+  visibleDomain: number[],
+  visibleIndex: number[],
+  dms: CanvasDimensions
+) => {
+  const { bitmapHeight } = dms;
   const yScale = d3
     .scaleLog()
     .range([bitmapHeight * barArea, 0])
@@ -728,5 +757,5 @@ const getChartScales = (series: StockDataPoint[], transform: d3.ZoomTransform, d
     .scaleLinear()
     .range([bitmapHeight * rsArea, 0])
     .domain(d3.extent(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.rs)) as [number, number]);
-  return { xScale, yScale, volumeScale, rsScale };
+  return { yScale, volumeScale, rsScale };
 };

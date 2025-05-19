@@ -5,7 +5,8 @@ interface CanvasProps extends React.HTMLAttributes<HTMLCanvasElement> {
   ref?: RefObject<CanvasHandle | null>;
 }
 export interface CanvasHandle {
-  canvasRef: RefObject<HTMLCanvasElement | null>;
+  canvas: HTMLCanvasElement;
+  context: CanvasRenderingContext2D;
   draw: (drawFunc: DrawFunc) => void;
   clear: () => void;
 }
@@ -32,7 +33,8 @@ export const Canvas: FC<CanvasProps> = ({ ref, ...rest }) => {
         predraw(context);
         postdraw(context);
       },
-      canvasRef
+      canvas,
+      context
     };
   });
 

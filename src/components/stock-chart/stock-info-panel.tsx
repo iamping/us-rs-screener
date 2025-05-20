@@ -34,26 +34,35 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   }, [nextTicker, stockList]);
 
   useEffect(() => {
+    let active = true;
     setStatus('loading');
     Promise.all([fetchHistoricalData(ticker), fetchHistoricalData('SPY')])
       .then((data) => {
         const dataLength = data[0].close.length;
-        setDailySeries(computeDataSeries(data[0], data[1], true));
-        if (dataLength > 50) {
-          setWeeklySeries(computeDataSeries(convertDailyToWeekly(data[0]), convertDailyToWeekly(data[1]), false));
-          setInterval((val) => (val === 'NW' ? 'D' : val));
-        } else {
-          setWeeklySeries([]);
-          setInterval('NW');
+        if (active) {
+          setDailySeries(computeDataSeries(data[0], data[1], true));
+          if (dataLength > 50) {
+            setWeeklySeries(computeDataSeries(convertDailyToWeekly(data[0]), convertDailyToWeekly(data[1]), false));
+            setInterval((val) => (val === 'NW' ? 'D' : val));
+          } else {
+            setWeeklySeries([]);
+            setInterval('NW');
+          }
+          setNewTicker(ticker);
+          setStatus('normal');
         }
-        setNewTicker(ticker);
-        setStatus('normal');
       })
       .catch(() => {
-        setDailySeries([]);
-        setWeeklySeries([]);
-        setStatus('error');
+        if (active) {
+          setDailySeries([]);
+          setWeeklySeries([]);
+          setStatus('error');
+        }
       });
+
+    return () => {
+      active = false;
+    };
   }, [ticker, retry]);
 
   if (isError || (isNormal && dailySeries.length === 0)) {

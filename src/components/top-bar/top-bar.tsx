@@ -41,7 +41,7 @@ export const TopBar = () => {
       paddingRight={2}
       height="48px"
       position="relative"
-      borderBottom="1px solid var(--chakra-colors-gray-200)">
+      borderBottomWidth={1}>
       <Heading
         paddingX={1}
         title="US Stock Screener"

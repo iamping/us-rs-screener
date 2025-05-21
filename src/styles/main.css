@@ -51,7 +51,7 @@ body {
   display: flex;
   align-items: center;
   width: 4px;
-  background-color: var(--chakra-colors-gray-100);
+  background-color: var(--chakra-colors-border);
   &.portrait {
     width: 100%;
     height: 4px;
@@ -59,7 +59,7 @@ body {
 }
 
 .resize-handle[data-resize-handle-state='hover'] {
-  background-color: var(--chakra-colors-gray-200);
+  background-color: var(--chakra-colors-gray-500);
 }
 
 .resize-handle[data-resize-handle-state='drag'] {
@@ -120,7 +120,7 @@ body {
 }
 
 .grid-header-cell {
-  border-bottom: 1px solid var(--chakra-colors-gray-200);
+  border-bottom: 1px solid var(--chakra-colors-border);
   background: var(--colors-cell-bg);
   font-weight: 500;
   text-align: left;
@@ -133,7 +133,7 @@ body {
   }
   &.pinned {
     position: sticky;
-    border-right: 1px solid var(--chakra-colors-gray-200);
+    border-right: 1px solid var(--chakra-colors-border);
     left: 0;
     z-index: 3;
     padding-left: 12px;
@@ -167,10 +167,10 @@ body {
 
 .grid-data-cell {
   padding: 4px 8px;
-  border-bottom: 1px solid var(--chakra-colors-gray-200);
+  border-bottom: 1px solid var(--chakra-colors-border);
   &.pinned {
     position: sticky;
-    border-right: 1px solid var(--chakra-colors-gray-200);
+    border-right: 1px solid var(--chakra-colors-border);
     background-color: var(--colors-cell-bg);
     left: 0;
     z-index: 1;

@@ -96,9 +96,9 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           stock={stock}
           series={interval === 'W' ? weeklySeries : dailySeries}
         />
-        {nextTicker.length > 0 && (
-          <>
-            <Flex borderTopWidth={1}>
+        <Flex borderTopWidth={nextTicker.length > 0 ? 1 : 0} height="40px">
+          {nextTicker.length > 0 && (
+            <>
               <Group padding={2}>
                 <Button
                   size="2xs"
@@ -160,9 +160,9 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                   {stock.industry}
                 </Text>
               </Text>
-            </Flex>
-          </>
-        )}
+            </>
+          )}
+        </Flex>
       </Flex>
     </>
   );

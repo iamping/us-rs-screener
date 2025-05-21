@@ -27,7 +27,13 @@ export const columns = [
   columnHelper.accessor('companyName', {
     header: () => 'Company Name',
     cell: (cell) => (
-      <Text truncate color="gray.500" title={cell.getValue()}>
+      <Text
+        truncate
+        color={{
+          base: 'gray.500',
+          _dark: 'gray.300'
+        }}
+        title={cell.getValue()}>
         {cell.row.original.highlightedCompanyName ?? cell.getValue()}
       </Text>
     ),
@@ -224,7 +230,7 @@ export const columns = [
     filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('industryRankByAs', {
-    header: () => <Text textAlign="right">`Industry Rank by AS</Text>,
+    header: () => <Text textAlign="right">Industry Rank by AS</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
     meta: { width: 200, filterVariant: 'range' },
     filterFn: 'inNumberRange'

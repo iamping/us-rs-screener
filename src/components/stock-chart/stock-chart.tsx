@@ -14,6 +14,7 @@ import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { CanvasDimensions, ChartScales, DataPoint, LinearScale, StockDataPoint } from '@/types/chart.type';
 import { Stock } from '@/types/stock.type';
 import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
+import { ColorMode, useColorMode } from '../ui/color-mode';
 import { Canvas, CanvasHandle } from './canvas';
 import { StockQuote } from './stock-quote';
 
@@ -69,6 +70,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   // state
   const [activePoint, setActivePoint] = useState<DataPoint | null>(null);
   const [redrawCount, setRedrawCount] = useState(0);
+  const { colorMode } = useColorMode();
 
   // other reactive vars
   const showRS = ticker !== 'SPY';
@@ -93,12 +95,12 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     return { transform: transformRef.current, chartScales: chartScalesRef.current };
   };
 
-  const plotChartAndAxis = (series: StockDataPoint[], dms: CanvasDimensions, drawRS = true) => {
+  const plotChartAndAxis = (series: StockDataPoint[], dms: CanvasDimensions, drawRS = true, colorMode: ColorMode) => {
     const transform = transformRef.current as d3.ZoomTransform;
     const chartScales = chartScalesRef.current as ChartScales;
-    plotareaRef.current?.draw((context) => plotChart(context, series, chartScales, dms, transform, drawRS));
-    xAxisRef.current?.draw((context) => drawXAxis(context, series, chartScales.xScale, transform));
-    yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale));
+    plotareaRef.current?.draw((context) => plotChart(context, series, chartScales, dms, transform, drawRS, colorMode));
+    xAxisRef.current?.draw((context) => drawXAxis(context, series, chartScales.xScale, transform, colorMode));
+    yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode));
   };
 
   const drawCrosshairAndOverlay = (pointer: [number, number], series: StockDataPoint[]) => {
@@ -243,7 +245,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current), series);
         }
         updateChartScales(series, transform, dms);
-        plotChartAndAxis(series, dms, showRS);
+        plotChartAndAxis(series, dms, showRS, colorMode);
       })
       .on('end', () => {
         eventHandlerElement.style.cursor = 'unset';
@@ -274,7 +276,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     } else {
       const transform = d3.zoomTransform(eventHandlerElement);
       updateChartScales(series, transform, dms);
-      plotChartAndAxis(series, dms, showRS);
+      plotChartAndAxis(series, dms, showRS, colorMode);
     }
 
     return () => {
@@ -282,7 +284,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       // if clean every .zoom event, react somehow get stale zoomBehavior instead of updated one when re-attach event
       eventHandlerSelection.on('touchmove.zoom', null);
     };
-  }, [series, showRS, redrawCount]);
+  }, [series, showRS, redrawCount, colorMode]);
 
   return (
     <div
@@ -440,7 +442,8 @@ const plotChart = (
   scales: ChartScales,
   dms: CanvasDimensions,
   transform: d3.ZoomTransform,
-  showRs = true
+  showRs = true,
+  colorMode: ColorMode
 ) => {
   // translate canvas on zoom event
   context.translate(bitmap(transform.x), 0);
@@ -451,7 +454,7 @@ const plotChart = (
   const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
   const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
   const lineWidth = Math.min(devicePixelRatio, 2);
-  const colors = getChartColors();
+  const colors = getChartColors(colorMode);
   const isDaily = series.some((d) => d.isDaily);
 
   // draw ema 21
@@ -596,7 +599,8 @@ const drawXAxis = (
   context: CanvasRenderingContext2D,
   series: StockDataPoint[],
   xScale: LinearScale,
-  transform: d3.ZoomTransform
+  transform: d3.ZoomTransform,
+  colorMode: ColorMode
 ) => {
   context.translate(bitmap(transform.x), 0);
   const tickValues = dateTicks(series.map((d) => d.date));
@@ -614,29 +618,31 @@ const drawXAxis = (
   const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, transform);
   const offset = bitmap(10);
 
+  context.fillStyle = getChartColors(colorMode).text;
+  context.font = font;
+  context.textBaseline = 'middle';
+  context.textAlign = 'center';
   tickValues.forEach((d, i) => {
     const x = Math.round(xScale(d.index));
     if (displayIndex.includes(i) && x > rangeStart + offset && x < rangeEnd - offset) {
-      context.font = font;
-      context.textBaseline = 'middle';
-      context.textAlign = 'center';
       context.fillText(dateFormat(d.date), x, y);
     }
   });
 };
 
-const drawYAxis = (context: CanvasRenderingContext2D, yScale: LinearScale) => {
+const drawYAxis = (context: CanvasRenderingContext2D, yScale: LinearScale, colorMode: ColorMode) => {
   const [min, max] = yScale.domain();
   const priceFormatFnc = priceFormat(max);
   const tickValues = logTicks(min * 0.95, max);
   const canvasHeight = context.canvas.height;
   const font = getLabelFont(12);
   const x = bitmap(10);
+  context.fillStyle = getChartColors(colorMode).text;
+  context.font = font;
+  context.textBaseline = 'middle';
   tickValues.forEach((d) => {
     const y = Math.round(yScale(d));
     if (y > 10 && y < canvasHeight) {
-      context.font = font;
-      context.textBaseline = 'middle';
       context.fillText(priceFormatFnc(d), x, y);
     }
   });

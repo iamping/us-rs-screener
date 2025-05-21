@@ -63,9 +63,9 @@ export const PresetSelection: FC<PresetSelectionProps> = ({ optionList, type }) 
       positioning={{ placement: 'bottom-start' }}>
       <PopoverTrigger asChild>
         <Button as={'div'} size="xs" variant="outline" border={0} paddingRight={1}>
-          <Text color="gray.500">
+          <Text color="subtle">
             {isMobile ? `` : `${type}: `}
-            <Text as="span" color="black">
+            <Text as="span" color="default">
               {isMobile && type === 'Preset' ? getAbbreviation(value.title) : value.title}
             </Text>
           </Text>

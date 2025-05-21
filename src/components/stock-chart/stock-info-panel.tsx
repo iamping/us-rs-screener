@@ -128,7 +128,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                 <Text as="span" fontWeight="500">
                   M.Cap
                 </Text>
-                <Text as="span" color={'gray.500'}>
+                <Text as="span" color="subtle">
                   {formatDecimal(stock.marketCap / 1000000000)}B
                 </Text>
               </Text>
@@ -141,7 +141,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                 <Text as="span" fontWeight="500">
                   RS
                 </Text>
-                <Text as="span" color={'gray.500'}>
+                <Text as="span" color="subtle">
                   {stock.rsRating}
                 </Text>
               </Text>
@@ -156,7 +156,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                 <Text as="span" fontWeight="500">
                   In{' '}
                 </Text>
-                <Text as="span" color={'gray.500'}>
+                <Text as="span" color="subtle">
                   {stock.industry}
                 </Text>
               </Text>
@@ -173,7 +173,7 @@ const HeadLine = ({ stock }: { stock: Stock }) => {
   return (
     <Heading flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stock?.ticker}>
       {stock?.ticker} {' - '}
-      <Text as="span" fontSize="sm" fontWeight="500" color="gray.500">
+      <Text as="span" fontSize="sm" fontWeight="500" color="subtle">
         {stock?.companyName}
       </Text>
     </Heading>

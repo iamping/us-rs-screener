@@ -76,7 +76,16 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
           className="filter-icon"
           title={`Filter ${id}`}
           size="2xs"
-          color={column.getIsFiltered() ? 'black' : 'gray.300'}
+          color={{
+            base: column.getIsFiltered() ? 'black' : 'gray.300',
+            _dark: column.getIsFiltered() ? 'white' : 'gray.700'
+          }}
+          _hover={{
+            color: {
+              base: 'black',
+              _dark: 'white'
+            }
+          }}
           variant="plain"
           minWidth={'fit-content'}
           onClick={(e) => e.stopPropagation()}>

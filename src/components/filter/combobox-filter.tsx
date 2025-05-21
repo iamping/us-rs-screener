@@ -122,7 +122,6 @@ export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
                     position: 'relative',
                     padding: '4px',
                     paddingLeft: '6px',
-                    background: idx === 0 ? 'var(--chakra-colors-gray-100)' : '',
                     borderRadius: 4,
                     alignItems: 'center',
                     marginBottom: 4
@@ -141,7 +140,7 @@ export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
                       textOverflow: 'ellipsis',
                       overflow: 'hidden',
                       whiteSpace: 'nowrap',
-                      fontWeight: idx === 0 ? 500 : ''
+                      fontWeight: value === selectAll ? 500 : ''
                     }}>
                     {highlight[value] ?? value}
                   </label>

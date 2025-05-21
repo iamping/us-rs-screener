@@ -1,4 +1,5 @@
 import { bisectCenter, format, utcFormat } from 'd3';
+import { ColorMode } from '@/components/ui/color-mode';
 import { BandScale } from '@/types/chart.type';
 import { getCssVar } from '@/utils/common.utils';
 
@@ -60,8 +61,8 @@ export const getInvertXScale = (xScale: BandScale) => {
   };
 };
 
-export const getChartColors = () => {
-  return {
+export const getChartColors = (colorMode: ColorMode = 'light') => {
+  const colors = {
     up: getCssVar('--chakra-colors-black'),
     down: getCssVar('--chakra-colors-red-400'),
     ema21: getCssVar('--chakra-colors-gray-300'),
@@ -70,6 +71,7 @@ export const getChartColors = () => {
     rs: getCssVar('--chakra-colors-blue-500'),
     label: getCssVar('--chakra-colors-black'),
     crosshair: getCssVar('--chakra-colors-gray-400'),
+    text: getCssVar('--chakra-colors-black'),
     overlayText: getCssVar('--chakra-colors-white'),
     overlayBg: getCssVar('--chakra-colors-gray-700'),
     pocketPivotVolume: getCssVar('--chakra-colors-blue-500'),
@@ -79,4 +81,13 @@ export const getChartColors = () => {
     rsNewHigh: getCssVar('--colors-rs-new-high'),
     rsNewHighBeforePrice: getCssVar('--colors-rs-new-high-before-price')
   };
+  if (colorMode === 'dark') {
+    colors.up = getCssVar('--chakra-colors-white');
+    colors.down = 'rgb(242,54,69)';
+    colors.text = getCssVar('--chakra-colors-white');
+    colors.text = getCssVar('--chakra-colors-white');
+    colors.normalVolume = getCssVar('--chakra-colors-gray-500');
+    colors.loserVolume = 'rgb(255,81,82)';
+  }
+  return colors;
 };

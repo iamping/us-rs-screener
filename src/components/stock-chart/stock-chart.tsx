@@ -611,7 +611,7 @@ const drawXAxis = (
   const diffX = Math.abs(xScale(tickValues[0].index) - xScale(tickValues[1].index));
   const step = Math.min(Math.ceil(minDistance / diffX), 4); // step should be 1,2,3,4 to always correctly get January
   const firstJanIndex = tickValues.map((d) => d.date).findIndex((d) => d.getMonth() === 0);
-  const startIndex = Math.min(...d3.range(firstJanIndex, -1, -step));
+  const startIndex = Math.min(...d3.range(firstJanIndex === -1 ? 0 : firstJanIndex, -1, -step));
   const displayIndex = d3.range(startIndex, tickValues.length, step);
 
   // hide label if out of visible range

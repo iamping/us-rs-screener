@@ -2,7 +2,7 @@ import { IconButton, Input, Show } from '@chakra-ui/react';
 import fuzzysort from 'fuzzysort';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { ChangeEvent, CSSProperties, RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import { PiMagnifyingGlassBold, PiXDuotone } from 'react-icons/pi';
+import { PiMagnifyingGlassBold, PiTrash } from 'react-icons/pi';
 import { useDebounceCallback, useEventListener, useMediaQuery, useOnClickOutside } from 'usehooks-ts';
 import { InputGroup } from '@/components/ui/input-group';
 import { fuzzyListAtom, preFilteredListAtom, searchBoxOpenAtom, tickerAtom } from '@/states/atom';
@@ -119,11 +119,8 @@ export const SearchBox = () => {
   const MagnifyIcon = (
     <>
       <Show when={open}>
-        <div className="close-link" title="Close" onClick={() => setOpen(false)}>
-          Close
-        </div>
         <IconButton size="xs" variant="outline" border={0} onClick={clearSearch}>
-          {open && keyword.length > 0 && <PiXDuotone title="Clear search" />}
+          {open && keyword.length > 0 && <PiTrash title="Clear search" />}
           {open && keyword.length === 0 && <PiMagnifyingGlassBold title="Search stocks" />}
         </IconButton>
       </Show>

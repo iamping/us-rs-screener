@@ -95,13 +95,6 @@ body {
   font-weight: 500;
 }
 
-.close-link {
-  cursor: pointer;
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .grid {
   display: grid;
   font-size: 14px;

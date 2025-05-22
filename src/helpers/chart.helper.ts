@@ -81,13 +81,17 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
     rsNewHigh: getCssVar('--colors-rs-new-high'),
     rsNewHighBeforePrice: getCssVar('--colors-rs-new-high-before-price')
   };
-  if (colorMode === 'dark') {
-    colors.up = getCssVar('--chakra-colors-white');
-    colors.down = 'rgb(242,54,69)';
-    colors.text = getCssVar('--chakra-colors-white');
-    colors.text = getCssVar('--chakra-colors-white');
-    colors.normalVolume = getCssVar('--chakra-colors-gray-500');
-    colors.loserVolume = 'rgb(255,81,82)';
-  }
-  return colors;
+  return colorMode === 'light'
+    ? colors
+    : {
+        ...colors,
+        up: getCssVar('--chakra-colors-white'),
+        down: 'rgb(242,54,69)',
+        text: getCssVar('--chakra-colors-white'),
+        normalVolume: getCssVar('--chakra-colors-gray-500'),
+        loserVolume: 'rgb(255,81,82)',
+        ema21: getCssVar('--chakra-colors-gray-600'),
+        ema50: getCssVar('--chakra-colors-gray-400'),
+        ema200: getCssVar('--chakra-colors-gray-300')
+      };
 };

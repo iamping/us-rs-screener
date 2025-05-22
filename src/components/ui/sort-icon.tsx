@@ -2,7 +2,7 @@ import { IconButton } from '@chakra-ui/react';
 import { SortDirection } from '@tanstack/react-table';
 import { FC } from 'react';
 import { PiListBold, PiSortAscendingBold, PiSortDescendingBold } from 'react-icons/pi';
-import { useColorModeValue } from './color-mode';
+import { useColorModeValue } from '@/hooks/useColorMode';
 
 export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) => {
   const { icon, direction } = getSortDirectionIcon(props.sortDirection);
@@ -10,7 +10,7 @@ export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) =>
   const sorted = useColorModeValue('black', 'white');
   return (
     <IconButton
-      className={`sort-icon${direction}`}
+      className={direction.length > 0 ? undefined : 'sort-icon'}
       size="2xs"
       variant="plain"
       color={direction.length > 0 ? sorted : normal}

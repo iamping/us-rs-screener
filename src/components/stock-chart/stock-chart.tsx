@@ -11,10 +11,11 @@ import {
   priceOverlayFormat
 } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
+import { useColorMode } from '@/hooks/useColorMode';
 import { CanvasDimensions, ChartScales, DataPoint, LinearScale, StockDataPoint } from '@/types/chart.type';
 import { Stock } from '@/types/stock.type';
 import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
-import { ColorMode, useColorMode } from '../ui/color-mode';
+import { ColorMode } from '../ui/color-mode';
 import { Canvas, CanvasHandle } from './canvas';
 import { StockQuote } from './stock-quote';
 

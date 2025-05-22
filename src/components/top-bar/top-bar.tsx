@@ -66,7 +66,7 @@ export const TopBar = () => {
       </Show>
       <SearchBox />
       {isDesktop && <ExportDataButton />}
-      <ColorModeButton size="xs" />
+      <ColorModeButton />
       <AppSettings />
     </HStack>
   );

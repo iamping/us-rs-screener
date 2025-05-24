@@ -12,6 +12,10 @@ export const priceFormat = (max: number) => (value: d3.NumberValue) => {
   return max > 1000 ? format('.2f')(price / 1000) + 'k' : format(',.2f')(price);
 };
 
+export const volumeFormat = (val: number, precision?: number) => {
+  return precision ? format(`.3s`)(val) : format('~s')(val);
+};
+
 export const priceOverlayFormat = (value: d3.NumberValue) => {
   const price = value as number;
   return price > 1000 ? format(',.0f')(price) : format('.2f')(price);
@@ -79,7 +83,8 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
     loserVolume: getCssVar('--chakra-colors-red-400'),
     normalVolume: getCssVar('--chakra-colors-gray-200'),
     rsNewHigh: getCssVar('--colors-rs-new-high'),
-    rsNewHighBeforePrice: getCssVar('--colors-rs-new-high-before-price')
+    rsNewHighBeforePrice: getCssVar('--colors-rs-new-high-before-price'),
+    border: getCssVar('--chakra-colors-border')
   };
   return colorMode === 'light'
     ? colors
@@ -88,7 +93,7 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
         up: getCssVar('--chakra-colors-white'),
         down: 'rgb(242,54,69)',
         text: getCssVar('--chakra-colors-white'),
-        normalVolume: getCssVar('--chakra-colors-gray-500'),
+        normalVolume: getCssVar('--chakra-colors-gray-700'),
         loserVolume: 'rgb(255,81,82)',
         ema21: getCssVar('--chakra-colors-gray-600'),
         ema50: getCssVar('--chakra-colors-gray-400'),

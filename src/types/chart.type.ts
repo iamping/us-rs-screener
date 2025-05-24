@@ -48,8 +48,10 @@ export type CanvasDimensions = {
 export type DataPoint = {
   index: number;
   x: number;
-  y: number;
+  priceY: number;
+  volumeY: number;
   price: number;
+  volume: number;
   date: Date;
   px: number;
   py: number;

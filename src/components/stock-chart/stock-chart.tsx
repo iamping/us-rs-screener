@@ -8,7 +8,8 @@ import {
   getChartColors,
   logTicks,
   priceFormat,
-  priceOverlayFormat
+  priceOverlayFormat,
+  volumeFormat
 } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { useColorMode } from '@/hooks/useColorMode';
@@ -43,12 +44,15 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   });
 
   // canvasRef
-  const plotareaRef = useRef<CanvasHandle>(null);
+  const plotAreaRef = useRef<CanvasHandle>(null);
+  const volumeAreaRef = useRef<CanvasHandle>(null);
   const xAxisRef = useRef<CanvasHandle>(null);
   const yAxisRef = useRef<CanvasHandle>(null);
+  const volumeAxisRef = useRef<CanvasHandle>(null);
   const crosshairRef = useRef<CanvasHandle>(null);
   const xOverlayRef = useRef<CanvasHandle>(null);
   const yOverlayRef = useRef<CanvasHandle>(null);
+  const volumeOverlayRef = useRef<CanvasHandle>(null);
 
   // ref
   const eventHandlerRef = useRef<HTMLDivElement>(null);
@@ -99,9 +103,11 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
   const plotChartAndAxis = (series: StockDataPoint[], dms: CanvasDimensions, drawRS = true, colorMode: ColorMode) => {
     const transform = transformRef.current as d3.ZoomTransform;
     const chartScales = chartScalesRef.current as ChartScales;
-    plotareaRef.current?.draw((context) => plotChart(context, series, chartScales, dms, transform, drawRS, colorMode));
+    plotAreaRef.current?.draw((context) => plotChart(context, series, chartScales, transform, drawRS, colorMode));
+    volumeAreaRef.current?.draw((context) => plotVolume(context, series, chartScales, transform, colorMode));
     xAxisRef.current?.draw((context) => drawXAxis(context, series, chartScales.xScale, transform, colorMode));
     yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode));
+    volumeAxisRef.current?.draw((context) => drawVolumeAxis(context, chartScales.volumeScale, colorMode));
   };
 
   const drawCrosshairAndOverlay = (pointer: [number, number], series: StockDataPoint[]) => {
@@ -111,6 +117,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     crosshairRef.current?.draw((context) => drawCrosshair(context, transform, dataPoint));
     xOverlayRef.current?.draw((context) => drawXOverlay(context, transform, dataPoint));
     yOverlayRef.current?.draw((context) => drawYOverlay(context, dataPoint));
+    volumeOverlayRef.current?.draw((context) => drawVolumeOverlay(context, dataPoint));
     setActivePoint(dataPoint);
   };
 
@@ -118,6 +125,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     crosshairRef.current?.clear();
     xOverlayRef.current?.clear();
     yOverlayRef.current?.clear();
+    volumeOverlayRef.current?.clear();
     setActivePoint(null);
   };
 
@@ -305,14 +313,35 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         marginTop={-1}
       />
       <Canvas
-        id="plotarea"
-        ref={plotareaRef}
+        id="plotArea"
+        ref={plotAreaRef}
         style={{
           position: 'absolute',
           top: chartDms.marginTop,
           left: chartDms.marginLeft,
           width: chartDms.plotWidth,
-          height: chartDms.plotHeight
+          height: chartDms.plotHeight * (1 - volumeArea)
+        }}
+      />
+      <Canvas
+        id="volumeArea"
+        ref={volumeAreaRef}
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
+          left: chartDms.marginLeft,
+          width: chartDms.plotWidth,
+          height: chartDms.plotHeight * volumeArea
+        }}
+      />
+      <hr
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
+          left: chartDms.marginLeft,
+          width: chartDms.width,
+          height: 1,
+          borderTopWidth: 1
         }}
       />
       <Canvas
@@ -357,7 +386,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           top: chartDms.marginTop,
           right: 0,
           width: chartDms.width - chartDms.plotWidth,
-          height: chartDms.plotHeight,
+          height: chartDms.plotHeight * (1 - volumeArea),
           zIndex: 1
         }}
       />
@@ -369,7 +398,30 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           top: chartDms.marginTop,
           right: 0,
           width: chartDms.width - chartDms.plotWidth,
-          height: chartDms.plotHeight
+          height: chartDms.plotHeight * (1 - volumeArea)
+        }}
+      />
+      <Canvas
+        id="volumeAxisOverlay"
+        ref={volumeOverlayRef}
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
+          right: 0,
+          width: chartDms.width - chartDms.plotWidth,
+          height: chartDms.plotHeight * volumeArea,
+          zIndex: 1
+        }}
+      />
+      <Canvas
+        id="volumeAxis"
+        ref={volumeAxisRef}
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
+          right: 0,
+          width: chartDms.width - chartDms.plotWidth,
+          height: chartDms.plotHeight * volumeArea
         }}
       />
       <div
@@ -441,19 +493,19 @@ const plotChart = (
   context: CanvasRenderingContext2D,
   series: StockDataPoint[],
   scales: ChartScales,
-  dms: CanvasDimensions,
   transform: d3.ZoomTransform,
   showRs = true,
   colorMode: ColorMode
 ) => {
   // translate canvas on zoom event
   context.translate(bitmap(transform.x), 0);
-  const { xScale, yScale, volumeScale, rsScale } = scales;
+  const canvasHeight = context.canvas.height;
+  const { xScale, yScale, rsScale } = scales;
   const bandWidth = Math.max(Math.ceil(Math.abs(xScale(1) - xScale(0)) / 5), Math.floor(devicePixelRatio));
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
   const tickLength = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 3);
-  const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
-  const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
+  // const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
+  // const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
   const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors(colorMode);
   const isDaily = series.some((d) => d.isDaily);
@@ -526,7 +578,7 @@ const plotChart = (
   }
 
   // draw rs line + rs rating
-  const rsOffsetY = dms.bitmapHeight * 0.6;
+  const rsOffsetY = canvasHeight * 0.6;
   if (showRs) {
     const rsLine = d3
       .line<StockDataPoint>(
@@ -543,7 +595,6 @@ const plotChart = (
 
   series.forEach((d, i) => {
     const x = Math.floor(xScale(i)) + correction;
-    const barX = Math.floor(xScale(i));
     const low = yScale(d.low);
     const high = yScale(d.high);
     const close = Math.round(yScale(d.close));
@@ -562,7 +613,38 @@ const plotChart = (
     context.lineTo(Math.floor(x + tickLength), close + correction);
     context.stroke();
 
-    // draw volume bar
+    // draw small circle for rs new high
+    const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;
+    if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
+      const cx = xScale(i);
+      const cy = rsScale(d.rs) + rsOffsetY;
+      const radius = devicePixelRatio * rsRadius;
+      context.beginPath();
+      context.fillStyle = isNewHighBeforePrice ? colors.rsNewHighBeforePrice : colors.rsNewHigh;
+      context.arc(cx, cy, radius, 0, 2 * Math.PI);
+      context.fill();
+    }
+  });
+};
+
+const plotVolume = (
+  context: CanvasRenderingContext2D,
+  series: StockDataPoint[],
+  scales: ChartScales,
+  transform: d3.ZoomTransform,
+  colorMode: ColorMode
+) => {
+  // translate canvas on zoom event
+  context.translate(bitmap(transform.x), 0);
+  const canvasHeight = context.canvas.height;
+  const { xScale, volumeScale } = scales;
+  const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
+  const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
+  const colors = getChartColors(colorMode);
+  const isDaily = series.some((d) => d.isDaily);
+
+  series.forEach((d, i) => {
+    const barX = Math.floor(xScale(i));
     const volumeBarHeight = Math.floor(volumeScale(d.volume));
     const { isPocketPivot, isGainer, isLoser } = d.volumeStatus;
     if (isDaily) {
@@ -578,21 +660,9 @@ const plotChart = (
     }
     context.lineWidth = barWidth;
     context.beginPath();
-    context.moveTo(barX - barCorrection, dms.bitmapHeight);
-    context.lineTo(barX - barCorrection, dms.bitmapHeight - volumeBarHeight);
+    context.moveTo(barX - barCorrection, canvasHeight);
+    context.lineTo(barX - barCorrection, volumeBarHeight);
     context.stroke();
-
-    // draw small circle for rs new high
-    const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;
-    if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
-      const cx = xScale(i);
-      const cy = rsScale(d.rs) + rsOffsetY;
-      const radius = devicePixelRatio * rsRadius;
-      context.beginPath();
-      context.fillStyle = isNewHighBeforePrice ? colors.rsNewHighBeforePrice : colors.rsNewHigh;
-      context.arc(cx, cy, radius, 0, 2 * Math.PI);
-      context.fill();
-    }
   });
 };
 
@@ -643,28 +713,26 @@ const drawYAxis = (context: CanvasRenderingContext2D, yScale: LinearScale, color
   context.textBaseline = 'middle';
   tickValues.forEach((d) => {
     const y = Math.round(yScale(d));
-    if (y > 10 && y < canvasHeight) {
+    if (y > bitmap(10) && y < canvasHeight - bitmap(10)) {
       context.fillText(priceFormatFnc(d), x, y);
     }
   });
 };
 
-const findDataPoint = (
-  pointer: [number, number],
-  series: StockDataPoint[],
-  transform: d3.ZoomTransform,
-  scales: ChartScales
-): DataPoint => {
-  const [px, py] = pointer;
-  const { xScale, yScale } = scales;
-  const canvasX = bitmap(px - transform.x);
-  const canvasY = bitmap(py);
-  const domain = xScale.invert(canvasX);
-  const index = domain < 0 ? 0 : Math.min(Math.round(domain), series.length - 1);
-  const x = xScale(index);
-  const date = series[index].date;
-  const price = yScale.invert(canvasY);
-  return { index, x, y: canvasY, price, date, px, py };
+const drawVolumeAxis = (context: CanvasRenderingContext2D, volumeScale: LinearScale, colorMode: ColorMode) => {
+  const tickValues = volumeScale.ticks(isTouchDevice ? 2 : 3);
+  const canvasHeight = context.canvas.height;
+  const font = getLabelFont(12);
+  const x = bitmap(10);
+  context.fillStyle = getChartColors(colorMode).text;
+  context.font = font;
+  context.textBaseline = 'middle';
+  tickValues.forEach((d) => {
+    const y = Math.round(volumeScale(d));
+    if (y > bitmap(5) && y < canvasHeight) {
+      context.fillText(volumeFormat(d), x, y);
+    }
+  });
 };
 
 const drawCrosshair = (context: CanvasRenderingContext2D, transform: d3.ZoomTransform, dataPoint: DataPoint) => {
@@ -672,7 +740,7 @@ const drawCrosshair = (context: CanvasRenderingContext2D, transform: d3.ZoomTran
   const canvasWidth = context.canvas.width;
   const canvasHeight = context.canvas.height;
   const pixelRatio = devicePixelRatio || 1;
-  const { x, y } = dataPoint;
+  const { x, priceY: y } = dataPoint;
 
   // x
   const lineWidth = Math.floor(pixelRatio);
@@ -729,21 +797,44 @@ const drawXOverlay = (context: CanvasRenderingContext2D, transform: d3.ZoomTrans
 
 const drawYOverlay = (context: CanvasRenderingContext2D, dataPoint: DataPoint | null) => {
   if (!dataPoint) return;
-  const { y, price } = dataPoint;
+  const { priceY: y, price } = dataPoint;
   const x = bitmap(10);
   const text = `${priceOverlayFormat(price)}`;
   const rectHeight = bitmap(28);
   const colors = getChartColors();
-  const width = context.canvas.width;
+  const { width, height } = context.canvas;
 
   // draw wrapper rect
-  context.fillStyle = colors.overlayBg;
-  context.fillRect(0, Math.floor(y - rectHeight / 2), width, rectHeight);
-  context.font = getLabelFont(12);
-  context.fillStyle = colors.overlayText;
-  context.textBaseline = 'middle';
-  context.fillText(text, x, y);
-  context.restore();
+  if (y <= height) {
+    context.fillStyle = colors.overlayBg;
+    context.fillRect(0, Math.floor(y - rectHeight / 2), width, rectHeight);
+    context.font = getLabelFont(12);
+    context.fillStyle = colors.overlayText;
+    context.textBaseline = 'middle';
+    context.fillText(text, x, y);
+    context.restore();
+  }
+};
+
+const drawVolumeOverlay = (context: CanvasRenderingContext2D, dataPoint: DataPoint | null) => {
+  if (!dataPoint) return;
+  const { volumeY: y, volume } = dataPoint;
+  const x = bitmap(10);
+  const text = `${volumeFormat(volume, 2)}`;
+  const rectHeight = bitmap(28);
+  const colors = getChartColors();
+  const { width } = context.canvas;
+
+  // draw wrapper rect
+  if (y >= 0) {
+    context.fillStyle = colors.overlayBg;
+    context.fillRect(0, Math.floor(y - rectHeight / 2), width, rectHeight);
+    context.font = getLabelFont(12);
+    context.fillStyle = colors.overlayText;
+    context.textBaseline = 'middle';
+    context.fillText(text, x, y);
+    context.restore();
+  }
 };
 
 const updateXScale = (series: StockDataPoint[], transform: d3.ZoomTransform, dms: CanvasDimensions) => {
@@ -773,10 +864,30 @@ const updateRemainingScales = (
   const volumeScale = d3
     .scaleLinear()
     .range([0, bitmapHeight * volumeArea])
-    .domain([0, d3.max(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.volume)) ?? 0]);
+    .domain([(d3.max(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.volume)) ?? 0) * 1.1, 0]);
   const rsScale = d3
     .scaleLinear()
     .range([bitmapHeight * rsArea, 0])
     .domain(d3.extent(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.rs)) as [number, number]);
   return { yScale, volumeScale, rsScale };
+};
+
+const findDataPoint = (
+  pointer: [number, number],
+  series: StockDataPoint[],
+  transform: d3.ZoomTransform,
+  scales: ChartScales
+): DataPoint => {
+  const [px, py] = pointer;
+  const { xScale, yScale, volumeScale } = scales;
+  const canvasX = bitmap(px - transform.x);
+  const canvasY = bitmap(py);
+  const domain = xScale.invert(canvasX);
+  const index = domain < 0 ? 0 : Math.min(Math.round(domain), series.length - 1);
+  const x = xScale(index);
+  const date = series[index].date;
+  const price = yScale.invert(canvasY);
+  const volumeY = canvasY - (d3.max(yScale.range()) ?? 0);
+  const volume = volumeY < 0 ? -1 : volumeScale.invert(volumeY);
+  return { index, x, priceY: canvasY, volumeY, price, date, volume, px, py };
 };

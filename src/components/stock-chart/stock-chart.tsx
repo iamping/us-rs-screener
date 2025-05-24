@@ -25,6 +25,7 @@ import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
 import { ColorMode } from '../ui/color-mode';
 import { Canvas, CanvasHandle } from './canvas';
 import { StockQuote } from './stock-quote';
+import { StockVolume } from './stock-volume';
 
 interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
   ticker: string;
@@ -44,7 +45,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   const [chartRef, chartDms] = useChartDimensions<HTMLDivElement>({
     marginRight: 55,
     marginBottom: 30,
-    marginTop: 10,
+    marginTop: 30,
     marginLeft: 0
   });
 
@@ -311,13 +312,24 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
       onTouchEndCapture={onTouchEnd}
       onTouchCancelCapture={onTouchEnd}>
       <StockQuote
-        series={stockData.series}
         index={activePoint?.index ?? -1}
-        gapX={1}
-        paddingX={2}
-        flexWrap="wrap"
-        maxWidth={chartDms.width}
-        marginTop={-1}
+        stockData={stockData}
+        position="absolute"
+        margin={2}
+        marginTop={1}
+        zIndex={2}
+        left={0}
+        right="40px"
+      />
+      <StockVolume
+        index={activePoint?.index ?? -1}
+        stockData={stockData}
+        position="absolute"
+        gap={1}
+        margin={2}
+        marginTop={1}
+        zIndex={2}
+        top={chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea)}
       />
       <Canvas
         id="plotArea"
@@ -825,7 +837,7 @@ const drawVolumeOverlay = (context: CanvasRenderingContext2D, dataPoint: DataPoi
   if (!dataPoint) return;
   const { volumeY: y, volume } = dataPoint;
   const x = bitmap(10);
-  const text = `${volumeFormat(volume, 2)}`;
+  const text = `${volumeFormat(volume, 3)}`;
   const rectHeight = bitmap(28);
   const colors = getChartColors();
   const { width } = context.canvas;

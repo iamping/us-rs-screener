@@ -1,11 +1,10 @@
-import { Button, CloseButton, Flex, Group, Heading, Link, Spacer, Text } from '@chakra-ui/react';
+import { Button, CloseButton, Flex, Group, Link, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useState } from 'react';
 import { computeDataSeries, convertDailyToWeekly } from '@/helpers/data.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
 import { StockChartData, StockDataPoint } from '@/types/chart.type';
-import { Stock } from '@/types/stock.type';
 import { formatDecimal } from '@/utils/common.utils';
 import { StockChart } from './stock-chart';
 
@@ -85,10 +84,10 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
 
   return (
     <>
-      <Flex height="full" direction="column">
-        <Flex margin={2} marginBottom={1} gap={2}>
-          {isLoading ? <Text flexGrow={1}>Loading {ticker}...</Text> : <HeadLine stock={stock} />}
-          <CloseButton size="2xs" variant="subtle" zIndex={1} loading={isLoading} onClick={() => setTicker('')} />
+      <Flex height="full" direction="column" position="relative">
+        <Flex right={0} margin={2} position="absolute" zIndex={2}>
+          {isLoading && <Text>Loading {ticker}...</Text>}
+          <CloseButton size="2xs" variant="subtle" loading={isLoading} onClick={() => setTicker('')} />
         </Flex>
         <StockChart
           id="stock-chart"
@@ -164,17 +163,5 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
         </Flex>
       </Flex>
     </>
-  );
-};
-
-const HeadLine = ({ stock }: { stock: Stock }) => {
-  if (!stock) return null;
-  return (
-    <Heading flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stock.ticker}>
-      {stock.ticker} {' - '}
-      <Text as="span" fontSize="sm" fontWeight="500" color="subtle">
-        {stock.companyName}
-      </Text>
-    </Heading>
   );
 };

@@ -13,7 +13,7 @@ export const priceFormat = (max: number) => (value: d3.NumberValue) => {
 };
 
 export const volumeFormat = (val: number, precision?: number) => {
-  return precision ? format(`.3s`)(val) : format('~s')(val);
+  return precision ? format(`.${precision}s`)(val) : format('~s')(val);
 };
 
 export const priceOverlayFormat = (value: d3.NumberValue) => {

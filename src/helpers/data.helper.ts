@@ -93,6 +93,7 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
       low: stockData.low[i],
       open: stockData.open[i],
       volume: stockData.volume[i],
+      relativeVolume: stockData.volume[i] / avgVol,
       date: new Date(stockData.date[i] * 1000),
       ema10: ema10[i],
       ema21: ema21[i],

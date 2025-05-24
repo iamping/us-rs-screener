@@ -23,6 +23,7 @@ export interface StockDataPoint {
   low: number;
   open: number;
   volume: number;
+  relativeVolume: number;
   ema10: number | null;
   ema21: number | null;
   ema40: number | null;

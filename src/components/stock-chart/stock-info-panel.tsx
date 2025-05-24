@@ -1,10 +1,10 @@
 import { Button, CloseButton, Flex, Group, Heading, Link, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { computeDataSeries, convertDailyToWeekly } from '@/helpers/data.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
-import { StockDataPoint } from '@/types/chart.type';
+import { StockChartData, StockDataPoint } from '@/types/chart.type';
 import { Stock } from '@/types/stock.type';
 import { formatDecimal } from '@/utils/common.utils';
 import { StockChart } from './stock-chart';
@@ -16,7 +16,7 @@ interface StockInfoPanelProps {
 export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const [dailySeries, setDailySeries] = useState<StockDataPoint[]>([]);
   const [weeklySeries, setWeeklySeries] = useState<StockDataPoint[]>([]);
-  const [nextTicker, setNewTicker] = useState('');
+  const [nextTicker, setNextTicker] = useState('');
   const [status, setStatus] = useState<'loading' | 'normal' | 'error'>('normal');
   const [interval, setInterval] = useState<'D' | 'W' | 'NW'>('D');
   const [retry, setRetry] = useState(0);
@@ -28,10 +28,12 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const isError = status === 'error';
   const isDaily = interval === 'D' || interval === 'NW';
   const intervalDisabled = interval === 'NW';
-
-  const stock = useMemo(() => {
-    return stockList.find((e) => e.ticker === nextTicker)!;
-  }, [nextTicker, stockList]);
+  const stockChartData: StockChartData = {
+    stock: stockList.find((e) => e.ticker === nextTicker)!,
+    series: interval === 'W' ? weeklySeries : dailySeries,
+    isDaily
+  };
+  const stock = stockChartData.stock;
 
   useEffect(() => {
     let active = true;
@@ -48,7 +50,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
             setWeeklySeries([]);
             setInterval('NW');
           }
-          setNewTicker(ticker);
+          setNextTicker(ticker);
           setStatus('normal');
         }
       })
@@ -93,8 +95,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           className="stock-chart"
           data-loading={isLoading}
           ticker={nextTicker}
-          stock={stock}
-          series={interval === 'W' ? weeklySeries : dailySeries}
+          stockData={stockChartData}
         />
         <Flex borderTopWidth={nextTicker.length > 0 ? 1 : 0} height="40px">
           {nextTicker.length > 0 && (
@@ -103,7 +104,6 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                 <Button
                   size="2xs"
                   width="24px"
-                  // borderRadius="none"
                   variant={isDaily ? 'solid' : 'subtle'}
                   disabled={isLoading || intervalDisabled}
                   onClick={() => setInterval('D')}>
@@ -112,7 +112,6 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                 <Button
                   size="2xs"
                   width="24px"
-                  // borderRadius="none"
                   variant={interval === 'W' ? 'solid' : 'subtle'}
                   disabled={isLoading || intervalDisabled}
                   onClick={() => setInterval('W')}>
@@ -171,10 +170,10 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
 const HeadLine = ({ stock }: { stock: Stock }) => {
   if (!stock) return null;
   return (
-    <Heading flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stock?.ticker}>
-      {stock?.ticker} {' - '}
+    <Heading flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stock.ticker}>
+      {stock.ticker} {' - '}
       <Text as="span" fontSize="sm" fontWeight="500" color="subtle">
-        {stock?.companyName}
+        {stock.companyName}
       </Text>
     </Heading>
   );

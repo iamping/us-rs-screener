@@ -13,8 +13,14 @@ import {
 } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { useColorMode } from '@/hooks/useColorMode';
-import { CanvasDimensions, ChartScales, DataPoint, LinearScale, StockDataPoint } from '@/types/chart.type';
-import { Stock } from '@/types/stock.type';
+import {
+  CanvasDimensions,
+  ChartScales,
+  DataPoint,
+  LinearScale,
+  StockChartData,
+  StockDataPoint
+} from '@/types/chart.type';
 import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
 import { ColorMode } from '../ui/color-mode';
 import { Canvas, CanvasHandle } from './canvas';
@@ -22,8 +28,7 @@ import { StockQuote } from './stock-quote';
 
 interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
   ticker: string;
-  stock: Stock;
-  series: StockDataPoint[];
+  stockData: StockChartData;
 }
 
 // constant
@@ -35,7 +40,7 @@ const rsArea = 0.3;
 const isTouchDevice = isTouchDeviceMatchMedia();
 const rsRadius = 6;
 
-export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) => {
+export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props }) => {
   const [chartRef, chartDms] = useChartDimensions<HTMLDivElement>({
     marginRight: 55,
     marginBottom: 30,
@@ -110,9 +115,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     volumeAxisRef.current?.draw((context) => drawVolumeAxis(context, chartScales.volumeScale, colorMode));
   };
 
-  const drawCrosshairAndOverlay = (pointer: [number, number], series: StockDataPoint[]) => {
+  const drawCrosshairAndOverlay = (pointer: [number, number], stockData: StockChartData) => {
     if (!transformRef.current || !chartScalesRef.current) return;
     const transform = transformRef.current ?? d3.zoomIdentity;
+    const series = stockData.series;
     const dataPoint = findDataPoint(pointer, series, transform, chartScalesRef.current);
     crosshairRef.current?.draw((context) => drawCrosshair(context, transform, dataPoint));
     xOverlayRef.current?.draw((context) => drawXOverlay(context, transform, dataPoint));
@@ -154,7 +160,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       if (pointer[0] <= dms.cssWidth) {
         isTapRef.current = false;
         toggleZoomAndRedraw(false);
-        drawCrosshairAndOverlay(pointer, series);
+        drawCrosshairAndOverlay(pointer, stockData);
       }
     }, 200);
   };
@@ -172,7 +178,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       isTapRef.current = false;
       const [x, y] = d3.pointer(e.touches[0], eventHandlerRef.current);
       if (x > 0 && x < dms.cssWidth && y > 0 && y < dms.cssHeight - 5) {
-        drawCrosshairAndOverlay([x, y], series);
+        drawCrosshairAndOverlay([x, y], stockData);
       }
     }
     clearTimeout(timerRef.current ?? undefined);
@@ -228,7 +234,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
 
   // 2nd - zoom binding
   useEffect(() => {
-    if (!dmsRef.current || series.length === 0) return;
+    if (!dmsRef.current || stockData.series.length === 0) return;
+    const series = stockData.series;
     const isFew = series.length <= 80;
     const initialScale = isFew ? 1 : 3;
     const dms = dmsRef.current as CanvasDimensions;
@@ -251,7 +258,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
         // update crosshair when panning/zooming (Desktop only)
         if (!isTouchDevice && sourceEvent) {
-          drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current), series);
+          drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current), stockData);
         }
         updateChartScales(series, transform, dms);
         plotChartAndAxis(series, showRS, colorMode);
@@ -293,7 +300,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       // if clean every .zoom event, react somehow get stale zoomBehavior instead of updated one when re-attach event
       eventHandlerSelection.on('touchmove.zoom', null);
     };
-  }, [series, showRS, redrawCount, colorMode]);
+  }, [stockData, showRS, redrawCount, colorMode]);
 
   return (
     <div
@@ -304,7 +311,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
       onTouchEndCapture={onTouchEnd}
       onTouchCancelCapture={onTouchEnd}>
       <StockQuote
-        series={series}
+        series={stockData.series}
         index={activePoint?.index ?? -1}
         gapX={1}
         paddingX={2}
@@ -436,7 +443,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
         }}
         onMouseMove={(e) => {
           if (isTouchDevice) return;
-          drawCrosshairAndOverlay(d3.pointer(e), series);
+          drawCrosshairAndOverlay(d3.pointer(e), stockData);
         }}
         onMouseOut={() => {
           if (isTouchDevice) toggleZoomAndRedraw(true);

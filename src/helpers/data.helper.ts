@@ -55,11 +55,9 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
   const showRsNewhighPeriod = 20;
   const newHighPeriod = 252;
   const volumeSlice: { volume: number; isLoser: boolean }[] = [];
-  // const volumeData = stockData.volume.map(d => ({volume: d, isLoser: false}))
   for (let i = 0; i < len; i++) {
     const change = i === 0 ? 0 : stockData.close[i] - stockData.close[i - 1];
     // find pocket pivot volume
-    // volumeData[i].isLoser = change >= 0;
     const volumeStatus = { isPocketPivot: false, isGainer: false, isLoser: false };
     const [vol, avgVol] = [stockData.volume[i], isDaily ? volSma50[i]! : volSma10[i]!];
     const isVolumeDataEnough = i >= pocketPivotPeriod;

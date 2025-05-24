@@ -1,3 +1,5 @@
+import { Stock } from './stock.type';
+
 export interface HistoricalData {
   date: number[];
   close: number[];
@@ -5,6 +7,12 @@ export interface HistoricalData {
   low: number[];
   open: number[];
   volume: number[];
+}
+
+export interface StockChartData {
+  stock: Stock;
+  series: StockDataPoint[];
+  isDaily: boolean;
 }
 
 export interface StockDataPoint {

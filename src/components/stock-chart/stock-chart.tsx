@@ -100,7 +100,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     return { transform: transformRef.current, chartScales: chartScalesRef.current };
   };
 
-  const plotChartAndAxis = (series: StockDataPoint[], dms: CanvasDimensions, drawRS = true, colorMode: ColorMode) => {
+  const plotChartAndAxis = (series: StockDataPoint[], drawRS: boolean, colorMode: ColorMode) => {
     const transform = transformRef.current as d3.ZoomTransform;
     const chartScales = chartScalesRef.current as ChartScales;
     plotAreaRef.current?.draw((context) => plotChart(context, series, chartScales, transform, drawRS, colorMode));
@@ -254,7 +254,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
           drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current), series);
         }
         updateChartScales(series, transform, dms);
-        plotChartAndAxis(series, dms, showRS, colorMode);
+        plotChartAndAxis(series, showRS, colorMode);
       })
       .on('end', () => {
         eventHandlerElement.style.cursor = 'unset';
@@ -285,7 +285,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, series, ...props }) =>
     } else {
       const transform = d3.zoomTransform(eventHandlerElement);
       updateChartScales(series, transform, dms);
-      plotChartAndAxis(series, dms, showRS, colorMode);
+      plotChartAndAxis(series, showRS, colorMode);
     }
 
     return () => {
@@ -504,8 +504,6 @@ const plotChart = (
   const bandWidth = Math.max(Math.ceil(Math.abs(xScale(1) - xScale(0)) / 5), Math.floor(devicePixelRatio));
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
   const tickLength = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 3);
-  // const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
-  // const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
   const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors(colorMode);
   const isDaily = series.some((d) => d.isDaily);

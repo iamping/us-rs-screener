@@ -618,7 +618,8 @@ const plotChart = (
     const open = Math.round(yScale(d.open));
 
     // draw price bar
-    context.strokeStyle = d.change > 0 ? colors.up : colors.down;
+    const isUp = d.change > 0;
+    context.strokeStyle = d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
     context.lineWidth = bandWidth;
     context.beginPath();
     context.moveTo(x, Math.round(low + bandWidth / 2));

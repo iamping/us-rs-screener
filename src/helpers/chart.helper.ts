@@ -84,7 +84,9 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
     normalVolume: getCssVar('--chakra-colors-gray-200'),
     rsNewHigh: getCssVar('--colors-rs-new-high'),
     rsNewHighBeforePrice: getCssVar('--colors-rs-new-high-before-price'),
-    border: getCssVar('--chakra-colors-border')
+    border: getCssVar('--chakra-colors-border'),
+    think40: getCssVar('--colors-think-40'),
+    think40down: getCssVar('--chakra-colors-pink-400')
   };
   return colorMode === 'light'
     ? colors

@@ -18,6 +18,7 @@
   --colors-cell-hover-bg: var(--chakra-colors-gray-50);
   --colors-icon: var(--chakra-colors-gray-300);
   --colors-icon-hover: var(--chakra-colors-black);
+  --colors-think-40: rgb(146, 233, 90);
 }
 
 /* color for dark theme */

@@ -54,6 +54,7 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
   const pocketPivotPeriod = 10;
   const showRsNewhighPeriod = 20;
   const newHighPeriod = 252;
+  const think40Period = 40;
   const volumeSlice: { volume: number; isLoser: boolean }[] = [];
   for (let i = 0; i < len; i++) {
     const change = i === 0 ? 0 : stockData.close[i] - stockData.close[i - 1];
@@ -86,8 +87,18 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
       rsStatus.isNewHighBeforePrice = rsLine[i] > preMaxRs && stockData.high[i] <= preMaxHigh;
     }
 
+    // find 40 day new high
+    let isThink40 = false;
+    const isPriceDataEnough = i >= think40Period;
+    if (isPriceDataEnough) {
+      const priceSlide = stockData.high.slice(i - think40Period, i);
+      const preMaxHigh = findMax(priceSlide);
+      isThink40 = stockData.high[i] > preMaxHigh;
+    }
+
     series.push({
       isDaily,
+      isThink40: isDaily && isThink40,
       close: stockData.close[i],
       high: stockData.high[i],
       low: stockData.low[i],

@@ -17,6 +17,7 @@ export interface StockChartData {
 
 export interface StockDataPoint {
   isDaily: boolean;
+  isThink40: boolean;
   date: Date;
   close: number;
   high: number;

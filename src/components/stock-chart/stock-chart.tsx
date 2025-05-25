@@ -70,7 +70,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   const dmsRef = useRef<CanvasDimensions>(null);
 
   // ref for touch event & momentom scroll
-  const timerRef = useRef<NodeJS.Timeout>(null);
+  const timerRef = useRef<number>(null);
   const isTapRef = useRef(false);
   const momentumRef = useRef({ isDragging: true, lastX: 0, velocity: 0, animationFrame: -1, time: 0 });
   const zoomEnabledRef = useRef(true);
@@ -99,12 +99,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     const { yScale, volumeScale, rsScale } = updateRemainingScales(series, visibleDomain, visibleIndex, dms);
     transformRef.current = transform;
     visibleIndexRef.current = visibleIndex;
-    chartScalesRef.current = {
-      xScale,
-      yScale,
-      volumeScale,
-      rsScale
-    };
+    chartScalesRef.current = { xScale, yScale, volumeScale, rsScale };
     return { transform: transformRef.current, chartScales: chartScalesRef.current };
   };
 
@@ -500,10 +495,7 @@ const getVisibleDomain = (
 };
 
 const getVisibleRange = (bitmapWidth: number, transform: d3.ZoomTransform) => {
-  return {
-    rangeStart: -bitmap(transform.x),
-    rangeEnd: bitmapWidth - bitmap(transform.x)
-  };
+  return { rangeStart: -bitmap(transform.x), rangeEnd: bitmapWidth - bitmap(transform.x) };
 };
 
 const getLabelFont = (fontSize: number) => {

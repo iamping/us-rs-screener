@@ -86,17 +86,17 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
     rsNewHighBeforePrice: getCssVar('--colors-rs-new-high-before-price'),
     border: getCssVar('--chakra-colors-border'),
     think40: getCssVar('--colors-think-40'),
-    think40down: getCssVar('--chakra-colors-pink-400')
+    think40down: getCssVar('--colors-think-40-down')
   };
   return colorMode === 'light'
     ? colors
     : {
         ...colors,
         up: getCssVar('--chakra-colors-white'),
-        down: 'rgb(242,54,69)',
+        down: getCssVar('--colors-down'),
         text: getCssVar('--chakra-colors-white'),
         normalVolume: getCssVar('--chakra-colors-gray-700'),
-        loserVolume: 'rgb(255,81,82)',
+        loserVolume: getCssVar('--colors-volume-down'),
         ema21: getCssVar('--chakra-colors-gray-600'),
         ema50: getCssVar('--chakra-colors-gray-400'),
         ema200: getCssVar('--chakra-colors-gray-300')

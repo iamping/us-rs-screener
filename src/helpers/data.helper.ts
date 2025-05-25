@@ -24,14 +24,21 @@ export const calculateEMA = (values: number[], period: number) => {
 
 export const calculateSMA = (values: number[], period: number, fillNull = false) => {
   const smaArray: Array<number | null> = [];
-  values.forEach((_, index) => {
-    if (index < period - 1) {
-      smaArray.push(null);
-    } else {
-      const sum = values.slice(index + 1 - period, index + 1).reduce((pre, current) => pre + current, 0);
-      smaArray.push(sum / period);
-    }
-  });
+  if (values.length < period) {
+    const sum = values.reduce((pre, current) => pre + current, 0);
+    values.forEach(() => {
+      smaArray.push(sum);
+    });
+  } else {
+    values.forEach((_, index) => {
+      if (index < period - 1) {
+        smaArray.push(null);
+      } else {
+        const sum = values.slice(index + 1 - period, index + 1).reduce((pre, current) => pre + current, 0);
+        smaArray.push(sum / period);
+      }
+    });
+  }
   if (fillNull) {
     const firstNotNull = smaArray.find((e) => e) ?? 0;
     return smaArray.map((e) => e ?? firstNotNull);

@@ -919,7 +919,8 @@ const updateXScale = (series: StockDataPoint[], transform: d3.ZoomTransform, dms
   // add custom ticks & display index
   const tickValues = dateTicks(series.map((d) => d.date));
   const minDistance = bitmap(30);
-  const diffX = Math.abs(xScale(tickValues[0].index) - xScale(tickValues[1].index));
+  const diffX =
+    tickValues.length > 1 ? Math.abs(xScale(tickValues[0].index) - xScale(tickValues[1].index)) : minDistance;
   const step = Math.min(Math.ceil(minDistance / diffX), 4); // step should be 1,2,3,4 to always correctly get January
   const firstJanIndex = tickValues.map((d) => d.date).findIndex((d) => d.getMonth() === 0);
   const startIndex = Math.min(...d3.range(firstJanIndex === -1 ? 0 : firstJanIndex, -1, -step));

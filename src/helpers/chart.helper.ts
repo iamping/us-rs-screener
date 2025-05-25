@@ -13,7 +13,7 @@ export const priceFormat = (max: number) => (value: d3.NumberValue) => {
 };
 
 export const volumeFormat = (val: number, precision?: number) => {
-  return precision ? format(`.${precision}s`)(val) : format('~s')(val);
+  return precision ? format(`.${precision}s`)(val).replace('G', 'B') : format('~s')(val).replace('G', 'B');
 };
 
 export const priceOverlayFormat = (value: d3.NumberValue) => {
@@ -86,7 +86,8 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
     rsNewHighBeforePrice: getCssVar('--colors-rs-new-high-before-price'),
     border: getCssVar('--chakra-colors-border'),
     think40: getCssVar('--colors-think-40'),
-    think40down: getCssVar('--colors-think-40-down')
+    think40down: getCssVar('--colors-think-40-down'),
+    gridLine: getCssVar('--chakra-colors-gray-100')
   };
   return colorMode === 'light'
     ? colors
@@ -99,6 +100,7 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
         loserVolume: getCssVar('--colors-volume-down'),
         ema21: getCssVar('--chakra-colors-gray-600'),
         ema50: getCssVar('--chakra-colors-gray-400'),
-        ema200: getCssVar('--chakra-colors-gray-300')
+        ema200: getCssVar('--chakra-colors-gray-300'),
+        gridLine: getCssVar('--chakra-colors-gray-900')
       };
 };

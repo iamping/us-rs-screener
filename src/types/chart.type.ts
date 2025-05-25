@@ -40,10 +40,17 @@ export interface StockDataPoint {
 export type BandScale = d3.ScaleBand<Date>;
 export type LogScale = d3.ScaleLogarithmic<number, number>;
 export type LinearScale = d3.ScaleLinear<number, number>;
+export type XScale = LinearScale & {
+  customTicks: { date: Date; index: number }[];
+  displayIndex: number[];
+};
+export type YScale = LogScale & {
+  customTicks: number[];
+};
 
 export interface ChartScales {
-  xScale: LinearScale;
-  yScale: LogScale;
+  xScale: XScale;
+  yScale: YScale;
   volumeScale: LinearScale;
   rsScale: LinearScale;
 }

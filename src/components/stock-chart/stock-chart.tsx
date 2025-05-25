@@ -19,7 +19,9 @@ import {
   DataPoint,
   LinearScale,
   StockChartData,
-  StockDataPoint
+  StockDataPoint,
+  XScale,
+  YScale
 } from '@/types/chart.type';
 import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
 import { ColorMode } from '../ui/color-mode';
@@ -111,7 +113,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     const chartScales = chartScalesRef.current as ChartScales;
     plotAreaRef.current?.draw((context) => plotChart(context, series, chartScales, transform, drawRS, colorMode));
     volumeAreaRef.current?.draw((context) => plotVolume(context, series, chartScales, transform, colorMode));
-    xAxisRef.current?.draw((context) => drawXAxis(context, series, chartScales.xScale, transform, colorMode));
+    xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, transform, colorMode));
     yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode));
     volumeAxisRef.current?.draw((context) => drawVolumeAxis(context, chartScales.volumeScale, colorMode));
   };
@@ -519,6 +521,7 @@ const plotChart = (
   // translate canvas on zoom event
   context.translate(bitmap(transform.x), 0);
   const canvasHeight = context.canvas.height;
+  const canvasWidth = context.canvas.width;
   const { xScale, yScale, rsScale } = scales;
   const bandWidth = Math.max(Math.ceil(Math.abs(xScale(1) - xScale(0)) / 5), Math.floor(devicePixelRatio));
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
@@ -526,6 +529,34 @@ const plotChart = (
   const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors(colorMode);
   const isDaily = series.some((d) => d.isDaily);
+
+  // draw vertical line
+  const xTickValues = xScale.customTicks;
+  const displayIndex = xScale.displayIndex;
+  xTickValues.forEach((d, i) => {
+    const x = Math.round(xScale(d.index));
+    if (displayIndex.includes(i)) {
+      context.beginPath();
+      context.lineWidth = Math.floor(devicePixelRatio);
+      context.strokeStyle = colors.gridLine;
+      context.moveTo(x, 0);
+      context.lineTo(x, canvasHeight);
+      context.stroke();
+    }
+  });
+
+  // draw horizontal line
+  const yTickValues = yScale.customTicks;
+  const hLineWidth = canvasWidth * transform.k;
+  yTickValues.forEach((d) => {
+    const y = Math.round(yScale(d));
+    context.beginPath();
+    context.lineWidth = Math.floor(devicePixelRatio);
+    context.strokeStyle = colors.gridLine;
+    context.moveTo(0, y);
+    context.lineTo(hLineWidth, y);
+    context.stroke();
+  });
 
   // draw ema 21
   if (isDaily) {
@@ -655,11 +686,39 @@ const plotVolume = (
   // translate canvas on zoom event
   context.translate(bitmap(transform.x), 0);
   const canvasHeight = context.canvas.height;
+  const canvasWidth = context.canvas.width;
   const { xScale, volumeScale } = scales;
   const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
   const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
   const colors = getChartColors(colorMode);
   const isDaily = series.some((d) => d.isDaily);
+  const xTickValues = xScale.customTicks;
+  const displayIndex = xScale.displayIndex;
+
+  // draw vertical line
+  xTickValues.forEach((d, i) => {
+    const x = Math.round(xScale(d.index));
+    if (displayIndex.includes(i)) {
+      context.beginPath();
+      context.lineWidth = Math.floor(devicePixelRatio);
+      context.strokeStyle = colors.gridLine;
+      context.moveTo(x, 0);
+      context.lineTo(x, canvasHeight);
+      context.stroke();
+    }
+  });
+
+  // draw horizontal line
+  const hLineWidth = canvasWidth * transform.k;
+  volumeScale.ticks(isTouchDevice ? 2 : 3).forEach((d) => {
+    const y = Math.round(volumeScale(d));
+    context.beginPath();
+    context.lineWidth = Math.floor(devicePixelRatio);
+    context.strokeStyle = colors.gridLine;
+    context.moveTo(0, y);
+    context.lineTo(hLineWidth, y);
+    context.stroke();
+  });
 
   series.forEach((d, i) => {
     const barX = Math.floor(xScale(i));
@@ -686,22 +745,16 @@ const plotVolume = (
 
 const drawXAxis = (
   context: CanvasRenderingContext2D,
-  series: StockDataPoint[],
-  xScale: LinearScale,
+  xScale: XScale,
   transform: d3.ZoomTransform,
   colorMode: ColorMode
 ) => {
   context.translate(bitmap(transform.x), 0);
-  const tickValues = dateTicks(series.map((d) => d.date));
   const canvasWidth = context.canvas.width;
   const font = getLabelFont(12);
   const y = bitmap(15);
-  const minDistance = bitmap(30);
-  const diffX = Math.abs(xScale(tickValues[0].index) - xScale(tickValues[1].index));
-  const step = Math.min(Math.ceil(minDistance / diffX), 4); // step should be 1,2,3,4 to always correctly get January
-  const firstJanIndex = tickValues.map((d) => d.date).findIndex((d) => d.getMonth() === 0);
-  const startIndex = Math.min(...d3.range(firstJanIndex === -1 ? 0 : firstJanIndex, -1, -step));
-  const displayIndex = d3.range(startIndex, tickValues.length, step);
+  const tickValues = xScale.customTicks;
+  const displayIndex = xScale.displayIndex;
 
   // hide label if out of visible range
   const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, transform);
@@ -719,10 +772,10 @@ const drawXAxis = (
   });
 };
 
-const drawYAxis = (context: CanvasRenderingContext2D, yScale: LinearScale, colorMode: ColorMode) => {
-  const [min, max] = yScale.domain();
+const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale, colorMode: ColorMode) => {
+  const [, max] = yScale.domain();
   const priceFormatFnc = priceFormat(max);
-  const tickValues = logTicks(min * 0.95, max);
+  const tickValues = yScale.customTicks;
   const canvasHeight = context.canvas.height;
   const font = getLabelFont(12);
   const x = bitmap(10);
@@ -861,7 +914,20 @@ const updateXScale = (series: StockDataPoint[], transform: d3.ZoomTransform, dms
     .scaleLinear()
     .range([0, bitmapWidth * transform.k])
     .domain([-1, series.length + Math.floor(series.length / (transform.k * 100))]) // add a little bit margin for first & last point
-    .clamp(true);
+    .clamp(true) as XScale;
+
+  // add custom ticks & display index
+  const tickValues = dateTicks(series.map((d) => d.date));
+  const minDistance = bitmap(30);
+  const diffX = Math.abs(xScale(tickValues[0].index) - xScale(tickValues[1].index));
+  const step = Math.min(Math.ceil(minDistance / diffX), 4); // step should be 1,2,3,4 to always correctly get January
+  const firstJanIndex = tickValues.map((d) => d.date).findIndex((d) => d.getMonth() === 0);
+  const startIndex = Math.min(...d3.range(firstJanIndex === -1 ? 0 : firstJanIndex, -1, -step));
+  const displayIndex = d3.range(startIndex, tickValues.length, step);
+  xScale.customTicks = tickValues;
+  xScale.displayIndex = displayIndex;
+
+  // find visible bar domain & index
   const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, transform, bitmapWidth);
   return { xScale, visibleDomain, visibleIndex };
 };
@@ -873,10 +939,12 @@ const updateRemainingScales = (
   dms: CanvasDimensions
 ) => {
   const { bitmapHeight } = dms;
+  const [min, max] = visibleDomain;
   const yScale = d3
     .scaleLog()
     .range([bitmapHeight * barArea, 0])
-    .domain(visibleDomain);
+    .domain(visibleDomain) as YScale;
+  yScale.customTicks = logTicks(min * 0.95, max);
   const firstVisibleIdx = Math.max(visibleIndex[0] - 10, 0);
   const lastVisibleIdx = visibleIndex[1] + 10;
   const volumeScale = d3

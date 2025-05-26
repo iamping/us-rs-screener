@@ -27,7 +27,7 @@ export const calculateSMA = (values: number[], period: number, fillNull = false)
   if (values.length < period) {
     const sum = values.reduce((pre, current) => pre + current, 0);
     values.forEach(() => {
-      smaArray.push(sum);
+      smaArray.push(sum / values.length);
     });
   } else {
     values.forEach((_, index) => {

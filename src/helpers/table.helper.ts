@@ -452,6 +452,55 @@ export const priceOptions: SelectOption[] = [
   }
 ];
 
+export const adrPercentOptions: SelectOption[] = [
+  ...[5, 4, 3, 2, 1].map((val) => {
+    return {
+      value: `${val}up`,
+      title: `${val}.0 and above`,
+      compareOption: {
+        type: 'fixed',
+        params: [
+          {
+            operator: '>=',
+            compareNumber: val
+          }
+        ]
+      }
+    } as SelectOption;
+  }),
+  {
+    value: 'under1',
+    title: 'Under 1.0',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '<',
+          compareNumber: 1
+        }
+      ]
+    }
+  }
+];
+
+export const rmvOptions: SelectOption[] = [
+  ...[20, 15, 10, 5].map((val) => {
+    return {
+      value: `under${val}`,
+      title: `Under ${val}.0`,
+      compareOption: {
+        type: 'fixed',
+        params: [
+          {
+            operator: '<',
+            compareNumber: val
+          }
+        ]
+      }
+    } as SelectOption;
+  })
+];
+
 export const amountFilterFn =
   (optionList: SelectOption[]) =>
   <T>(row: Row<T>, columnId: string, filterValue: string) => {

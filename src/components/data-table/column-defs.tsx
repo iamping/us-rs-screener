@@ -1,6 +1,7 @@
 import { Text } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
 import {
+  adrPercentOptions,
   amountFilterFn,
   avgDollarVolOptions,
   customArrIncludesSome,
@@ -9,6 +10,7 @@ import {
   percentChangeOptions,
   priceOptions,
   relativeVolOptions,
+  rmvOptions,
   rsRatingOptions
 } from '@/helpers/table.helper';
 import { Stock } from '@/types/stock.type';
@@ -102,6 +104,30 @@ export const columns = [
       selectOptions: marketCapOptions
     },
     filterFn: amountFilterFn(marketCapOptions)
+  }),
+  columnHelper.accessor('adrPercent', {
+    header: () => <Text textAlign="right">ADR %</Text>,
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: adrPercentOptions
+    },
+    filterFn: amountFilterFn(adrPercentOptions)
+  }),
+  columnHelper.accessor('rmv', {
+    header: () => (
+      <Text textAlign="right" title="Relative Measured Volatility">
+        RMV
+      </Text>
+    ),
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
+    meta: {
+      width: 100,
+      filterVariant: 'radio-select',
+      selectOptions: rmvOptions
+    },
+    filterFn: amountFilterFn(rmvOptions)
   }),
   columnHelper.accessor((original) => original.close, {
     id: '52wkRange',

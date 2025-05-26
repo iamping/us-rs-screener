@@ -767,21 +767,29 @@ export const presetOptions: SelectOption[] = [
     ]
   },
   {
-    value: 'tightRangePlus',
-    title: 'Tight Range Plus',
-    description: 'Tight + Inside Day',
+    value: 'superFocus',
+    title: 'Super Focus',
+    description: 'Tight + Liquidity',
     presetStates: [
       {
-        id: 'tightRange',
-        value: ['Yes']
+        id: 'close',
+        value: ['gtEMA150/200', 'near52WHigh']
       },
       {
-        id: 'insideDay',
-        value: ['Yes']
+        id: 'marketCap',
+        value: 'large'
       },
       {
         id: 'avgDollarVolume',
-        value: '10up'
+        value: '20up'
+      },
+      {
+        id: 'adrPercent',
+        value: '3up'
+      },
+      {
+        id: 'rmv',
+        value: 'under20'
       }
     ]
   }

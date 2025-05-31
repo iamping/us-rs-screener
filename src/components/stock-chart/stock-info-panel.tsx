@@ -5,7 +5,6 @@ import { computeDataSeries, convertDailyToWeekly } from '@/helpers/data.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
 import { StockChartData, StockDataPoint } from '@/types/chart.type';
-import { formatDecimal } from '@/utils/common.utils';
 import { StockChart } from './stock-chart';
 
 interface StockInfoPanelProps {
@@ -32,7 +31,6 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     series: interval === 'W' ? weeklySeries : dailySeries,
     isDaily
   };
-  const stock = stockChartData.stock;
 
   useEffect(() => {
     let active = true;
@@ -85,8 +83,29 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   return (
     <>
       <Flex height="full" direction="column" position="relative">
-        <Flex right={0} margin={2} position="absolute" zIndex={2}>
+        <Flex margin={2} height="24px">
           {isLoading && <Text>Loading {ticker}...</Text>}
+          {!isLoading && (
+            <Group attached>
+              <Button
+                size="2xs"
+                width="24px"
+                variant={isDaily ? 'solid' : 'subtle'}
+                disabled={isLoading || intervalDisabled}
+                onClick={() => setInterval('D')}>
+                D
+              </Button>
+              <Button
+                size="2xs"
+                width="24px"
+                variant={interval === 'W' ? 'solid' : 'subtle'}
+                disabled={isLoading || intervalDisabled}
+                onClick={() => setInterval('W')}>
+                W
+              </Button>
+            </Group>
+          )}
+          <Spacer />
           <CloseButton size="2xs" variant="subtle" loading={isLoading} onClick={() => setTicker('')} />
         </Flex>
         <StockChart
@@ -96,71 +115,6 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           ticker={nextTicker}
           stockData={stockChartData}
         />
-        <Flex borderTopWidth={nextTicker.length > 0 ? 1 : 0} height="40px">
-          {nextTicker.length > 0 && (
-            <>
-              <Group padding={2}>
-                <Button
-                  size="2xs"
-                  width="24px"
-                  variant={isDaily ? 'solid' : 'subtle'}
-                  disabled={isLoading || intervalDisabled}
-                  onClick={() => setInterval('D')}>
-                  D
-                </Button>
-                <Button
-                  size="2xs"
-                  width="24px"
-                  variant={interval === 'W' ? 'solid' : 'subtle'}
-                  disabled={isLoading || intervalDisabled}
-                  onClick={() => setInterval('W')}>
-                  W
-                </Button>
-              </Group>
-              <Text
-                lineHeight="40px"
-                paddingX={2}
-                borderLeftWidth={1}
-                fontSize="xs"
-                opacity={isLoading ? 0.2 : undefined}>
-                <Text as="span" fontWeight="500">
-                  M.Cap
-                </Text>
-                <Text as="span" color="subtle">
-                  {formatDecimal(stock.marketCap / 1000000000)}B
-                </Text>
-              </Text>
-              <Text
-                lineHeight="40px"
-                paddingX={2}
-                borderLeftWidth={1}
-                fontSize="xs"
-                opacity={isLoading ? 0.2 : undefined}>
-                <Text as="span" fontWeight="500">
-                  RS
-                </Text>
-                <Text as="span" color="subtle">
-                  {stock.rsRating}
-                </Text>
-              </Text>
-              <Text
-                lineHeight="40px"
-                paddingX={2}
-                borderLeftWidth={1}
-                fontSize="xs"
-                opacity={isLoading ? 0.2 : undefined}
-                truncate
-                flexGrow={1}>
-                <Text as="span" fontWeight="500">
-                  In{' '}
-                </Text>
-                <Text as="span" color="subtle">
-                  {stock.industry}
-                </Text>
-              </Text>
-            </>
-          )}
-        </Flex>
       </Flex>
     </>
   );

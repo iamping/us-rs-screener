@@ -30,10 +30,20 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
 
   return (
     <Box {...rest}>
-      <Heading flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stock.ticker}>
+      <Heading
+        flexGrow={1}
+        size="sm"
+        fontWeight="500"
+        truncate={true}
+        title={stock.ticker}
+        background={{ base: 'whiteAlpha.600', _dark: 'blackAlpha.600' }}>
         {stock.ticker} {' - '}
         <Text as="span" fontSize="sm" fontWeight="500" color="subtle">
           {stock.companyName}
+        </Text>
+        <Text as="span" fontSize="xs" fontWeight="500">
+          {' #'}
+          {stock.industry}
         </Text>
       </Heading>
       <Flex gap={1} flexWrap="wrap">
@@ -43,13 +53,19 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
         <ValueItem title="C" value={close} isDown={isDown} />
         <ValueItem title="Vol" value={volume} isDown={isDown} />
       </Flex>
+      <Flex>
+        <ValueItem title="M.Cap " value={`${formatDecimal(stock.marketCap / 1000000000)}B`} />
+      </Flex>
+      <Flex>
+        <ValueItem title="RS " value={`${formatDecimal(stock.rsRating)}`} />
+      </Flex>
     </Box>
   );
 };
 
 const ValueItem: FC<ValueItemProps> = ({ title, value, isDown = false }) => {
   return (
-    <Text fontSize="xs">
+    <Text display="inline-block" fontSize="xs" background={{ base: 'whiteAlpha.700', _dark: 'blackAlpha.700' }}>
       <Text as="span" fontWeight="600">
         {title}
       </Text>

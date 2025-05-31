@@ -30,14 +30,14 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
         : undefined;
 
   return (
-    <Flex {...rest}>
-      <Text fontSize="xs" paddingX={1}>
+    <Flex {...rest} background={{ base: 'whiteAlpha.700', _dark: 'blackAlpha.700' }}>
+      <Text fontSize="xs" paddingX={0.5}>
         <Text as="span" fontWeight={500}>
           Avg$Vol{' '}
         </Text>
         <Text as="span">{avgDollarVol}</Text>
       </Text>
-      <Text fontSize="xs" paddingX={1}>
+      <Text fontSize="xs" paddingX={0.5}>
         <Text as="span" fontWeight={500}>
           R.Vol{' '}
         </Text>

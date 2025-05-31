@@ -303,11 +303,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
         index={activePoint?.index ?? -1}
         stockData={stockData}
         position="absolute"
-        margin={2}
-        marginTop={1}
+        marginX={2}
         zIndex={2}
         left={0}
-        right="40px"
+        right={0}
       />
       <StockVolume
         index={activePoint?.index ?? -1}

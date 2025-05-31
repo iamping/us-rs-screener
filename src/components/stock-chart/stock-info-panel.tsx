@@ -75,7 +75,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           </Link>
         </Text>
         <Spacer />
-        <CloseButton size="2xs" variant="subtle" zIndex={1} loading={isLoading} onClick={() => setTicker('')} />
+        <CloseButton size="2xs" variant="plain" zIndex={1} loading={isLoading} onClick={() => setTicker('')} />
       </Flex>
     );
   }
@@ -86,7 +86,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
         <Flex margin={2} height="24px">
           {isLoading && <Text>Loading {ticker}...</Text>}
           {!isLoading && (
-            <Group attached>
+            <Group>
               <Button
                 size="2xs"
                 width="24px"
@@ -106,7 +106,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
             </Group>
           )}
           <Spacer />
-          <CloseButton size="2xs" variant="subtle" loading={isLoading} onClick={() => setTicker('')} />
+          <CloseButton size="2xs" variant="plain" loading={isLoading} onClick={() => setTicker('')} />
         </Flex>
         <StockChart
           id="stock-chart"

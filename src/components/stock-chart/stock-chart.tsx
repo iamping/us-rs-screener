@@ -65,6 +65,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   const isTapRef = useRef(false);
   const momentumRef = useRef({ isDragging: true, lastX: 0, velocity: 0, animationFrame: -1, time: 0 });
   const zoomEnabledRef = useRef(true);
+  const lastXYRef = useRef<[number, number]>(null);
 
   // ref for resizing
   const firstRenderRef = useRef(true);
@@ -113,6 +114,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     xOverlayRef.current?.draw((context) => drawXOverlay(context, transform, dataPoint));
     yOverlayRef.current?.draw((context) => drawYOverlay(context, dataPoint));
     volumeOverlayRef.current?.draw((context) => drawVolumeOverlay(context, dataPoint));
+    lastXYRef.current = pointer;
     setActivePoint(dataPoint);
   };
 
@@ -121,6 +123,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     xOverlayRef.current?.clear();
     yOverlayRef.current?.clear();
     volumeOverlayRef.current?.clear();
+    lastXYRef.current = null;
     setActivePoint(null);
   };
 
@@ -203,6 +206,14 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
       momentumRef.current.animationFrame = requestAnimationFrame(animateScroll);
     }
   };
+
+  useEffect(() => {
+    if (lastXYRef.current) {
+      setTimeout(() => {
+        drawCrosshairAndOverlay(lastXYRef.current!, stockData);
+      }, 0); // delay a bit
+    }
+  }, [ticker, stockData]);
 
   // 1st - will start 2nd effect after dimensions are set properly
   useEffect(() => {

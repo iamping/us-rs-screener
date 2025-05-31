@@ -314,10 +314,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
         index={activePoint?.index ?? -1}
         stockData={stockData}
         position="absolute"
-        marginX={2}
+        margin={2}
         zIndex={2}
         left={0}
-        right={0}
+        maxW={'calc(100% - 120px)'}
       />
       <StockVolume
         index={activePoint?.index ?? -1}

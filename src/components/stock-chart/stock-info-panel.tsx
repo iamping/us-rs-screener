@@ -83,7 +83,13 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   return (
     <>
       <Flex height="full" direction="column" position="relative">
-        <Flex margin={2} height="24px">
+        <Flex
+          padding={2}
+          gap={2}
+          position="absolute"
+          zIndex={2}
+          right={0}
+          background={{ base: 'whiteAlpha.600', _dark: 'blackAlpha.600' }}>
           {isLoading && <Text>Loading {ticker}...</Text>}
           {!isLoading && (
             <Group>
@@ -105,7 +111,6 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
               </Button>
             </Group>
           )}
-          <Spacer />
           <CloseButton size="2xs" variant="plain" loading={isLoading} onClick={() => setTicker('')} />
         </Flex>
         <StockChart

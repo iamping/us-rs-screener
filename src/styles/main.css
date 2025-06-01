@@ -30,10 +30,10 @@
   --colors-cell-hover-bg: var(--chakra-colors-gray-800);
   --colors-icon: var(--chakra-colors-gray-700);
   --colors-icon-hover: var(--chakra-colors-white);
-  --colors-down: rgb(242,54,69);
-  --colors-volume-down: rgb(255,81,82);
+  --colors-down: rgb(242, 54, 69);
+  --colors-volume-down: rgb(255, 81, 82);
   --colors-think-40: rgb(146, 233, 90);
-  --colors-think-40-down: var(--chakra-colors-pink-400);
+  --colors-think-40-down: yellow;
 }
 
 body {

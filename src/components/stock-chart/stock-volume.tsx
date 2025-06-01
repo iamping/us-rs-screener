@@ -15,10 +15,12 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
   if (stockData.series.length === 0) {
     return null;
   }
-  const { series, stock } = stockData;
-  const d = index < 0 || index > series.length - 1 ? series[series.length - 1] : series[index];
-  const avgDollarVol = formatDecimal(stock.avgDollarVolume / 1000000) + 'M';
+  const { series } = stockData;
+  const idx = index < 0 || index > series.length - 1 ? series.length - 1 : index;
+  const d = series[idx];
+  const preD = idx > 0 ? series[idx - 1] : d;
   const relVol = formatDecimal(d.relativeVolume);
+  const volBuzz = `${formatDecimal((100 * (d.volume - preD.volume)) / preD.volume, true)}%`;
   const volume = volumeFormat(d.volume, 3);
   const colors = getChartColors(colorMode.colorMode);
   const { isPocketPivot, isGainer, isLoser } = d.volumeStatus;
@@ -50,9 +52,11 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
       </Text>
       <Text fontSize="xs" paddingX={0.5}>
         <Text as="span" fontWeight={500}>
-          Avg$Vol{' '}
+          Vol%Chg{' '}
         </Text>
-        <Text as="span">{avgDollarVol}</Text>
+        <Text as="span" color={color}>
+          {volBuzz}
+        </Text>
       </Text>
     </Flex>
   );

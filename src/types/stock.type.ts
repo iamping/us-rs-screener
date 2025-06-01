@@ -41,6 +41,7 @@ export interface Stock {
   tightRange: number | string;
   insideDay: number | string;
   think40: number | string;
+  episodicPivot: number | string;
   ema21: number;
   ema50: number;
   ema150: number;

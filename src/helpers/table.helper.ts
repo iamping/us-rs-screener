@@ -792,6 +792,29 @@ export const presetOptions: SelectOption[] = [
         value: 'under20'
       }
     ]
+  },
+  {
+    value: 'episodicPivot',
+    title: 'Episodic Pivot',
+    description: 'Price + Volume Surge',
+    presetStates: [
+      {
+        id: 'close',
+        value: ['gtEMA150/200']
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '10up'
+      },
+      {
+        id: 'episodicPivot',
+        value: ['Yes']
+      },
+      {
+        id: 'marketCap',
+        value: 'middle'
+      }
+    ]
   }
 ];
 
@@ -821,6 +844,7 @@ export const dataMapping = (stocks: Stock[]) => {
     tightRange: e.tightRange === 0 ? 'No' : 'Yes',
     insideDay: e.insideDay === 0 ? 'No' : 'Yes',
     think40: e.think40 === 0 ? 'No' : 'Yes',
+    episodicPivot: e.episodicPivot === 0 ? 'No' : 'Yes',
     key: i + 1
   }));
 };

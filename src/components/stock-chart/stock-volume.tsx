@@ -31,6 +31,7 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
       : isLoser
         ? colors.loserVolume
         : undefined;
+  const volChgColor = d.volume > preD.volume ? colors.gainerVolume : colors.loserVolume;
 
   return (
     <Flex {...rest} background={{ base: 'whiteAlpha.700', _dark: 'blackAlpha.700' }}>
@@ -54,7 +55,7 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
         <Text as="span" fontWeight={500}>
           Vol%Chg{' '}
         </Text>
-        <Text as="span" color={color}>
+        <Text as="span" color={volChgColor}>
           {volBuzz}
         </Text>
       </Text>

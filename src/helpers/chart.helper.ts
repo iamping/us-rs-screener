@@ -107,7 +107,9 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
     border: getCssVar('--chakra-colors-border'),
     think40: getCssVar('--colors-think-40'),
     think40down: getCssVar('--colors-think-40-down'),
-    gridLine: getCssVar('--chakra-colors-gray-100')
+    gridLine: getCssVar('--chakra-colors-gray-100'),
+    currentPriceBg: getCssVar('--chakra-colors-black'),
+    currentPriceLabel: getCssVar('--chakra-colors-white')
   };
   return colorMode === 'light'
     ? colors
@@ -121,7 +123,9 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
         ema21: getCssVar('--chakra-colors-gray-600'),
         ema50: getCssVar('--chakra-colors-gray-400'),
         ema200: getCssVar('--chakra-colors-gray-300'),
-        gridLine: getCssVar('--chakra-colors-gray-900')
+        gridLine: getCssVar('--chakra-colors-gray-900'),
+        currentPriceBg: getCssVar('--chakra-colors-white'),
+        currentPriceLabel: getCssVar('--chakra-colors-black')
       };
 };
 
@@ -211,6 +215,20 @@ export const plotChart = (
     context.lineTo(hLineWidth, y);
     context.stroke();
   });
+
+  // line for current price
+  const y = Math.floor(yScale(series[series.length - 1].close)) + 0.5;
+  const currentPriceLineWidth = Math.floor(devicePixelRatio);
+  const gap = Math.floor(devicePixelRatio);
+  context.save();
+  context.beginPath();
+  context.setLineDash([gap, gap * 2]);
+  context.lineWidth = currentPriceLineWidth;
+  context.strokeStyle = colors.currentPriceBg;
+  context.moveTo(0, y);
+  context.lineTo(hLineWidth, y);
+  context.stroke();
+  context.restore();
 
   // draw ema 21
   if (isDaily) {
@@ -414,14 +432,20 @@ export const drawXAxis = (
   });
 };
 
-export const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale, colorMode: ColorMode) => {
+export const drawYAxis = (
+  context: CanvasRenderingContext2D,
+  yScale: YScale,
+  colorMode: ColorMode,
+  lastPoint: StockDataPoint
+) => {
   const [, max] = yScale.domain();
   const priceFormatFnc = priceFormat(max);
   const tickValues = yScale.customTicks;
   const canvasHeight = context.canvas.height;
   const font = getLabelFont(12);
   const x = bitmap(10);
-  context.fillStyle = getChartColors(colorMode).text;
+  const colors = getChartColors(colorMode);
+  context.fillStyle = colors.text;
   context.font = font;
   context.textBaseline = 'middle';
   tickValues.forEach((d) => {
@@ -430,6 +454,15 @@ export const drawYAxis = (context: CanvasRenderingContext2D, yScale: YScale, col
       context.fillText(priceFormatFnc(d), x, y);
     }
   });
+
+  // current price label
+  const y = Math.round(yScale(lastPoint.close));
+  const rectHeight = bitmap(28);
+  const width = context.canvas.width;
+  context.fillStyle = colors.currentPriceBg;
+  context.fillRect(0, Math.floor(y - rectHeight / 2), width, rectHeight);
+  context.fillStyle = colors.currentPriceLabel;
+  context.fillText(priceFormatFnc(lastPoint.close), x, y);
 };
 
 export const drawVolumeAxis = (context: CanvasRenderingContext2D, volumeScale: LinearScale, colorMode: ColorMode) => {

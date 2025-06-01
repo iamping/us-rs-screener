@@ -33,6 +33,7 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
   return (
     <Box {...rest}>
       <Heading
+        paddingX={0.5}
         flexGrow={1}
         size="sm"
         fontWeight="500"
@@ -48,7 +49,7 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
           {stock.industry}
         </Text>
       </Heading>
-      <Flex gap={1} flexWrap="wrap">
+      <Flex flexWrap="wrap">
         <ValueItem title="O" value={open} color={color} />
         <ValueItem title="H" value={high} color={color} />
         <ValueItem title="L" value={low} color={color} />
@@ -58,7 +59,7 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
         <ValueItem title="M.Cap " value={`${formatDecimal(stock.marketCap / 1000000000)}B`} />
       </Flex>
       <Flex>
-        <ValueItem title="RS " value={`${formatDecimal(stock.rsRating)}`} />
+        <ValueItem title="RS " value={stock.rsRating.toString()} />
       </Flex>
     </Box>
   );
@@ -66,7 +67,11 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
 
 const ValueItem: FC<ValueItemProps> = ({ title, value, color }) => {
   return (
-    <Text display="inline-block" fontSize="xs" background={{ base: 'whiteAlpha.700', _dark: 'blackAlpha.700' }}>
+    <Text
+      paddingX={0.5}
+      display="inline-block"
+      fontSize="xs"
+      background={{ base: 'whiteAlpha.700', _dark: 'blackAlpha.700' }}>
       <Text as="span" fontWeight="600">
         {title}
       </Text>

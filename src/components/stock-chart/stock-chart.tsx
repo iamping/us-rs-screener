@@ -38,7 +38,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   const [chartRef, chartDms] = useChartDimensions<HTMLDivElement>({
     marginRight: 55,
     marginBottom: 30,
-    marginTop: 30,
+    marginTop: 40,
     marginLeft: 0
   });
 
@@ -101,7 +101,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     plotAreaRef.current?.draw((context) => plotChart(context, series, chartScales, transform, drawRS, colorMode));
     volumeAreaRef.current?.draw((context) => plotVolume(context, series, chartScales, transform, colorMode));
     xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, transform, colorMode));
-    yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode));
+    yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode, series[series.length - 1]));
     volumeAxisRef.current?.draw((context) => drawVolumeAxis(context, chartScales.volumeScale, colorMode));
   };
 

@@ -4,6 +4,7 @@ import {
   BandScale,
   CanvasDimensions,
   ChartScales,
+  CustomLinearScale,
   DataPoint,
   LinearScale,
   StockDataPoint,
@@ -652,4 +653,27 @@ export const findDataPoint = (
   const volumeY = canvasY - (max(yScale.range()) ?? 0);
   const volume = volumeY < 0 ? -1 : volumeScale.invert(volumeY);
   return { index, x, priceY: canvasY, volumeY, price, date, volume, px, py };
+};
+
+export const customLinearScale = (inputRange: [number, number], inputDomain: [number, number]): CustomLinearScale => {
+  const [, rangeEnd] = inputRange;
+  const [domainStart, domainEnd] = inputDomain;
+  const domains = range(domainStart, domainEnd);
+  const bandWidth = Math.ceil(rangeEnd / domains.length);
+  const ranges = Array(domains.length)
+    .fill(0)
+    .map((_, i) => i * bandWidth);
+  const scale = ((domain: number) => {
+    if (domain < domainStart) return ranges[0];
+    if (domain >= domainEnd) return ranges[ranges.length - 1];
+    return ranges[domain - domainStart];
+  }) as CustomLinearScale;
+  scale.range = () => ranges;
+  scale.domain = () => domains;
+  scale.invert = (x: number) => {
+    if (x < ranges[0]) return domains[0];
+    if (x >= ranges[ranges.length - 1]) return domains[domains.length - 1];
+    return domains[bisectCenter(ranges, x)];
+  };
+  return scale;
 };

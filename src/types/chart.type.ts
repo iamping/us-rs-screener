@@ -48,6 +48,12 @@ export type YScale = LogScale & {
   customTicks: number[];
 };
 
+export type CustomLinearScale = ((domain: number) => number) & {
+  invert: (range: number) => number;
+  range: () => number[];
+  domain: () => number[];
+};
+
 export interface ChartScales {
   xScale: XScale;
   yScale: YScale;

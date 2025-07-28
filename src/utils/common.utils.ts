@@ -42,3 +42,31 @@ export const setCssVar = (name: string, value: string) => {
 export const getCssVar = (name: string) => {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 };
+
+export const getISOWeekAndYear = (date: Date) => {
+  const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+
+  // ISO week starts on Monday, so Sunday (0) becomes 7
+  const dayNum = tempDate.getUTCDay() || 7;
+
+  // Set date to Thursday in current ISO week
+  tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
+
+  const isoYear = tempDate.getUTCFullYear();
+
+  // Get first day of ISO year
+  const yearStart = new Date(Date.UTC(isoYear, 0, 1));
+  const dayOfYear = Math.floor((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1;
+  const weekNo = Math.ceil(dayOfYear / 7);
+
+  return { week: weekNo, year: isoYear };
+};
+
+export const isTouchDeviceMatchMedia = () => {
+  return (
+    window.matchMedia('(pointer: coarse)').matches ||
+    window.matchMedia('(any-pointer: coarse)').matches ||
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0
+  );
+};

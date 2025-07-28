@@ -18,7 +18,7 @@ export const HeaderCell = <T,>({ header, resetPageIndex }: HeaderCellProps<T>) =
   return (
     <div
       key={header.id}
-      className={`grid-header-cell ${canSort ? 'sort' : ''} ${isPinned ? 'pinned' : ''}`}
+      className={`grid-header-cell ${canSort ? 'sortable' : ''} ${isPinned ? 'pinned' : ''}`}
       style={{
         minWidth: `${width}px`
       }}

@@ -5,7 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 import { PiFunnelBold } from 'react-icons/pi';
 import { PopoverBody, PopoverContent, PopoverRoot, PopoverTrigger } from '@/components/ui/popover';
 import { manualFilterAtom } from '@/states/atom';
-import { FilterVariant } from '@/types/shared';
+import { FilterVariant } from '@/types/shared.type';
 import { ComboBoxFilter } from './combobox-filter';
 import { EmptyFilter } from './empty-filter';
 import { MultiSelectFilter } from './multi-select-filter';
@@ -76,7 +76,16 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
           className="filter-icon"
           title={`Filter ${id}`}
           size="2xs"
-          color={column.getIsFiltered() ? 'black' : 'gray.300'}
+          color={{
+            base: column.getIsFiltered() ? 'black' : 'gray.300',
+            _dark: column.getIsFiltered() ? 'white' : 'gray.700'
+          }}
+          _hover={{
+            color: {
+              base: 'black',
+              _dark: 'white'
+            }
+          }}
           variant="plain"
           minWidth={'fit-content'}
           onClick={(e) => e.stopPropagation()}>

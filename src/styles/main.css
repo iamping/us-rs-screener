@@ -5,9 +5,37 @@
   --table-height: calc(100dvh - 48px);
   --preset-content-max-height: calc(100dvh - 100px);
   --filter-content-max-height: calc(100dvh / 3);
-  --colors-rs-new-high-before-price: rgb(0, 200, 0, 0.25);
-  --colors-rs-new-high: rgb(0, 0, 0, 0.25);
   --font-outfit: 'Outfit', serif;
+
+  /* colors for chart */
+  --colors-rs-new-high-before-price: rgb(0, 200, 0, 0.4);
+  --colors-rs-new-high: rgba(240, 20, 255, 0.4);
+
+  /* color for light theme */
+  --colors-scroll-bar: var(--chakra-colors-gray-300) var(--chakra-colors-gray-50);
+  --colors-selection-hover: var(--chakra-colors-gray-100);
+  --colors-cell-bg: var(--chakra-colors-white);
+  --colors-cell-hover-bg: var(--chakra-colors-gray-50);
+  --colors-icon: var(--chakra-colors-gray-300);
+  --colors-icon-hover: var(--chakra-colors-black);
+  --colors-think-40: royalblue;
+  --colors-think-40-down: deeppink;
+  --colors-week-range-bg: var(--chakra-colors-gray-200);
+}
+
+/* color for dark theme */
+:root.dark {
+  --colors-scroll-bar: unset;
+  --colors-selection-hover: var(--chakra-colors-gray-800);
+  --colors-cell-bg: var(--chakra-colors-black);
+  --colors-cell-hover-bg: var(--chakra-colors-gray-800);
+  --colors-icon: var(--chakra-colors-gray-700);
+  --colors-icon-hover: var(--chakra-colors-white);
+  --colors-down: rgb(242, 54, 69);
+  --colors-volume-down: rgb(255, 81, 82);
+  --colors-think-40: rgb(146, 233, 90);
+  --colors-think-40-down: yellow;
+  --colors-week-range-bg: var(--chakra-colors-gray-600);
 }
 
 body {
@@ -15,18 +43,23 @@ body {
   min-width: 380px;
   font-optical-sizing: auto;
   font-variant-numeric: lining-nums tabular-nums;
+  -webkit-touch-callout: none; /* Safari */
+  -webkit-user-select: none; /* Chrome */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none;
 }
 
 .scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--chakra-colors-gray-300) var(--chakra-colors-gray-50);
+  scrollbar-color: var(--colors-scroll-bar);
 }
 
 .resize-handle {
   display: flex;
   align-items: center;
   width: 4px;
-  background-color: var(--chakra-colors-gray-100);
+  background-color: var(--chakra-colors-border);
   &.portrait {
     width: 100%;
     height: 4px;
@@ -34,15 +67,11 @@ body {
 }
 
 .resize-handle[data-resize-handle-state='hover'] {
-  background-color: var(--chakra-colors-gray-200);
+  background-color: var(--chakra-colors-gray-500);
 }
 
 .resize-handle[data-resize-handle-state='drag'] {
   background-color: var(--chakra-colors-gray-500);
-}
-
-.sort-icon {
-  color: var(--chakra-colors-gray-500);
 }
 
 .grid-area {
@@ -55,31 +84,23 @@ body {
 
 .radio-wrapper:has(.radio:checked),
 .radio-wrapper:hover {
-  background-color: var(--chakra-colors-gray-100);
+  background-color: var(--colors-selection-hover);
   cursor: pointer;
 }
 
 .checkbox-wrapper:has(.checkbox:checked),
 .checkbox-wrapper:hover {
-  background-color: var(--chakra-colors-gray-100);
+  background-color: var(--colors-selection-hover);
   cursor: pointer;
 }
 
 .filter-selection-item:hover {
-  background-color: var(--chakra-colors-gray-100);
+  background-color: var(--colors-selection-hover);
 }
 
 .highlight {
   color: var(--chakra-colors-red-500);
   font-weight: 500;
-}
-
-.close-link {
-  cursor: pointer;
-  &:hover {
-    text-decoration: underline;
-    color: var(--chakra-colors-black);
-  }
 }
 
 .grid {
@@ -100,20 +121,20 @@ body {
 }
 
 .grid-header-cell {
-  border-bottom: 1px solid var(--chakra-colors-gray-200);
-  background: var(--chakra-colors-white);
+  border-bottom: 1px solid var(--chakra-colors-border);
+  background: var(--colors-cell-bg);
   font-weight: 500;
   text-align: left;
   padding: 8px;
-  &.sort {
+  &.sortable {
     cursor: pointer;
   }
-  &.sort:hover {
-    background-color: var(--chakra-colors-gray-50);
+  &.sortable:hover {
+    background-color: var(--colors-cell-hover-bg);
   }
   &.pinned {
     position: sticky;
-    border-right: 1px solid var(--chakra-colors-gray-200);
+    border-right: 1px solid var(--chakra-colors-border);
     left: 0;
     z-index: 3;
     padding-left: 12px;
@@ -122,17 +143,17 @@ body {
 
 .grid-header-cell:hover {
   .sort-icon {
-    color: var(--chakra-colors-black);
+    color: var(--colors-icon-hover);
   }
 }
 
 .grid-row:hover,
 .grid-row.active {
   cursor: pointer;
-  background-color: var(--chakra-colors-gray-50);
+  background-color: var(--colors-cell-hover-bg);
   & > div:first-child {
     font-weight: 500;
-    background-color: var(--chakra-colors-gray-50);
+    background-color: var(--colors-cell-hover-bg);
   }
 }
 
@@ -147,33 +168,24 @@ body {
 
 .grid-data-cell {
   padding: 4px 8px;
-  border-bottom: 1px solid var(--chakra-colors-gray-200);
+  border-bottom: 1px solid var(--chakra-colors-border);
   &.pinned {
     position: sticky;
-    border-right: 1px solid var(--chakra-colors-gray-200);
-    background-color: var(--chakra-colors-white);
+    border-right: 1px solid var(--chakra-colors-border);
+    background-color: var(--colors-cell-bg);
     left: 0;
     z-index: 1;
     padding-left: 12px;
   }
 }
 
-.filter-icon:hover {
-  color: var(--chakra-colors-black);
-}
-
-.export-icon:hover {
-  color: var(--chakra-colors-black);
-}
-
-.sort-icon:has(~ .filter-icon:hover),
-.sort-icon:has(~ .export-icon:hover) {
-  color: var(--chakra-colors-gray-300);
+.sort-icon:has(~ .filter-icon:hover) {
+  color: var(--colors-icon);
 }
 
 .week-range-wrapper {
   height: 4px;
-  background-color: var(--chakra-colors-gray-200);
+  background-color: var(--colors-week-range-bg);
   position: relative;
   margin-top: 2px;
   padding-right: 4px;
@@ -191,74 +203,12 @@ body {
   position: relative;
 }
 
-.chart-series-tooltip {
-  font-size: 12px !important;
-  font-family: var(--font-outfit) !important;
-  white-space: nowrap;
-  background-color: var(--chakra-colors-white);
-}
-
-.chart-series-tooltip span[class^='change-'],
-.chart-stock-info span[class^='change-'] {
-  color: var(--chakra-colors-red-500);
-}
-
-.chart-price-tooltip {
-  font-family: var(--font-outfit) !important;
-  margin-top: 36px;
-}
-
-.chart-date-tooltip {
-  color: var(--chakra-colors-white);
-  white-space: nowrap;
-  background-color: var(--chakra-colors-black);
-  padding: 4px;
-  margin-top: -6px;
-}
-
-.chart-rs-rating {
-  font-family: var(--font-outfit) !important;
-  font-size: 12px !important;
-  background-color: var(--chakra-colors-white-alpha-800);
-}
-
-div[data-highcharts-chart] {
-  height: var(--chart-height);
-}
-
-.marquee-wrapper {
-  position: absolute;
-  top: 0;
-  z-index: 1;
-  padding: 8px;
-  padding-top: 12px;
-  left: 90px;
-  right: 40px;
-  overflow: hidden;
-  font-size: 14px;
-}
-
-.marquee {
-  white-space: nowrap;
-  overflow: hidden;
-  display: inline-block;
-  animation: marquee 10s linear infinite;
-}
-
-.marquee p {
-  display: inline-block;
-  margin-left: 8px;
-  margin-right: 8px;
-  & span {
-    color: var(--chakra-colors-gray-500);
-  }
-}
-
-@keyframes marquee {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  100% {
-    transform: translate3d(-50%, 0, 0);
+/* css for new chart*/
+.stock-chart {
+  flex-grow: 1;
+  position: relative;
+  touch-action: none;
+  &[data-loading='true'] {
+    opacity: 0.2;
   }
 }

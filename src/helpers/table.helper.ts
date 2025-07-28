@@ -1,6 +1,6 @@
 import { ColumnFiltersState, Row, Table } from '@tanstack/react-table';
-import { ColumnVisibility, Operator, SelectOption, Settings } from '@/types/shared';
-import { Stock } from '@/types/stock';
+import { ColumnVisibility, Operator, SelectOption, Settings } from '@/types/shared.type';
+import { Stock } from '@/types/stock.type';
 
 type TRecord<T> = Row<T & Record<string, number>>;
 
@@ -452,6 +452,55 @@ export const priceOptions: SelectOption[] = [
   }
 ];
 
+export const adrPercentOptions: SelectOption[] = [
+  ...[5, 4, 3, 2, 1].map((val) => {
+    return {
+      value: `${val}up`,
+      title: `${val}.0 and above`,
+      compareOption: {
+        type: 'fixed',
+        params: [
+          {
+            operator: '>=',
+            compareNumber: val
+          }
+        ]
+      }
+    } as SelectOption;
+  }),
+  {
+    value: 'under1',
+    title: 'Under 1.0',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '<',
+          compareNumber: 1
+        }
+      ]
+    }
+  }
+];
+
+export const rmvOptions: SelectOption[] = [
+  ...[20, 15, 10, 5].map((val) => {
+    return {
+      value: `under${val}`,
+      title: `Under ${val}.0`,
+      compareOption: {
+        type: 'fixed',
+        params: [
+          {
+            operator: '<',
+            compareNumber: val
+          }
+        ]
+      }
+    } as SelectOption;
+  })
+];
+
 export const amountFilterFn =
   (optionList: SelectOption[]) =>
   <T>(row: Row<T>, columnId: string, filterValue: string) => {
@@ -718,21 +767,52 @@ export const presetOptions: SelectOption[] = [
     ]
   },
   {
-    value: 'tightRangePlus',
-    title: 'Tight Range Plus',
-    description: 'Tight + Inside Day',
+    value: 'superFocus',
+    title: 'Super Focus',
+    description: 'Tight + Liquidity',
     presetStates: [
       {
-        id: 'tightRange',
-        value: ['Yes']
+        id: 'close',
+        value: ['gtEMA150/200', 'near52WHigh']
       },
       {
-        id: 'insideDay',
-        value: ['Yes']
+        id: 'marketCap',
+        value: 'large'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '20up'
+      },
+      {
+        id: 'adrPercent',
+        value: '3up'
+      },
+      {
+        id: 'rmv',
+        value: 'under20'
+      }
+    ]
+  },
+  {
+    value: 'episodicPivot',
+    title: 'Episodic Pivot',
+    description: 'Price + Volume Surge',
+    presetStates: [
+      {
+        id: 'close',
+        value: ['gtEMA150/200']
       },
       {
         id: 'avgDollarVolume',
         value: '10up'
+      },
+      {
+        id: 'episodicPivot',
+        value: ['Yes']
+      },
+      {
+        id: 'marketCap',
+        value: 'middle'
       }
     ]
   }
@@ -764,6 +844,7 @@ export const dataMapping = (stocks: Stock[]) => {
     tightRange: e.tightRange === 0 ? 'No' : 'Yes',
     insideDay: e.insideDay === 0 ? 'No' : 'Yes',
     think40: e.think40 === 0 ? 'No' : 'Yes',
+    episodicPivot: e.episodicPivot === 0 ? 'No' : 'Yes',
     key: i + 1
   }));
 };

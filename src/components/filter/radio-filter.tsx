@@ -1,7 +1,7 @@
 import { Box, HStack, Show, Text, VStack } from '@chakra-ui/react';
 import { CSSProperties, FC, useEffect, useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
-import { SelectOption } from '@/types/shared';
+import { SelectOption } from '@/types/shared.type';
 
 interface RadioFilterProps {
   id?: string;

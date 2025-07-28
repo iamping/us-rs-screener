@@ -1,6 +1,7 @@
 import { Text } from '@chakra-ui/react';
 import { createColumnHelper } from '@tanstack/react-table';
 import {
+  adrPercentOptions,
   amountFilterFn,
   avgDollarVolOptions,
   customArrIncludesSome,
@@ -9,9 +10,10 @@ import {
   percentChangeOptions,
   priceOptions,
   relativeVolOptions,
+  rmvOptions,
   rsRatingOptions
 } from '@/helpers/table.helper';
-import { Stock } from '@/types/stock';
+import { Stock } from '@/types/stock.type';
 import { formatDecimal, formatNumber } from '@/utils/common.utils';
 import { CellTemplate } from './cell-template';
 
@@ -27,7 +29,13 @@ export const columns = [
   columnHelper.accessor('companyName', {
     header: () => 'Company Name',
     cell: (cell) => (
-      <Text truncate color="gray.500" title={cell.getValue()}>
+      <Text
+        truncate
+        color={{
+          base: 'gray.500',
+          _dark: 'gray.300'
+        }}
+        title={cell.getValue()}>
         {cell.row.original.highlightedCompanyName ?? cell.getValue()}
       </Text>
     ),
@@ -96,6 +104,30 @@ export const columns = [
       selectOptions: marketCapOptions
     },
     filterFn: amountFilterFn(marketCapOptions)
+  }),
+  columnHelper.accessor('adrPercent', {
+    header: () => <Text textAlign="right">ADR %</Text>,
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
+    meta: {
+      width: 110,
+      filterVariant: 'radio-select',
+      selectOptions: adrPercentOptions
+    },
+    filterFn: amountFilterFn(adrPercentOptions)
+  }),
+  columnHelper.accessor('rmv', {
+    header: () => (
+      <Text textAlign="right" title="Relative Measured Volatility">
+        RMV
+      </Text>
+    ),
+    cell: (cell) => <Text textAlign="right">{formatDecimal(cell.getValue())}</Text>,
+    meta: {
+      width: 100,
+      filterVariant: 'radio-select',
+      selectOptions: rmvOptions
+    },
+    filterFn: amountFilterFn(rmvOptions)
   }),
   columnHelper.accessor((original) => original.close, {
     id: '52wkRange',
@@ -224,7 +256,7 @@ export const columns = [
     filterFn: 'inNumberRange'
   }),
   columnHelper.accessor('industryRankByAs', {
-    header: () => <Text textAlign="right">`Industry Rank by AS</Text>,
+    header: () => <Text textAlign="right">Industry Rank by AS</Text>,
     cell: (cell) => <Text textAlign="right">{cell.getValue()}</Text>,
     meta: { width: 200, filterVariant: 'range' },
     filterFn: 'inNumberRange'
@@ -253,10 +285,10 @@ export const columns = [
     meta: { width: 130, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   }),
-  columnHelper.accessor('think40', {
-    header: () => 'Think 40',
+  columnHelper.accessor('episodicPivot', {
+    header: () => 'Episodic Pivot',
     cell: (cell) => <CellTemplate.Status cell={cell} />,
-    meta: { width: 130, filterVariant: 'combo-box' },
+    meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   })
 ];

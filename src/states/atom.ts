@@ -9,8 +9,8 @@ import {
   defaultView,
   initialFilter
 } from '@/helpers/table.helper';
-import { ColumnVisibility } from '@/types/shared';
-import { Stock, StockInfo } from '@/types/stock';
+import { ColumnVisibility } from '@/types/shared.type';
+import { Stock, StockInfo } from '@/types/stock.type';
 
 export const rowCountAtom = atom(-1);
 

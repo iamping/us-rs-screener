@@ -4,11 +4,14 @@ import { useMemo } from 'react';
 import { useMediaQuery } from 'usehooks-ts';
 import { presetOptions, viewOptions } from '@/helpers/table.helper';
 import { rowCountAtom, searchBoxOpenAtom } from '@/states/atom';
-import { mobileMediaQuery } from '@/utils/common.utils';
+import { isTouchDeviceMatchMedia, mobileMediaQuery } from '@/utils/common.utils';
+import { ColorModeButton } from '../ui/color-mode';
 import { AppSettings } from './app-settings';
 import { ExportDataButton } from './export-data-button';
 import { PresetSelection } from './preset-selection';
 import { SearchBox } from './search-box';
+
+const isDesktop = !isTouchDeviceMatchMedia();
 
 export const TopBar = () => {
   const rowCount = useAtomValue(rowCountAtom);
@@ -38,7 +41,7 @@ export const TopBar = () => {
       paddingRight={2}
       height="48px"
       position="relative"
-      borderBottom="1px solid var(--chakra-colors-gray-200)">
+      borderBottomWidth={1}>
       <Heading
         paddingX={1}
         title="US Stock Screener"
@@ -62,7 +65,8 @@ export const TopBar = () => {
         <Spacer />
       </Show>
       <SearchBox />
-      <ExportDataButton />
+      {isDesktop && <ExportDataButton />}
+      <ColorModeButton />
       <AppSettings />
     </HStack>
   );

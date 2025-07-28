@@ -17,7 +17,7 @@ import { useEventListener } from 'usehooks-ts';
 import { EmptyState } from '@/components/ui/empty-state';
 import { defaultPinnedColumns, tableGlobal } from '@/helpers/table.helper';
 import { columnStateAtom, dropdownFnAtom, filterStateAtom, rowCountAtom, tickerAtom } from '@/states/atom';
-import { Stock } from '@/types/stock';
+import { Stock } from '@/types/stock.type';
 import { columns } from './column-defs';
 import { DataCell } from './data-cell';
 import { HeaderCell } from './header-cell';
@@ -99,6 +99,10 @@ export const DataTable: FC<DataTableProps> = ({ data = [] }) => {
 
   useEventListener('keydown', (event) => {
     const availableRowsLength = table.getRowModel().rows.length;
+    const activeRowRect = document.querySelector('.grid-row.active')?.getBoundingClientRect() ?? { y: 0 };
+    const parentRect = parentRef.current?.getBoundingClientRect() ?? { height: 0, top: 0 };
+    const rowHeight = 30;
+    const headerHeight = 41;
     if (ticker.length > 0) {
       switch (event.key) {
         case 'ArrowUp': {
@@ -108,14 +112,19 @@ export const DataTable: FC<DataTableProps> = ({ data = [] }) => {
             setTicker(previousTicker);
           }
           event.preventDefault();
-          const { y } = document.querySelector('.grid-row.active')?.getBoundingClientRect() ?? { y: 0 };
-          if (Math.round(y) <= 0) {
+          const { y: rowY } = activeRowRect;
+          const { top: parentTop } = parentRect;
+          if (Math.round(rowY) <= 0) {
             listRef.current?.scrollToIndex({
               index: activeRowIndex - 1,
-              offset: -40
+              offset: -headerHeight
             });
-          } else if (Math.round(y) < 120) {
-            parentRef.current?.scrollBy(0, -30);
+          }
+          const nextRowY = Math.round(rowY) - rowHeight;
+          const headerBottomY = Math.round(parentTop) + headerHeight;
+          if (nextRowY < headerBottomY) {
+            const offScreenDy = rowY - headerHeight - parentTop;
+            parentRef.current?.scrollBy(0, -rowHeight + offScreenDy);
           }
           break;
         }
@@ -126,15 +135,18 @@ export const DataTable: FC<DataTableProps> = ({ data = [] }) => {
             setTicker(nextTicker);
           }
           event.preventDefault();
-          const { y } = document.querySelector('.grid-row.active')?.getBoundingClientRect() ?? { y: 0 };
-          const { height } = parentRef.current?.getBoundingClientRect() ?? { height: 0 };
-          if (Math.round(y) - Math.round(height) > -10) {
-            parentRef.current?.scrollBy(0, 30 + (y - height));
+          const { y: rowY } = activeRowRect;
+          const { height: parentHeight, top: parentTop } = parentRect;
+          const nextRowBottomY = Math.round(rowY) + 2 * rowHeight + 1;
+          const parentBottomY = Math.round(parentTop) + Math.round(parentHeight);
+          if (nextRowBottomY > parentBottomY) {
+            const offScreenDy = rowY + rowHeight - (parentTop + parentHeight + 1);
+            parentRef.current?.scrollBy(0, rowHeight + offScreenDy);
           }
-          if (Math.round(y) <= 0) {
+          if (Math.round(rowY) <= 0) {
             listRef.current?.scrollToIndex({
               index: activeRowIndex + 1,
-              offset: -height + 50
+              offset: -parentHeight + headerHeight
             });
           }
           break;

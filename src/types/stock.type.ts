@@ -41,6 +41,7 @@ export interface Stock {
   tightRange: number | string;
   insideDay: number | string;
   think40: number | string;
+  episodicPivot: number | string;
   ema21: number;
   ema50: number;
   ema150: number;
@@ -48,6 +49,8 @@ export interface Stock {
   ema2001M: number;
   wk52Low: number;
   wk52High: number;
+  adrPercent: number;
+  rmv: number;
 }
 
 export interface StockInfo {

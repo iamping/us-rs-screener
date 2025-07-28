@@ -2,7 +2,7 @@ import { Box, HStack, Text } from '@chakra-ui/react';
 import { CellContext } from '@tanstack/react-table';
 import { FC } from 'react';
 import { FaCheck, FaXmark } from 'react-icons/fa6';
-import { Stock } from '@/types/stock';
+import { Stock } from '@/types/stock.type';
 import { formatDecimal } from '@/utils/common.utils';
 
 interface CellTemplateProps<T> {

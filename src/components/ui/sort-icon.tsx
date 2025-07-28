@@ -2,11 +2,19 @@ import { IconButton } from '@chakra-ui/react';
 import { SortDirection } from '@tanstack/react-table';
 import { FC } from 'react';
 import { PiListBold, PiSortAscendingBold, PiSortDescendingBold } from 'react-icons/pi';
+import { useColorModeValue } from '@/hooks/useColorMode';
 
 export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) => {
-  const { icon, color, direction } = getSortDirectionIcon(props.sortDirection);
+  const { icon, direction } = getSortDirectionIcon(props.sortDirection);
+  const normal = useColorModeValue('gray.300', 'gray.700');
+  const sorted = useColorModeValue('black', 'white');
   return (
-    <IconButton className={`sort-icon${direction}`} size="2xs" variant="plain" color={color} minWidth={'fit-content'}>
+    <IconButton
+      className={direction.length > 0 ? undefined : 'sort-icon'}
+      size="2xs"
+      variant="plain"
+      color={direction.length > 0 ? sorted : normal}
+      minWidth={'fit-content'}>
       {icon}
     </IconButton>
   );
@@ -14,24 +22,20 @@ export const SortIcon: FC<{ sortDirection: false | SortDirection }> = (props) =>
 
 const getSortDirectionIcon = (sortDirection: false | SortDirection) => {
   let icon = null;
-  let color = null;
   let direction = null;
   switch (sortDirection) {
     case 'asc':
       icon = <PiSortDescendingBold title="Sort asc" />;
-      color = 'black';
       direction = 'asc';
       break;
     case 'desc':
       icon = <PiSortAscendingBold title="Sort desc" />;
-      color = 'black';
       direction = 'desc';
       break;
     default:
       icon = <PiListBold title="Original order" />;
-      color = 'gray.300';
       direction = '';
       break;
   }
-  return { icon, color, direction };
+  return { icon, direction };
 };

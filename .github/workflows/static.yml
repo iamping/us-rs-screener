@@ -40,8 +40,6 @@ jobs:
       - name: Build
         run: |
           npm run build
-          mkdir -p ./dist/api
-          cp -p ./output/us_rs_list.json ./dist/api
           cd dist
           mv index.html index_back.html
           sed 's/<head>/<head>${{ vars.G_ANALYTICS }}/g' index_back.html > index.html

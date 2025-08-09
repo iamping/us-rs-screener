@@ -8,12 +8,6 @@ export default defineConfig({
   base: '/us-rs-screener',
   server: {
     proxy: {
-      '/api': {
-        target: 'https://iamping.github.io/us-rs-screener/api',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      },
       '/historical-api': {
         target: 'http://localhost:8000',
         changeOrigin: true,

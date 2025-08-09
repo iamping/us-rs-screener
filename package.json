@@ -9,7 +9,7 @@
     "lint": "eslint --fix .",
     "preview": "vite preview",
     "production": "tsc -b && vite build && vite preview",
-    "build:cf": "tsc -b && vite build --base=/ && bash copyfile.sh"
+    "build:cf": "tsc -b && vite build --base=/"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.2.3",

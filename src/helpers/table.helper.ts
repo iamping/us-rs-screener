@@ -88,32 +88,21 @@ export const marketCapOptions: SelectOption[] = [
 ];
 
 export const avgDollarVolOptions: SelectOption[] = [
-  {
-    value: '20up',
-    title: '20M and above',
-    compareOption: {
-      type: 'fixed',
-      params: [
-        {
-          operator: '>=',
-          compareNumber: 20000000
-        }
-      ]
-    }
-  },
-  {
-    value: '10up',
-    title: '10M and above',
-    compareOption: {
-      type: 'fixed',
-      params: [
-        {
-          operator: '>=',
-          compareNumber: 10000000
-        }
-      ]
-    }
-  },
+  ...[1000, 500, 400, 300, 200, 100, 50, 20, 10].map((n) => {
+    return {
+      value: `${n}up`,
+      title: `${n}M and above`,
+      compareOption: {
+        type: 'fixed',
+        params: [
+          {
+            operator: '>=',
+            compareNumber: n * 1000000
+          }
+        ]
+      }
+    } as SelectOption;
+  }),
   {
     value: 'under10',
     title: 'Under 10M',
@@ -642,6 +631,29 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'avgDollarVolume',
         value: '20up'
+      }
+    ]
+  },
+  {
+    value: 'liquidLeader',
+    title: 'Liquid Leader',
+    description: 'Instutional Liquidity',
+    presetStates: [
+      {
+        id: 'close',
+        value: ['above52WLow', 'near52WHigh']
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '300up'
+      },
+      {
+        id: 'adrPercent',
+        value: '3up'
+      },
+      {
+        id: 'rsRating',
+        value: '70up'
       }
     ]
   },

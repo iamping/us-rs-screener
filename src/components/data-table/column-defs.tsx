@@ -285,6 +285,12 @@ export const columns = [
     meta: { width: 130, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
   }),
+  columnHelper.accessor('think40', {
+    header: () => 'Think 40',
+    cell: (cell) => <CellTemplate.Status cell={cell} />,
+    meta: { width: 130, filterVariant: 'combo-box' },
+    filterFn: 'arrIncludesSome'
+  }),
   columnHelper.accessor('episodicPivot', {
     header: () => 'Episodic Pivot',
     cell: (cell) => <CellTemplate.Status cell={cell} />,

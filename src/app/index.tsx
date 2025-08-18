@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useState } from 'react';
 import { DataPanelGroup } from '@/components/data-panel/data-panel';
 import { TopBar } from '@/components/top-bar/top-bar';
-import { dataMapping } from '@/helpers/table.helper';
+import { dataMapping } from '@/helpers/data.helper';
 import { fetchStockRsList } from '@/services/data.service';
 import { filteredStockListAtom, stockListAtom } from '@/states/atom';
 import { Stock } from '@/types/stock.type';

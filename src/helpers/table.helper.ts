@@ -438,6 +438,38 @@ export const priceOptions: SelectOption[] = [
         }
       ]
     }
+  },
+  {
+    value: 'near21/50EMA_atr',
+    title: 'Near 21/50 EMA',
+    description: '-1ATR to 1ATR',
+    compareOption: {
+      type: 'bound-fixed-callback',
+      params: [
+        {
+          operator: 'bound-inclusive',
+          lowerBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema21 - stock.atr;
+          },
+          upperBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema21 + stock.atr;
+          }
+        },
+        {
+          operator: 'bound-inclusive',
+          lowerBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema50 - stock.atr;
+          },
+          upperBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema50 + stock.atr;
+          }
+        }
+      ]
+    }
   }
 ];
 
@@ -513,11 +545,17 @@ export const amountFilterFn =
           return compareFn(param.operator, Number(row.getValue(columnId)), compareNumber);
         });
       case 'bound-fixed':
-        return compareOption.params.every((param) => {
+        return compareOption.params.some((param) => {
           return boundFn(param.operator, Number(row.getValue(columnId)), param.lowerBound, param.upperBound);
         });
+      case 'bound-fixed-callback':
+        return compareOption.params.some((param) => {
+          const lowerBound = param.lowerBoundFn(row.original);
+          const upperBound = param.upperBoundFn(row.original);
+          return boundFn(param.operator, Number(row.getValue(columnId)), lowerBound, upperBound);
+        });
       case 'bound-percent':
-        return compareOption.params.every((param) => {
+        return compareOption.params.some((param) => {
           const upperBound = (1 + param.comparePercent / 100) * record.original[param.compareField];
           const lowerBound = (1 - param.comparePercent / 100) * record.original[param.compareField];
           return boundFn(param.operator, Number(row.getValue(columnId)), lowerBound, upperBound);
@@ -679,7 +717,7 @@ export const presetOptions: SelectOption[] = [
   {
     value: 'mark',
     title: 'Mark Trend Template',
-    description: 'Legendary screener',
+    description: 'Mark Screener',
     presetStates: [
       {
         id: 'rsRating',
@@ -708,7 +746,7 @@ export const presetOptions: SelectOption[] = [
   },
   {
     value: 'uptrend+',
-    title: 'Uptrend + Near 21/50',
+    title: 'Uptrend + 21/50',
     description: 'Near EMA21/50',
     presetStates: [
       {
@@ -717,7 +755,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'close',
-        value: ['gtEMA150/200', 'above52WLow', 'near52WHigh', 'near21/50EMA']
+        value: ['gtEMA150/200', 'above52WLow', 'near52WHigh', 'near21/50EMA_atr']
       }
     ]
   },
@@ -781,27 +819,23 @@ export const presetOptions: SelectOption[] = [
   {
     value: 'superFocus',
     title: 'Super Focus',
-    description: 'Tight + Liquidity',
+    description: 'Mark + EMA21/50',
     presetStates: [
       {
+        id: 'rsRating',
+        value: '70up'
+      },
+      {
         id: 'close',
-        value: ['gtEMA150/200', 'near52WHigh']
-      },
-      {
-        id: 'marketCap',
-        value: 'large'
-      },
-      {
-        id: 'avgDollarVolume',
-        value: '20up'
+        value: ['markPriceTemplateMAs', 'above52WLow', 'near52WHigh', 'above20', 'near21/50EMA_atr']
       },
       {
         id: 'adrPercent',
         value: '3up'
       },
       {
-        id: 'rmv',
-        value: 'under20'
+        id: 'avgDollarVolume',
+        value: '20up'
       }
     ]
   },
@@ -847,19 +881,6 @@ export const viewOptions: SelectOption[] = [
     }
   }
 ];
-
-export const dataMapping = (stocks: Stock[]) => {
-  return stocks.map((e, i) => ({
-    ...e,
-    pocketPivot: e.pocketPivot === 0 ? 'No' : 'Yes',
-    rsNewHigh: e.rsNewHigh === 0 ? 'No' : e.rsNewHigh === 1 ? 'New High' : 'Before Price',
-    tightRange: e.tightRange === 0 ? 'No' : 'Yes',
-    insideDay: e.insideDay === 0 ? 'No' : 'Yes',
-    think40: e.think40 === 0 ? 'No' : 'Yes',
-    episodicPivot: e.episodicPivot === 0 ? 'No' : 'Yes',
-    key: i + 1
-  }));
-};
 
 export const tableGlobal: { table: Table<Stock> | null } = {
   table: null

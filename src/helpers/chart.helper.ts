@@ -90,6 +90,7 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
   const colors = {
     up: getCssVar('--chakra-colors-black'),
     down: getCssVar('--chakra-colors-red-400'),
+    ema10: getCssVar('--chakra-colors-gray-200'),
     ema21: getCssVar('--chakra-colors-gray-300'),
     ema50: getCssVar('--chakra-colors-gray-400'),
     ema200: getCssVar('--chakra-colors-gray-600'),
@@ -121,6 +122,7 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
         text: getCssVar('--chakra-colors-white'),
         normalVolume: getCssVar('--chakra-colors-gray-700'),
         loserVolume: getCssVar('--colors-volume-down'),
+        ema10: getCssVar('--chakra-colors-gray-700'),
         ema21: getCssVar('--chakra-colors-gray-600'),
         ema50: getCssVar('--chakra-colors-gray-400'),
         ema200: getCssVar('--chakra-colors-gray-300'),
@@ -231,8 +233,19 @@ export const plotChart = (
   context.stroke();
   context.restore();
 
-  // draw ema 21
   if (isDaily) {
+    // draw ema 10
+    const ema10Line = line<StockDataPoint>(
+      (_, i) => xScale(i),
+      (d) => yScale(d.ema10 ?? 0)
+    ).context(context);
+    context.beginPath();
+    ema10Line(series);
+    context.lineWidth = lineWidth;
+    context.strokeStyle = colors.ema10;
+    context.stroke();
+
+    // draw ema 21
     const ema21Line = line<StockDataPoint>(
       (_, i) => xScale(i),
       (d) => yScale(d.ema21 ?? 0)

@@ -1,4 +1,5 @@
 import { HistoricalData, StockDataPoint } from '@/types/chart.type';
+import { Stock } from '@/types/stock.type';
 import { findMax, getISOWeekAndYear } from '@/utils/common.utils';
 
 export const calculateEMA = (values: number[], period: number) => {
@@ -166,4 +167,17 @@ export const convertDailyToWeekly = (data: HistoricalData) => {
     close: values.flatMap((d) => d.close),
     volume: values.flatMap((d) => d.volume)
   } as HistoricalData;
+};
+
+export const dataMapping = (stocks: Stock[]) => {
+  return stocks.map((e, i) => ({
+    ...e,
+    pocketPivot: e.pocketPivot === 0 ? 'No' : 'Yes',
+    rsNewHigh: e.rsNewHigh === 0 ? 'No' : e.rsNewHigh === 1 ? 'New High' : 'Before Price',
+    tightRange: e.tightRange === 0 ? 'No' : 'Yes',
+    insideDay: e.insideDay === 0 ? 'No' : 'Yes',
+    think40: e.think40 === 0 ? 'No' : 'Yes',
+    episodicPivot: e.episodicPivot === 0 ? 'No' : 'Yes',
+    key: i + 1
+  }));
 };

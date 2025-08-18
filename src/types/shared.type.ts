@@ -40,6 +40,14 @@ export type CompareOption =
       }>;
     }
   | {
+      type: 'bound-fixed-callback';
+      params: Array<{
+        operator: BoundOperator;
+        lowerBoundFn: (val: unknown) => number;
+        upperBoundFn: (val: unknown) => number;
+      }>;
+    }
+  | {
       type: 'bound-percent';
       params: Array<{
         operator: BoundOperator;

@@ -51,6 +51,7 @@ export interface Stock {
   wk52High: number;
   adrPercent: number;
   rmv: number;
+  atr: number;
 }
 
 export interface StockInfo {

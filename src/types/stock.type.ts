@@ -44,6 +44,7 @@ export interface Stock {
   episodicPivot: number | string;
   ema21: number;
   ema50: number;
+  ema89: number;
   ema150: number;
   ema200: number;
   ema2001M: number;

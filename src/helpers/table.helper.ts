@@ -375,6 +375,24 @@ export const priceOptions: SelectOption[] = [
     }
   },
   {
+    value: 'gtEMA89',
+    title: 'Above EMA89',
+    description: 'Price above EMA89',
+    compareOption: {
+      type: 'compare-field',
+      params: [{ operator: '>=', compareField: 'ema89' }]
+    }
+  },
+  {
+    value: 'gtEMA150',
+    title: 'Above EMA150',
+    description: 'Price above EMA150',
+    compareOption: {
+      type: 'compare-field',
+      params: [{ operator: '>=', compareField: 'ema150' }]
+    }
+  },
+  {
     value: 'gtEMA200',
     title: 'Above EMA200',
     description: 'Price above EMA200',
@@ -783,40 +801,6 @@ export const presetOptions: SelectOption[] = [
     ]
   },
   {
-    value: 'pocketPivot',
-    title: 'Pocket Pivot',
-    description: 'Pocket Pivot + EMA50',
-    presetStates: [
-      {
-        id: 'pocketPivot',
-        value: ['Yes']
-      },
-      {
-        id: 'close',
-        value: ['markPriceTemplateMAs']
-      },
-      {
-        id: 'marketCap',
-        value: 'middle'
-      }
-    ]
-  },
-  {
-    value: 'rsNewHighBeforePrice',
-    title: 'RS NH Before Price',
-    description: 'Look for green dot',
-    presetStates: [
-      {
-        id: 'rsNewHigh',
-        value: ['Before Price']
-      },
-      {
-        id: 'marketCap',
-        value: 'middle'
-      }
-    ]
-  },
-  {
     value: 'superFocus',
     title: 'Super Focus',
     description: 'Mark + EMA21/50',
@@ -835,7 +819,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'avgDollarVolume',
-        value: '20up'
+        value: '50up'
       }
     ]
   },
@@ -846,19 +830,34 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'close',
-        value: ['gtEMA150/200']
+        value: ['gtEMA89']
       },
       {
         id: 'avgDollarVolume',
-        value: '10up'
+        value: '50up'
       },
       {
         id: 'episodicPivot',
         value: ['Yes']
+      }
+    ]
+  },
+  {
+    value: 'myUniverse',
+    title: 'My Universe',
+    description: 'Liquidity + EMA89',
+    presetStates: [
+      {
+        id: 'close',
+        value: ['gtEMA89', 'above52WLow', 'near52WHigh']
       },
       {
-        id: 'marketCap',
-        value: 'middle'
+        id: 'adrPercent',
+        value: '3up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '100up'
       }
     ]
   }

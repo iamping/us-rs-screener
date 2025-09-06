@@ -784,15 +784,15 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'avgDollarVolume',
-        value: '20up'
+        value: '50up'
       },
       {
         id: 'close',
-        value: ['gtEMA150/200']
+        value: ['gtEMA89']
       },
       {
-        id: 'marketCap',
-        value: 'middle'
+        id: 'adrPercent',
+        value: '3up'
       },
       {
         id: 'think40',

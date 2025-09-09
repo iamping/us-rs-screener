@@ -148,7 +148,8 @@ export const getVisibleDomain = (
       if (visibleIndex.length === 0) visibleIndex[0] = i;
       if (visibleIndex.length > 0) visibleIndex[1] = i;
       if (visibleDomain.length) {
-        visibleDomain[0] = Math.min(d.low, visibleDomain[0]);
+        const min = Math.min(d.low, visibleDomain[0]);
+        visibleDomain[0] = min || d.low;
         visibleDomain[1] = Math.max(d.high, visibleDomain[1]);
       } else {
         visibleDomain.push(d.low);
@@ -323,7 +324,7 @@ export const plotChart = (
     const open = Math.round(yScale(d.open));
 
     // draw price bar
-    const isUp = d.change > 0;
+    const isUp = d.change >= 0;
     context.strokeStyle = d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
     context.lineWidth = bandWidth;
     context.beginPath();
@@ -642,9 +643,16 @@ export const updateRemainingScales = (
   const volumeScale = scaleLinear()
     .range([0, bitmapHeight * constant.volumeArea])
     .domain([(maxNumber(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.volume)) ?? 0) * 1.1, 0]);
-  const rsScale = scaleLinear()
+  const rsScale = scaleLog()
     .range([bitmapHeight * constant.rsArea, 0])
-    .domain(extent(series.slice(firstVisibleIdx, lastVisibleIdx).map((d) => d.rs)) as [number, number]);
+    .domain(
+      extent(
+        series
+          .slice(firstVisibleIdx, lastVisibleIdx)
+          .filter((d) => d.rs > 0)
+          .map((d) => d.rs)
+      ) as [number, number]
+    );
   return { yScale, volumeScale, rsScale };
 };
 
@@ -660,6 +668,9 @@ export const findDataPoint = (
   const canvasY = bitmap(py);
   const domain = xScale.invert(canvasX);
   const index = domain < 0 ? 0 : Math.min(Math.round(domain), series.length - 1);
+  // if (series[index].close === 0) {
+  //   index = series.findIndex((d) => d.close > 0);
+  // }
   const x = xScale(index);
   const date = series[index].date;
   const price = yScale.invert(canvasY);

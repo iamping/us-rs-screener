@@ -115,7 +115,9 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     yOverlayRef.current?.draw((context) => drawYOverlay(context, dataPoint));
     volumeOverlayRef.current?.draw((context) => drawVolumeOverlay(context, dataPoint));
     lastXYRef.current = pointer;
-    setActivePoint(dataPoint);
+    if (series[dataPoint.index].close > 0) {
+      setActivePoint(dataPoint);
+    }
   };
 
   const clearCrosshair = () => {

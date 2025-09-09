@@ -50,6 +50,7 @@ export const calculateSMA = (values: number[], period: number, fillNull = false)
 export const computeDataSeries = (stockData: HistoricalData, spyData: HistoricalData, isDaily: boolean) => {
   const series: StockDataPoint[] = [];
   const spyPriceData = spyData.close.slice(-stockData.close.length);
+  const spyLength = spyData.close.length;
   const len = stockData.date.length;
   const ema10 = calculateEMA(stockData.close, 10);
   const ema21 = calculateEMA(stockData.close, 21);
@@ -126,7 +127,37 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
       rsStatus
     });
   }
-  return series;
+
+  // fill empty
+  const emptySeries: StockDataPoint[] = [];
+  if (spyLength !== len) {
+    const diffLength = spyLength - len;
+    for (let i = 0; i < diffLength; i++) {
+      emptySeries.push({
+        isDaily,
+        isThink40: false,
+        close: 0,
+        high: 0,
+        low: 0,
+        open: 0,
+        volume: 0,
+        relativeVolume: 0,
+        date: new Date(spyData.date[i] * 1000),
+        ema10: 0,
+        ema21: 0,
+        ema40: 0,
+        ema50: 0,
+        ema200: 0,
+        rs: 0,
+        change: 0,
+        changePercent: 0,
+        volumeStatus: { isPocketPivot: false, isGainer: false, isLoser: false },
+        rsStatus: { isNewHigh: false, isNewHighBeforePrice: false }
+      });
+    }
+  }
+
+  return emptySeries.concat(series);
 };
 
 export const convertDailyToWeekly = (data: HistoricalData) => {

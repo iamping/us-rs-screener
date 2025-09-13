@@ -1,4 +1,5 @@
 import { bisectCenter, extent, format, line, max, max as maxNumber, range, scaleLinear, scaleLog, utcFormat } from 'd3';
+import { TouchEvent } from 'react';
 import { ColorMode } from '@/components/ui/color-mode';
 import {
   BandScale,
@@ -9,7 +10,8 @@ import {
   LinearScale,
   StockDataPoint,
   XScale,
-  YScale
+  YScale,
+  ZoomState
 } from '@/types/chart.type';
 import { getCssVar, isTouchDeviceMatchMedia } from '@/utils/common.utils';
 
@@ -21,11 +23,20 @@ export const constant = {
   barArea: 0.8,
   volumeArea: 0.2,
   rsArea: 0.3,
-  rsRadius: 6
+  rsRadius: 6,
+  minBandwidth: 5,
+  maxBandwidth: 150,
+  maxZoom: 30.0,
+  minZoom: 1.0,
+  defaultZoomLevel: 2.0
 };
 
 export const bitmap = (pixel: number) => {
   return Math.ceil(pixel * (devicePixelRatio || 1));
+};
+
+export const toCssWidth = (bitmap: number) => {
+  return bitmap / (devicePixelRatio || 1);
 };
 
 export const priceFormat = (max: number) => (value: d3.NumberValue) => {
@@ -135,28 +146,31 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
 export const getVisibleDomain = (
   xScale: LinearScale,
   series: StockDataPoint[],
-  transform: d3.ZoomTransform,
+  translateX: number,
   bitmapWidth: number
 ) => {
   const visibleDomain: number[] = [];
   const visibleIndex: number[] = [];
-  const { rangeStart, rangeEnd } = getVisibleRange(bitmapWidth, transform);
+  const { rangeStart, rangeEnd } = getVisibleRange(bitmapWidth, translateX);
   // find min & max visible price
+  const min: number[] = [];
+  const max: number[] = [];
   series.forEach((d, i) => {
     const x = xScale(i);
     if (x > rangeStart && x <= rangeEnd) {
       if (visibleIndex.length === 0) visibleIndex[0] = i;
       if (visibleIndex.length > 0) visibleIndex[1] = i;
-      if (visibleDomain.length) {
-        const min = Math.min(d.low, visibleDomain[0]);
-        visibleDomain[0] = min || d.low;
-        visibleDomain[1] = Math.max(d.high, visibleDomain[1]);
-      } else {
-        visibleDomain.push(d.low);
-        visibleDomain.push(d.low);
+      if (d.low > 0) {
+        min.push(d.low);
+      }
+      if (d.high > 0) {
+        max.push(d.high);
       }
     }
   });
+
+  visibleDomain.push(Math.min(...min));
+  visibleDomain.push(Math.max(...max));
 
   // expand domain a little bit
   visibleDomain[0] *= 1 - constant.lowerDomainMultiplier;
@@ -164,8 +178,8 @@ export const getVisibleDomain = (
   return { visibleDomain, visibleIndex };
 };
 
-export const getVisibleRange = (bitmapWidth: number, transform: d3.ZoomTransform) => {
-  return { rangeStart: -bitmap(transform.x), rangeEnd: bitmapWidth - bitmap(transform.x) };
+export const getVisibleRange = (bitmapWidth: number, translateX: number) => {
+  return { rangeStart: -bitmap(translateX), rangeEnd: bitmapWidth - bitmap(translateX) };
 };
 
 export const getLabelFont = (fontSize: number) => {
@@ -176,14 +190,13 @@ export const plotChart = (
   context: CanvasRenderingContext2D,
   series: StockDataPoint[],
   scales: ChartScales,
-  transform: d3.ZoomTransform,
+  zoomState: ZoomState,
   showRs = true,
   colorMode: ColorMode
 ) => {
   // translate canvas on zoom event
-  context.translate(bitmap(transform.x), 0);
+  context.translate(bitmap(zoomState.tx), 0);
   const canvasHeight = context.canvas.height;
-  const canvasWidth = context.canvas.width;
   const { xScale, yScale, rsScale } = scales;
   const bandWidth = Math.max(Math.ceil(Math.abs(xScale(1) - xScale(0)) / 5), Math.floor(devicePixelRatio));
   const correction = bandWidth % 2 === 0 ? 0 : 0.5;
@@ -209,19 +222,19 @@ export const plotChart = (
 
   // draw horizontal line
   const yTickValues = yScale.customTicks;
-  const hLineWidth = canvasWidth * transform.k;
   yTickValues.forEach((d) => {
     const y = Math.round(yScale(d));
     context.beginPath();
     context.lineWidth = Math.floor(devicePixelRatio);
     context.strokeStyle = colors.gridLine;
-    context.moveTo(0, y);
-    context.lineTo(hLineWidth, y);
+    context.moveTo(-100000, y);
+    context.lineTo(100000, y);
     context.stroke();
   });
 
   // line for current price
-  const y = Math.floor(yScale(series[series.length - 1].close)) + 0.5;
+  const lastPoint = lastPointWithData(series);
+  const y = Math.floor(yScale(lastPoint.close)) + 0.5;
   const currentPriceLineWidth = Math.floor(devicePixelRatio);
   const gap = Math.floor(devicePixelRatio);
   context.save();
@@ -229,8 +242,8 @@ export const plotChart = (
   context.setLineDash([gap, gap * 2]);
   context.lineWidth = currentPriceLineWidth;
   context.strokeStyle = colors.currentPriceBg;
-  context.moveTo(0, y);
-  context.lineTo(hLineWidth, y);
+  context.moveTo(-100000, y);
+  context.lineTo(100000, y);
   context.stroke();
   context.restore();
 
@@ -355,11 +368,11 @@ export const plotVolume = (
   context: CanvasRenderingContext2D,
   series: StockDataPoint[],
   scales: ChartScales,
-  transform: d3.ZoomTransform,
+  zoomState: ZoomState,
   colorMode: ColorMode
 ) => {
   // translate canvas on zoom event
-  context.translate(bitmap(transform.x), 0);
+  context.translate(bitmap(zoomState.tx), 0);
   const canvasHeight = context.canvas.height;
   const canvasWidth = context.canvas.width;
   const { xScale, volumeScale } = scales;
@@ -384,7 +397,7 @@ export const plotVolume = (
   });
 
   // draw horizontal line
-  const hLineWidth = canvasWidth * transform.k;
+  const hLineWidth = canvasWidth * zoomState.tk;
   volumeScale.ticks(isTouchDevice ? 2 : 3).forEach((d) => {
     const y = Math.round(volumeScale(d));
     context.beginPath();
@@ -421,10 +434,10 @@ export const plotVolume = (
 export const drawXAxis = (
   context: CanvasRenderingContext2D,
   xScale: XScale,
-  transform: d3.ZoomTransform,
+  zoomState: ZoomState,
   colorMode: ColorMode
 ) => {
-  context.translate(bitmap(transform.x), 0);
+  context.translate(bitmap(zoomState.tx), 0);
   const canvasWidth = context.canvas.width;
   const font = getLabelFont(12);
   const y = bitmap(15);
@@ -432,7 +445,7 @@ export const drawXAxis = (
   const displayIndex = xScale.displayIndex;
 
   // hide label if out of visible range
-  const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, transform);
+  const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, zoomState.tx);
   const offset = bitmap(10);
 
   context.fillStyle = getChartColors(colorMode).text;
@@ -496,8 +509,8 @@ export const drawVolumeAxis = (context: CanvasRenderingContext2D, volumeScale: L
   });
 };
 
-export const drawCrosshair = (context: CanvasRenderingContext2D, transform: d3.ZoomTransform, dataPoint: DataPoint) => {
-  context.translate(bitmap(transform.x), 0);
+export const drawCrosshair = (context: CanvasRenderingContext2D, zoomState: ZoomState, dataPoint: DataPoint) => {
+  context.translate(bitmap(zoomState.tx), 0);
   const canvasWidth = context.canvas.width;
   const canvasHeight = context.canvas.height;
   const pixelRatio = devicePixelRatio || 1;
@@ -509,7 +522,7 @@ export const drawCrosshair = (context: CanvasRenderingContext2D, transform: d3.Z
   const adjustX = Math.floor(x) + correction;
   // y
   const adjustY = Math.ceil(y) - correction;
-  const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, transform);
+  const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, zoomState.tx);
 
   // draw vertical line
   context.beginPath();
@@ -527,20 +540,16 @@ export const drawCrosshair = (context: CanvasRenderingContext2D, transform: d3.Z
   context.stroke();
 };
 
-export const drawXOverlay = (
-  context: CanvasRenderingContext2D,
-  transform: d3.ZoomTransform,
-  dataPoint: DataPoint | null
-) => {
+export const drawXOverlay = (context: CanvasRenderingContext2D, zoomState: ZoomState, dataPoint: DataPoint | null) => {
   if (!dataPoint) return;
-  context.translate(bitmap(transform.x), 0);
+  context.translate(bitmap(zoomState.tx), 0);
   const { x, date } = dataPoint;
   const { width, height } = context.canvas;
   const y = bitmap(15);
   const text = `${dateOverlayFormat(date)}`;
   const textWidth = bitmap(context.measureText(text).width + 30);
   const colors = getChartColors();
-  const { rangeStart, rangeEnd } = getVisibleRange(width, transform);
+  const { rangeStart, rangeEnd } = getVisibleRange(width, zoomState.tx);
 
   // draw wrapper rect
   const xRect =
@@ -602,13 +611,8 @@ export const drawVolumeOverlay = (context: CanvasRenderingContext2D, dataPoint: 
   }
 };
 
-export const updateXScale = (series: StockDataPoint[], transform: d3.ZoomTransform, dms: CanvasDimensions) => {
-  const { bitmapWidth } = dms;
-  const xScale = scaleLinear()
-    .range([0, bitmapWidth * transform.k])
-    .domain([-1, series.length + Math.floor(series.length / (transform.k * 100))]) // add a little bit margin for first & last point
-    .clamp(true) as XScale;
-
+export const updateXScale = (series: StockDataPoint[], zoomState: ZoomState) => {
+  const xScale = customLinearScale([0, series.length], zoomState.bandwidth) as XScale;
   // add custom ticks & display index
   const tickValues = dateTicks(series.map((d) => d.date));
   const minDistance = bitmap(30);
@@ -620,10 +624,7 @@ export const updateXScale = (series: StockDataPoint[], transform: d3.ZoomTransfo
   const displayIndex = range(startIndex, tickValues.length, step);
   xScale.customTicks = tickValues;
   xScale.displayIndex = displayIndex;
-
-  // find visible bar domain & index
-  const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, transform, bitmapWidth);
-  return { xScale, visibleDomain, visibleIndex };
+  return { xScale };
 };
 
 export const updateRemainingScales = (
@@ -659,18 +660,17 @@ export const updateRemainingScales = (
 export const findDataPoint = (
   pointer: [number, number],
   series: StockDataPoint[],
-  transform: d3.ZoomTransform,
+  zoomState: ZoomState,
   scales: ChartScales
 ): DataPoint => {
   const [px, py] = pointer;
   const { xScale, yScale, volumeScale } = scales;
-  const canvasX = bitmap(px - transform.x);
+  const canvasX = bitmap(px - zoomState.tx);
   const canvasY = bitmap(py);
   const domain = xScale.invert(canvasX);
-  const index = domain < 0 ? 0 : Math.min(Math.round(domain), series.length - 1);
-  // if (series[index].close === 0) {
-  //   index = series.findIndex((d) => d.close > 0);
-  // }
+  const tmpIndex = domain < 0 ? 0 : Math.min(Math.round(domain), series.length - 1);
+  const [minIndex, maxIndex] = indexRangeWithData(series);
+  const index = Math.max(Math.min(tmpIndex, maxIndex), minIndex);
   const x = xScale(index);
   const date = series[index].date;
   const price = yScale.invert(canvasY);
@@ -679,25 +679,91 @@ export const findDataPoint = (
   return { index, x, priceY: canvasY, volumeY, price, date, volume, px, py };
 };
 
-export const customLinearScale = (inputRange: [number, number], inputDomain: [number, number]): CustomLinearScale => {
-  const [, rangeEnd] = inputRange;
+export const customLinearScale = (inputDomain: [number, number], bandwidth: number): CustomLinearScale => {
   const [domainStart, domainEnd] = inputDomain;
   const domains = range(domainStart, domainEnd);
-  const bandWidth = Math.ceil(rangeEnd / domains.length);
-  const ranges = Array(domains.length)
-    .fill(0)
-    .map((_, i) => i * bandWidth);
+  const { ranges } = computeRange(domains.length, bandwidth);
   const scale = ((domain: number) => {
     if (domain < domainStart) return ranges[0];
     if (domain >= domainEnd) return ranges[ranges.length - 1];
     return ranges[domain - domainStart];
   }) as CustomLinearScale;
-  scale.range = () => ranges;
-  scale.domain = () => domains;
+  scale.range = () => [ranges[0], ...ranges.slice(-1)];
+  scale.domain = () => [domains[0], ...domains.slice(-1)];
   scale.invert = (x: number) => {
     if (x < ranges[0]) return domains[0];
     if (x >= ranges[ranges.length - 1]) return domains[domains.length - 1];
     return domains[bisectCenter(ranges, x)];
   };
+  scale.bandWidth = bandwidth;
   return scale;
+};
+
+export const computeTranslation = (series: StockDataPoint[], zoomState: ZoomState, dms: CanvasDimensions) => {
+  const { bandwidth, upperRange } = computeRange(series.length, zoomState.bandwidth);
+
+  // default translateX
+  const remainingWidth = upperRange % dms.bitmapWidth; // remaining that exceed multiply of viewport width
+  const multiplier = Math.floor(upperRange / dms.bitmapWidth) - 1;
+  const defaultTranslateX = -toCssWidth(remainingWidth + dms.bitmapWidth * multiplier) - bandwidth * 2;
+
+  // to be translateX
+  const originalX = zoomState.isZooming
+    ? zoomState.zoomFactor * (zoomState.originalX - zoomState.mouseX) + zoomState.mouseX
+    : zoomState.originalX;
+  const translateX = zoomState.isRendered ? originalX : defaultTranslateX;
+
+  // find max & min translateX
+  const [firstIndexWithData, lastIndexWithData] = indexRangeWithData(series);
+  const firstXWithData = firstIndexWithData > 0 ? firstIndexWithData * bandwidth : -1;
+  const adjustment = bandwidth * 1.2;
+  const minTranslateX = -toCssWidth(lastIndexWithData * bandwidth) + adjustment;
+  const maxTranslateX = firstXWithData > -1 ? -toCssWidth(firstXWithData - dms.bitmapWidth) - adjustment : 0;
+
+  // final translateX - if value is out of min/max, use min/max instead
+  const finalTranslateX = Math.max(Math.min(translateX, maxTranslateX), minTranslateX);
+
+  console.log('tk', zoomState.tk, 'bandwidth', zoomState.bandwidth);
+
+  return { translateX: finalTranslateX };
+};
+
+export const computeRange = (dataLength: number, bandwidth = constant.minBandwidth) => {
+  const ranges = Array(dataLength)
+    .fill(0)
+    .map((_, i) => i * bandwidth);
+  return { bandwidth, ranges, upperRange: ranges.slice(-1)[0] };
+};
+
+export const indexRangeWithData = (series: StockDataPoint[]) => {
+  const firstIndexWithData = series.findIndex((d) => d.close > 0);
+  const lastIndexWithData = series.lastIndexOf(series.filter((d) => d.close > 0).slice(-1)[0]);
+  return [firstIndexWithData, lastIndexWithData];
+};
+
+export const lastPointWithData = (series: StockDataPoint[]) => {
+  return series.filter((d) => d.close > 0).slice(-1)[0];
+};
+
+export const getTouchDistance = (e: TouchEvent) => {
+  if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  return 0;
+};
+
+export const updateZoomLevel = (zoomState: ZoomState, delta: number) => {
+  const bandwidthStep = zoomState.bandwidth < 40 ? 1 : 3;
+  const newBandwidth = zoomState.bandwidth + delta * bandwidthStep;
+  const bandwidth = Math.max(constant.minBandwidth, Math.min(newBandwidth, constant.maxBandwidth));
+  const newZoomLevel = bandwidth / constant.minBandwidth;
+  const oldZoomLevel = zoomState.tk;
+  const zoomFactor = newZoomLevel / oldZoomLevel;
+  return {
+    tk: newZoomLevel,
+    zoomFactor: zoomFactor,
+    bandwidth: bandwidth
+  };
 };

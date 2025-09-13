@@ -43,6 +43,7 @@ export type LinearScale = d3.ScaleLinear<number, number>;
 export type XScale = LinearScale & {
   customTicks: { date: Date; index: number }[];
   displayIndex: number[];
+  bandWidth: number;
 };
 export type YScale = LogScale & {
   customTicks: number[];
@@ -52,6 +53,9 @@ export type CustomLinearScale = ((domain: number) => number) & {
   invert: (range: number) => number;
   range: () => number[];
   domain: () => number[];
+  customTicks: { date: Date; index: number }[];
+  displayIndex: number[];
+  bandWidth: number;
 };
 
 export interface ChartScales {
@@ -66,6 +70,7 @@ export type CanvasDimensions = {
   bitmapHeight: number;
   cssWidth: number;
   cssHeight: number;
+  diffWidth?: number;
 };
 
 export type DataPoint = {
@@ -78,4 +83,32 @@ export type DataPoint = {
   date: Date;
   px: number;
   py: number;
+};
+
+// Note: y - not used right note
+export type ZoomState = {
+  isRendered: boolean;
+  isDragging: boolean;
+  isZooming: boolean;
+  isLongTap: boolean;
+  // transform
+  tk: number;
+  tx: number;
+  ty: number;
+  // panning & dragging - x axis only for now
+  originalX: number;
+  originalY: number;
+  lastX: number;
+  lastY: number;
+  // zoom
+  zoomFactor: number;
+  mouseX: number;
+  mouseY: number;
+  viewportWidth: number;
+  lastPinchDistance: number;
+  bandwidth: number;
+  // momentum scroll
+  time: number;
+  velocity: number;
+  animationFrame: number;
 };

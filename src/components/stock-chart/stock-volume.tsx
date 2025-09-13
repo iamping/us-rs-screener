@@ -16,7 +16,8 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
     return null;
   }
   const { series } = stockData;
-  const idx = index < 0 || index > series.length - 1 ? series.length - 1 : index;
+  const lastValidData = series.filter((d) => d.close > 0).slice(-1)[0];
+  const idx = index < 0 || index > series.length - 1 ? series.findIndex((d) => d === lastValidData) : index;
   const d = series[idx];
   const preD = idx > 0 ? series[idx - 1] : d;
   const relVol = formatDecimal(d.relativeVolume);

@@ -22,7 +22,7 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
     return null;
   }
   const { series, stock } = stockData;
-  const d = index < 0 || index > series.length - 1 ? series[series.length - 1] : series[index];
+  const d = index < 0 || index > series.length - 1 ? series.filter((d) => d.close > 0).slice(-1)[0] : series[index];
   const isUp = d.change > 0;
   const open = formatDecimal(d.open);
   const high = formatDecimal(d.high);

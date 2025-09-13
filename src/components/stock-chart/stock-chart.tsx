@@ -1,7 +1,8 @@
 import * as d3 from 'd3';
-import { FC, TouchEvent, useEffect, useRef, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import {
   bitmap,
+  computeTranslation,
   constant,
   drawCrosshair,
   drawVolumeAxis,
@@ -11,14 +12,25 @@ import {
   drawYAxis,
   drawYOverlay,
   findDataPoint,
+  getTouchDistance,
+  getVisibleDomain,
+  lastPointWithData,
   plotChart,
   plotVolume,
   updateRemainingScales,
-  updateXScale
+  updateXScale,
+  updateZoomLevel
 } from '@/helpers/chart.helper';
 import { useChartDimensions } from '@/hooks/useChartDimensions';
 import { useColorMode } from '@/hooks/useColorMode';
-import { CanvasDimensions, ChartScales, DataPoint, StockChartData, StockDataPoint } from '@/types/chart.type';
+import {
+  CanvasDimensions,
+  ChartScales,
+  DataPoint,
+  StockChartData,
+  StockDataPoint,
+  ZoomState
+} from '@/types/chart.type';
 import { isTouchDeviceMatchMedia } from '@/utils/common.utils';
 import { ColorMode } from '../ui/color-mode';
 import { Canvas, CanvasHandle } from './canvas';
@@ -56,21 +68,40 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   // ref
   const eventHandlerRef = useRef<HTMLDivElement>(null);
   const chartScalesRef = useRef<ChartScales>(null);
-  const transformRef = useRef<d3.ZoomTransform>(null);
-  const zoomRef = useRef<d3.ZoomBehavior<HTMLDivElement, unknown>>(null);
   const dmsRef = useRef<CanvasDimensions>(null);
 
-  // ref for touch event & momentom scroll
+  // ref for touch event & momentum scroll
   const timerRef = useRef<number>(null);
-  const isTapRef = useRef(false);
-  const momentumRef = useRef({ isDragging: true, lastX: 0, velocity: 0, animationFrame: -1, time: 0 });
-  const zoomEnabledRef = useRef(true);
   const lastXYRef = useRef<[number, number]>(null);
 
   // ref for resizing
   const firstRenderRef = useRef(true);
   const resizingRef = useRef(false);
   const visibleIndexRef = useRef<number[]>([]);
+
+  // ref for custom zoom
+  const zoomStateRef = useRef<ZoomState>({
+    isRendered: false,
+    isDragging: false,
+    isZooming: false,
+    isLongTap: false,
+    bandwidth: constant.defaultZoomLevel * constant.minBandwidth,
+    tk: constant.defaultZoomLevel,
+    tx: 0,
+    ty: 0,
+    originalX: 0,
+    originalY: 0,
+    lastX: 0,
+    lastY: 0,
+    mouseX: 0,
+    mouseY: 0,
+    zoomFactor: 1.0,
+    viewportWidth: 0,
+    velocity: 0,
+    animationFrame: -1,
+    lastPinchDistance: -1,
+    time: 0
+  });
 
   // state
   const [activePoint, setActivePoint] = useState<DataPoint | null>(null);
@@ -80,38 +111,55 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   // other reactive vars
   const showRS = ticker !== 'SPY';
 
-  // call this to force redraw chart & axis
-  const toggleZoomAndRedraw = (enable: boolean) => {
-    zoomEnabledRef.current = enable;
-    setRedrawCount((val) => val + 1);
+  const redraw = () => {
+    const zoomState = zoomStateRef.current as ZoomState;
+    const dms = dmsRef.current as CanvasDimensions;
+    updateZoomState(stockData.series, zoomState, dms);
+    updateChartScales(stockData.series, zoomState, dms);
+    plotChartAndAxis(stockData.series, showRS, colorMode);
   };
 
-  const updateChartScales = (series: StockDataPoint[], transform: d3.ZoomTransform, dms: CanvasDimensions) => {
-    const { xScale, visibleDomain, visibleIndex } = updateXScale(series, transform, dms);
+  const updateZoomState = (
+    series: StockDataPoint[],
+    zoomState: ZoomState,
+    dms: CanvasDimensions,
+    beforeRender = false
+  ) => {
+    const { translateX } = computeTranslation(series, zoomState, dms);
+    zoomState.tx = translateX;
+    zoomState.originalX = translateX;
+    zoomState.viewportWidth = dms.cssWidth;
+    if (beforeRender) {
+      zoomState.isRendered = true;
+    }
+  };
+
+  const updateChartScales = (series: StockDataPoint[], zoomState: ZoomState, dms: CanvasDimensions) => {
+    const { xScale } = updateXScale(series, zoomState);
+    const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, zoomState.tx, dms.bitmapWidth);
     const { yScale, volumeScale, rsScale } = updateRemainingScales(series, visibleDomain, visibleIndex, dms);
-    transformRef.current = transform;
     visibleIndexRef.current = visibleIndex;
     chartScalesRef.current = { xScale, yScale, volumeScale, rsScale };
-    return { transform: transformRef.current, chartScales: chartScalesRef.current };
+    return { chartScales: chartScalesRef.current };
   };
 
   const plotChartAndAxis = (series: StockDataPoint[], drawRS: boolean, colorMode: ColorMode) => {
-    const transform = transformRef.current as d3.ZoomTransform;
+    const zoomState = zoomStateRef.current as ZoomState;
     const chartScales = chartScalesRef.current as ChartScales;
-    plotAreaRef.current?.draw((context) => plotChart(context, series, chartScales, transform, drawRS, colorMode));
-    volumeAreaRef.current?.draw((context) => plotVolume(context, series, chartScales, transform, colorMode));
-    xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, transform, colorMode));
-    yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode, series[series.length - 1]));
+    plotAreaRef.current?.draw((context) => plotChart(context, series, chartScales, zoomState, drawRS, colorMode));
+    volumeAreaRef.current?.draw((context) => plotVolume(context, series, chartScales, zoomState, colorMode));
+    xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, zoomState, colorMode));
+    yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode, lastPointWithData(series)));
     volumeAxisRef.current?.draw((context) => drawVolumeAxis(context, chartScales.volumeScale, colorMode));
   };
 
   const drawCrosshairAndOverlay = (pointer: [number, number], stockData: StockChartData) => {
-    if (!transformRef.current || !chartScalesRef.current) return;
-    const transform = transformRef.current ?? d3.zoomIdentity;
+    if (!zoomStateRef.current.isRendered || !chartScalesRef.current) return;
+    const zoomState = zoomStateRef.current as ZoomState;
     const series = stockData.series;
-    const dataPoint = findDataPoint(pointer, series, transform, chartScalesRef.current);
-    crosshairRef.current?.draw((context) => drawCrosshair(context, transform, dataPoint));
-    xOverlayRef.current?.draw((context) => drawXOverlay(context, transform, dataPoint));
+    const dataPoint = findDataPoint(pointer, series, zoomState, chartScalesRef.current);
+    crosshairRef.current?.draw((context) => drawCrosshair(context, zoomState, dataPoint));
+    xOverlayRef.current?.draw((context) => drawXOverlay(context, zoomState, dataPoint));
     yOverlayRef.current?.draw((context) => drawYOverlay(context, dataPoint));
     volumeOverlayRef.current?.draw((context) => drawVolumeOverlay(context, dataPoint));
     lastXYRef.current = pointer;
@@ -129,83 +177,35 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     setActivePoint(null);
   };
 
-  const onTouchStart = (e: TouchEvent) => {
-    // momentum scroll
-    momentumRef.current.isDragging = true;
-    momentumRef.current.lastX = e.touches[0].clientX;
-    momentumRef.current.velocity = 0;
-    momentumRef.current.time = performance.now();
-    cancelAnimationFrame(momentumRef.current.animationFrame);
-
-    // zoom/panning only if multi touch
-    if (e.touches.length > 1) {
-      momentumRef.current.isDragging = false;
-      clearTimeout(timerRef.current ?? undefined);
-      clearCrosshair();
-      toggleZoomAndRedraw(true);
-      return;
-    }
-
-    // crosshair
-    const dms = dmsRef.current as CanvasDimensions;
-    isTapRef.current = true;
-    timerRef.current = setTimeout(() => {
-      const pointer = d3.pointer(e.touches[0], eventHandlerRef.current);
-      if (pointer[0] <= dms.cssWidth) {
-        isTapRef.current = false;
-        toggleZoomAndRedraw(false);
-        drawCrosshairAndOverlay(pointer, stockData);
-      }
-    }, 200);
-  };
-
-  const onTouchMove = (e: TouchEvent) => {
-    if (zoomEnabledRef.current) {
-      // momentum scroll
-      const currentX = e.touches[0].clientX;
-      const delta = currentX - momentumRef.current.lastX;
-      momentumRef.current.lastX = currentX;
-      momentumRef.current.velocity = delta;
-    } else {
-      // crosshair
-      const dms = dmsRef.current as CanvasDimensions;
-      isTapRef.current = false;
-      const [x, y] = d3.pointer(e.touches[0], eventHandlerRef.current);
-      if (x > 0 && x < dms.cssWidth && y > 0 && y < dms.cssHeight - 5) {
-        drawCrosshairAndOverlay([x, y], stockData);
-      }
-    }
-    clearTimeout(timerRef.current ?? undefined);
-  };
-
   const onTouchEnd = () => {
-    if (isTapRef.current) {
-      toggleZoomAndRedraw(true);
+    const zoomState = zoomStateRef.current;
+    if (zoomState.isDragging) {
+      zoomState.isLongTap = false;
       clearCrosshair();
-      momentumScroll();
+      if (performance.now() - zoomState.time < 200) momentumScroll();
     }
+    zoomState.lastPinchDistance = -1;
+    zoomState.isZooming = false;
     clearTimeout(timerRef.current ?? undefined);
   };
 
   const momentumScroll = () => {
     const duration = 500; // ms
     const startTime = performance.now();
-    const dragging = momentumRef.current.isDragging;
-    if (zoomRef.current && eventHandlerRef.current && dragging) {
-      const zoom = zoomRef.current!;
-      const transform = d3.zoomTransform(eventHandlerRef.current);
-      const eventHandlerSelection = d3.select(eventHandlerRef.current);
-      const initialDelta = momentumRef.current.velocity;
+    const zoomState = zoomStateRef.current;
+    if (zoomState && zoomState.isDragging) {
+      const initialDelta = zoomState.velocity;
       const animateScroll: FrameRequestCallback = (now) => {
         const t = Math.min((now - startTime) / duration, 1); // normalized time [0,1]
         const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
-        const delta = (initialDelta * (1 - ease) * devicePixelRatio) / transform.k; // decelerate
-        eventHandlerSelection.call(zoom.translateBy, delta, 0);
+        const delta = initialDelta * (1 - ease) * devicePixelRatio; // decelerate
+        zoomState.originalX += delta;
+        redraw();
         if (t < 1 && Math.abs(delta) > 0.2) {
-          momentumRef.current.animationFrame = requestAnimationFrame(animateScroll);
+          zoomState.animationFrame = requestAnimationFrame(animateScroll);
         }
       };
-      momentumRef.current.animationFrame = requestAnimationFrame(animateScroll);
+      zoomState.animationFrame = requestAnimationFrame(animateScroll);
     }
   };
 
@@ -224,13 +224,14 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
         bitmapWidth: bitmap(chartDms.plotWidth),
         bitmapHeight: bitmap(chartDms.plotHeight),
         cssWidth: chartDms.plotWidth,
-        cssHeight: chartDms.plotHeight
+        cssHeight: chartDms.plotHeight,
+        diffWidth: chartDms.diffWidth
       };
       if (!firstRenderRef.current) {
         resizingRef.current = true;
         clearCrosshair();
       }
-      toggleZoomAndRedraw(true);
+      setRedrawCount((val) => val + 1);
     }
   }, [chartDms]);
 
@@ -238,80 +239,26 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   useEffect(() => {
     if (!dmsRef.current || stockData.series.length === 0) return;
     const series = stockData.series;
-    const isFew = series.length <= 80;
-    const initialScale = isFew ? 1 : 3;
     const dms = dmsRef.current as CanvasDimensions;
-    const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
-    const eventHandlerSelection = d3.select(eventHandlerElement);
-    const extent = [
-      [0, 0],
-      [dms.cssWidth, 0] // use canvas css width
-    ] as [[number, number], [number, number]];
+    const zoomState = zoomStateRef.current;
 
-    // zoom behavior
-    zoomRef.current = d3
-      .zoom<HTMLDivElement, unknown>()
-      .scaleExtent([1, 30])
-      .translateExtent(extent)
-      .extent(extent)
-      .on('start', () => {
-        eventHandlerElement.style.cursor = 'grabbing';
-      })
-      .on('zoom', ({ transform, sourceEvent }: { transform: d3.ZoomTransform; sourceEvent: Event }) => {
-        // update crosshair when panning/zooming (Desktop only)
-        if (!isTouchDevice && sourceEvent) {
-          drawCrosshairAndOverlay(d3.pointer(sourceEvent, eventHandlerRef.current), stockData);
-        }
-        updateChartScales(series, transform, dms);
-        plotChartAndAxis(series, showRS, colorMode);
-      })
-      .on('end', () => {
-        eventHandlerElement.style.cursor = 'unset';
-      });
-
-    // apply zoom behavior & set default zoom transform when first rendering
-    if (zoomEnabledRef.current) {
-      eventHandlerSelection.call(zoomRef.current);
-      if (firstRenderRef.current) {
-        eventHandlerSelection.call(zoomRef.current.transform, d3.zoomIdentity.scale(initialScale));
-        eventHandlerSelection.call(zoomRef.current.translateBy, -dms.cssWidth * 2, 0);
-        firstRenderRef.current = false;
-      }
-    }
-
-    if (resizingRef.current) {
-      const lastIndex = Math.min(visibleIndexRef.current[1] + 1, series.length);
-      const transform = d3.zoomTransform(eventHandlerElement);
-      const { chartScales } = updateChartScales(series, transform, dms); // need transform.k only :)
-      const xScale = chartScales.xScale;
-      const lastX = xScale(lastIndex);
-      const newTransformX = -(lastX - dms.bitmapWidth) / devicePixelRatio;
-      eventHandlerSelection.call(
-        zoomRef.current.transform,
-        d3.zoomIdentity.translate(newTransformX, 0).scale(transform.k)
-      );
-      resizingRef.current = false;
+    if (firstRenderRef.current) {
+      updateZoomState(series, zoomState, dms, true);
+      firstRenderRef.current = false;
     } else {
-      const transform = d3.zoomTransform(eventHandlerElement);
-      updateChartScales(series, transform, dms);
-      plotChartAndAxis(series, showRS, colorMode);
+      if (resizingRef.current) {
+        zoomState.originalX -= zoomState.viewportWidth - dms.cssWidth;
+        resizingRef.current = false;
+      }
+      updateZoomState(series, zoomState, dms);
     }
 
-    return () => {
-      // when zoomEnabled = false => clean only touchmove because of resizing issues on touch device
-      // if clean every .zoom event, react somehow get stale zoomBehavior instead of updated one when re-attach event
-      eventHandlerSelection.on('touchmove.zoom', null);
-    };
+    updateChartScales(series, zoomState, dms);
+    plotChartAndAxis(series, showRS, colorMode);
   }, [stockData, showRS, redrawCount, colorMode]);
 
   return (
-    <div
-      ref={chartRef}
-      {...props}
-      onTouchStartCapture={onTouchStart}
-      onTouchMoveCapture={onTouchMove}
-      onTouchEndCapture={onTouchEnd}
-      onTouchCancelCapture={onTouchEnd}>
+    <div ref={chartRef} {...props}>
       <StockQuote
         index={activePoint?.index ?? -1}
         stockData={stockData}
@@ -451,16 +398,144 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
           top: chartDms.marginTop,
           left: chartDms.marginLeft,
           width: chartDms.plotWidth,
-          height: chartDms.plotHeight
+          height: chartDms.plotHeight,
+          zIndex: 2
+        }}
+        onMouseDown={(e) => {
+          const zoomState = zoomStateRef.current;
+          const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
+          zoomState.isDragging = true;
+          zoomState.lastX = e.clientX;
+          zoomState.lastY = e.clientY;
+          eventHandlerElement.style.cursor = 'grabbing';
+        }}
+        onMouseUp={() => {
+          const zoomState = zoomStateRef.current;
+          const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
+          zoomState.isDragging = false;
+          eventHandlerElement.style.cursor = 'unset';
+        }}
+        onMouseLeave={() => {
+          const zoomState = zoomStateRef.current;
+          const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
+          zoomState.isDragging = false;
+          eventHandlerElement.style.cursor = 'unset';
         }}
         onMouseMove={(e) => {
+          const zoomState = zoomStateRef.current;
+          if (zoomState.isDragging) {
+            const dx = e.clientX - zoomState.lastX;
+            const dy = e.clientY - zoomState.lastY;
+            zoomState.originalX += dx;
+            zoomState.originalY += dy;
+            zoomState.lastX = e.clientX;
+            zoomState.lastY = e.clientY;
+            redraw();
+          }
           if (isTouchDevice) return;
           drawCrosshairAndOverlay(d3.pointer(e), stockData);
         }}
         onMouseOut={() => {
-          if (isTouchDevice) toggleZoomAndRedraw(true);
+          if (isTouchDevice) redraw();
           clearCrosshair();
         }}
+        onWheel={(e) => {
+          const zoomState = zoomStateRef.current as ZoomState;
+          const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
+          eventHandlerElement.style.cursor = 'grabbing';
+          const rect = eventHandlerElement.getBoundingClientRect();
+
+          // find zoom level & bandwidth
+          const delta = e.deltaY < 0 ? 1 : -1;
+          const updatedZoom = updateZoomLevel(zoomState, delta);
+          zoomState.tk = updatedZoom.tk;
+          zoomState.zoomFactor = updatedZoom.zoomFactor;
+          zoomState.bandwidth = updatedZoom.bandwidth;
+          zoomState.mouseX = e.clientX - rect.left;
+          zoomState.mouseY = e.clientY - rect.top;
+          zoomState.isZooming = true;
+          redraw();
+
+          // update crosshair position while zooming
+          drawCrosshairAndOverlay(d3.pointer(e), stockData);
+
+          // reset cursor & zooming status
+          clearTimeout(timerRef.current ?? undefined);
+          timerRef.current = setTimeout(() => {
+            eventHandlerElement.style.cursor = 'unset';
+            zoomState.isZooming = false;
+          }, 200);
+        }}
+        onTouchStart={(e) => {
+          const zoomState = zoomStateRef.current;
+          if (e.touches.length > 1) {
+            // pinch zoom
+            zoomState.isZooming = true;
+            zoomState.isDragging = false;
+            zoomState.isLongTap = false;
+            zoomState.lastPinchDistance = getTouchDistance(e);
+            clearTimeout(timerRef.current ?? undefined);
+            clearCrosshair();
+          } else {
+            // normal scroll
+            zoomState.isDragging = true;
+            zoomState.lastX = e.touches[0].clientX;
+            zoomState.lastY = e.touches[0].clientY;
+
+            // momentum scroll
+            zoomState.velocity = 0;
+            zoomState.time = performance.now();
+            cancelAnimationFrame(zoomState.animationFrame);
+
+            // longtap to display crosshair
+            timerRef.current = setTimeout(() => {
+              const pointer = d3.pointer(e.touches[0], eventHandlerRef.current);
+              zoomState.isDragging = false;
+              zoomState.isLongTap = true;
+              drawCrosshairAndOverlay(pointer, stockData);
+            }, 200);
+          }
+        }}
+        onTouchMove={(e) => {
+          const zoomState = zoomStateRef.current;
+          if (e.touches.length > 1) {
+            const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
+            const rect = eventHandlerElement.getBoundingClientRect();
+            const currentPinchDistance = getTouchDistance(e);
+            if (zoomState.lastPinchDistance !== -1) {
+              // midpoint between fingers
+              const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+              const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+              const delta = zoomState.lastPinchDistance < currentPinchDistance ? 1 : -1;
+              const updatedZoom = updateZoomLevel(zoomState, delta);
+              zoomState.tk = updatedZoom.tk;
+              zoomState.zoomFactor = updatedZoom.zoomFactor;
+              zoomState.bandwidth = updatedZoom.bandwidth;
+              zoomState.mouseX = midX;
+              zoomState.mouseY = midY;
+              redraw();
+            }
+            zoomState.lastPinchDistance = currentPinchDistance;
+          } else {
+            if (zoomState.isLongTap) {
+              zoomState.isDragging = false;
+              const pointer = d3.pointer(e.touches[0], eventHandlerRef.current);
+              drawCrosshairAndOverlay(pointer, stockData);
+            } else if (zoomState.isDragging) {
+              const dx = e.touches[0].clientX - zoomState.lastX;
+              const dy = e.touches[0].clientY - zoomState.lastY;
+              zoomState.velocity = dx; // for momentum scroll
+              zoomState.originalX += dx;
+              zoomState.originalY += dy;
+              zoomState.lastX = e.touches[0].clientX;
+              zoomState.lastY = e.touches[0].clientY;
+              redraw();
+            }
+          }
+          clearTimeout(timerRef.current ?? undefined);
+        }}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
       />
     </div>
   );

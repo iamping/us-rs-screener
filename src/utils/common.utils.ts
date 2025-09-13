@@ -62,6 +62,26 @@ export const getISOWeekAndYear = (date: Date) => {
   return { week: weekNo, year: isoYear };
 };
 
+export const getNextDates = (date: Date, no = 5, isWeekly = false) => {
+  const dates = [];
+  for (let i = 0; i < no; i++) {
+    const nextDate = new Date(date);
+    nextDate.setDate(isWeekly ? date.getDate() + (i + 1) * 7 : date.getDate() + i + 1);
+    dates.push(nextDate);
+  }
+  return dates;
+};
+
+export const getPreviousDates = (date: Date, no = 5, isWeekly = false) => {
+  const dates = [];
+  for (let i = no; i > 0; i--) {
+    const previousDate = new Date(date);
+    previousDate.setDate(isWeekly ? date.getDate() - i * 7 : date.getDate() - i);
+    dates.push(previousDate);
+  }
+  return dates;
+};
+
 export const isTouchDeviceMatchMedia = () => {
   return (
     window.matchMedia('(pointer: coarse)').matches ||

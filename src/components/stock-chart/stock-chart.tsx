@@ -190,7 +190,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   };
 
   const momentumScroll = () => {
-    const duration = 500; // ms
+    const duration = 1500; // ms
     const startTime = performance.now();
     const zoomState = zoomStateRef.current;
     if (zoomState && zoomState.isDragging) {
@@ -198,10 +198,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
       const animateScroll: FrameRequestCallback = (now) => {
         const t = Math.min((now - startTime) / duration, 1); // normalized time [0,1]
         const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
-        const delta = initialDelta * (1 - ease) * devicePixelRatio; // decelerate
+        const delta = initialDelta * (1 - ease); // decelerate
         zoomState.originalX += delta;
         redraw();
-        if (t < 1 && Math.abs(delta) > 0.2) {
+        if (t < 1 && Math.abs(delta) > 0.1) {
           zoomState.animationFrame = requestAnimationFrame(animateScroll);
         }
       };

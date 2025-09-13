@@ -722,9 +722,6 @@ export const computeTranslation = (series: StockDataPoint[], zoomState: ZoomStat
 
   // final translateX - if value is out of min/max, use min/max instead
   const finalTranslateX = Math.max(Math.min(translateX, maxTranslateX), minTranslateX);
-
-  console.log('tk', zoomState.tk, 'bandwidth', zoomState.bandwidth);
-
   return { translateX: finalTranslateX };
 };
 

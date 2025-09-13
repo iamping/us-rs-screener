@@ -508,12 +508,15 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
               const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
               const delta = zoomState.lastPinchDistance < currentPinchDistance ? 1 : -1;
               const updatedZoom = updateZoomLevel(zoomState, delta);
-              zoomState.tk = updatedZoom.tk;
-              zoomState.zoomFactor = updatedZoom.zoomFactor;
-              zoomState.bandwidth = updatedZoom.bandwidth;
-              zoomState.mouseX = midX;
-              zoomState.mouseY = midY;
-              redraw();
+              const passThreshold = Math.abs(zoomState.lastPinchDistance - currentPinchDistance) > 1; // to decrease sensitivity
+              if (passThreshold) {
+                zoomState.tk = updatedZoom.tk;
+                zoomState.zoomFactor = updatedZoom.zoomFactor;
+                zoomState.bandwidth = updatedZoom.bandwidth;
+                zoomState.mouseX = midX;
+                zoomState.mouseY = midY;
+                redraw();
+              }
             }
             zoomState.lastPinchDistance = currentPinchDistance;
           } else {

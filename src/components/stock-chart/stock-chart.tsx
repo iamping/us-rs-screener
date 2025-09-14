@@ -182,7 +182,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     if (zoomState.isDragging) {
       zoomState.isLongTap = false;
       clearCrosshair();
-      if (performance.now() - zoomState.time < 200) momentumScroll();
+      momentumScroll();
     }
     zoomState.lastPinchDistance = -1;
     zoomState.isZooming = false;
@@ -190,18 +190,18 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   };
 
   const momentumScroll = () => {
-    const duration = 1500; // ms
+    const duration = 1000; // ms
     const startTime = performance.now();
     const zoomState = zoomStateRef.current;
-    if (zoomState && zoomState.isDragging) {
+    if (zoomState && zoomState.isDragging && Math.abs(zoomState.velocity) > 0.1) {
       const initialDelta = zoomState.velocity;
       const animateScroll: FrameRequestCallback = (now) => {
         const t = Math.min((now - startTime) / duration, 1); // normalized time [0,1]
         const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
-        const delta = initialDelta * (1 - ease); // decelerate
+        const delta = 20 * initialDelta * (1 - ease); // decelerate
         zoomState.originalX += delta;
         redraw();
-        if (t < 1 && Math.abs(delta) > 0.1) {
+        if (t < 1 && Math.abs(initialDelta) > 0.1) {
           zoomState.animationFrame = requestAnimationFrame(animateScroll);
         }
       };
@@ -422,8 +422,9 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
           eventHandlerElement.style.cursor = 'unset';
         }}
         onMouseMove={(e) => {
-          const zoomState = zoomStateRef.current;
-          if (zoomState.isDragging) {
+          if (isTouchDevice) return;
+          if (zoomStateRef.current.isDragging) {
+            const zoomState = zoomStateRef.current;
             const dx = e.clientX - zoomState.lastX;
             const dy = e.clientY - zoomState.lastY;
             zoomState.originalX += dx;
@@ -432,7 +433,6 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
             zoomState.lastY = e.clientY;
             redraw();
           }
-          if (isTouchDevice) return;
           drawCrosshairAndOverlay(d3.pointer(e), stockData);
         }}
         onMouseOut={() => {
@@ -527,11 +527,13 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
             } else if (zoomState.isDragging) {
               const dx = e.touches[0].clientX - zoomState.lastX;
               const dy = e.touches[0].clientY - zoomState.lastY;
-              zoomState.velocity = dx; // for momentum scroll
+              const deltaTime = performance.now() - zoomState.time;
+              zoomState.velocity = dx / deltaTime; // for momentum scroll
               zoomState.originalX += dx;
               zoomState.originalY += dy;
               zoomState.lastX = e.touches[0].clientX;
               zoomState.lastY = e.touches[0].clientY;
+              zoomState.time = performance.now();
               redraw();
             }
           }

@@ -108,6 +108,7 @@ export type ZoomState = {
   lastPinchDistance: number;
   bandwidth: number;
   // momentum scroll
+  startX: number;
   time: number;
   velocity: number;
   animationFrame: number;

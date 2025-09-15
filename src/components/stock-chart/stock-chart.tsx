@@ -100,7 +100,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     velocity: 0,
     animationFrame: -1,
     lastPinchDistance: -1,
-    time: 0
+    time: 0,
+    startX: 0
   });
 
   // state
@@ -190,15 +191,16 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
   };
 
   const momentumScroll = () => {
-    const duration = 1000; // ms
+    const duration = 2500; // ms
     const startTime = performance.now();
     const zoomState = zoomStateRef.current;
-    if (zoomState && zoomState.isDragging && Math.abs(zoomState.velocity) > 0.1) {
-      const initialDelta = zoomState.velocity;
+    const velocity = (zoomState.lastX - zoomState.startX) / (startTime - zoomState.time);
+    if (zoomState && zoomState.isDragging && Math.abs(velocity) > 0.5) {
+      const initialDelta = velocity;
       const animateScroll: FrameRequestCallback = (now) => {
         const t = Math.min((now - startTime) / duration, 1); // normalized time [0,1]
         const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
-        const delta = 20 * initialDelta * (1 - ease); // decelerate
+        const delta = 10 * initialDelta * (1 - ease); // decelerate
         zoomState.originalX += delta;
         redraw();
         if (t < 1 && Math.abs(initialDelta) > 0.1) {
@@ -476,6 +478,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
             zoomState.lastPinchDistance = getTouchDistance(e);
             clearTimeout(timerRef.current ?? undefined);
             clearCrosshair();
+            cancelAnimationFrame(zoomState.animationFrame);
           } else {
             // normal scroll
             zoomState.isDragging = true;
@@ -483,7 +486,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
             zoomState.lastY = e.touches[0].clientY;
 
             // momentum scroll
-            zoomState.velocity = 0;
+            zoomState.startX = e.touches[0].clientX;
             zoomState.time = performance.now();
             cancelAnimationFrame(zoomState.animationFrame);
 
@@ -527,13 +530,10 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
             } else if (zoomState.isDragging) {
               const dx = e.touches[0].clientX - zoomState.lastX;
               const dy = e.touches[0].clientY - zoomState.lastY;
-              const deltaTime = performance.now() - zoomState.time;
-              zoomState.velocity = dx / deltaTime; // for momentum scroll
               zoomState.originalX += dx;
               zoomState.originalY += dy;
               zoomState.lastX = e.touches[0].clientX;
               zoomState.lastY = e.touches[0].clientY;
-              zoomState.time = performance.now();
               redraw();
             }
           }

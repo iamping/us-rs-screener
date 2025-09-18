@@ -376,7 +376,7 @@ export const plotVolume = (
   const canvasHeight = context.canvas.height;
   const canvasWidth = context.canvas.width;
   const { xScale, volumeScale } = scales;
-  const barWidth = Math.max(2, Math.ceil(Math.abs(xScale(1) - xScale(0)) - 5));
+  const barWidth = xScale.bandWidth - 2;
   const barCorrection = barWidth % 2 === 0 ? 0 : 0.5;
   const colors = getChartColors(colorMode);
   const isDaily = series.some((d) => d.isDaily);

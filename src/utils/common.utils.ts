@@ -90,3 +90,7 @@ export const isTouchDeviceMatchMedia = () => {
     navigator.maxTouchPoints > 0
   );
 };
+
+export const isWeekDay = (date: Date) => {
+  return date.getDay() !== 0 && date.getDay() !== 6;
+};

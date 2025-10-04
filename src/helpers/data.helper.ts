@@ -139,7 +139,6 @@ export const computeDataSeries = (
   if (isDaily) {
     const previousDates = getPreviousDates(new Date(spyData.date[0] * 1000), 1);
     const nextDates = getNextDates(new Date(spyData.date[spyLength - 1] * 1000), 1);
-    dummyBeforeSeries.push(...buildDummyDataPoint(previousDates, isDaily));
     if (spyLength !== len) {
       const diffLength = spyLength - len;
       const spyDates = spyData.date.filter((_, i) => i < diffLength).map((it) => new Date(it * 1000));

@@ -41,8 +41,7 @@ export type BandScale = d3.ScaleBand<Date>;
 export type LogScale = d3.ScaleLogarithmic<number, number>;
 export type LinearScale = d3.ScaleLinear<number, number>;
 export type XScale = LinearScale & {
-  customTicks: { date: Date; index: number }[];
-  displayIndex: number[];
+  customTicks: DateTick[];
   bandWidth: number;
 };
 export type YScale = LogScale & {
@@ -53,9 +52,16 @@ export type CustomLinearScale = ((domain: number) => number) & {
   invert: (range: number) => number;
   range: () => number[];
   domain: () => number[];
-  customTicks: { date: Date; index: number }[];
-  displayIndex: number[];
+  customTicks: DateTick[];
   bandWidth: number;
+};
+
+export type DateTick = {
+  date: Date;
+  index: number;
+  displayTick: boolean;
+  displayMonth: boolean;
+  displayYear: boolean;
 };
 
 export interface ChartScales {

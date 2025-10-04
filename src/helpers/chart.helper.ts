@@ -7,13 +7,14 @@ import {
   ChartScales,
   CustomLinearScale,
   DataPoint,
+  DateTick,
   LinearScale,
   StockDataPoint,
   XScale,
   YScale,
   ZoomState
 } from '@/types/chart.type';
-import { getCssVar, isTouchDeviceMatchMedia } from '@/utils/common.utils';
+import { getCssVar, isTouchDeviceMatchMedia, isWeekDay } from '@/utils/common.utils';
 
 const isTouchDevice = isTouchDeviceMatchMedia();
 
@@ -53,26 +54,60 @@ export const priceOverlayFormat = (value: d3.NumberValue) => {
   return price > 1000 ? format(',.0f')(price) : format('.2f')(price);
 };
 
-export const dateFormat = (date: Date) => {
-  const fnc = date.getMonth() === 0 ? utcFormat('%Y') : utcFormat('%b');
-  return fnc(date);
+export const dateFormat = (dateTick: DateTick) => {
+  const fnc = dateTick.displayYear ? utcFormat('%Y') : dateTick.displayMonth ? utcFormat('%b') : utcFormat('%e');
+  return fnc(dateTick.date);
 };
 
 export const dateOverlayFormat = utcFormat("%a %d %b '%y");
 
-export const dateTicks = (dates: Date[]) => {
+export const dateTicks = (series: StockDataPoint[], bandwidth: number) => {
+  const dates = series.map((e) => e.date);
   const dateSet: string[] = [];
-  return dates
-    .map((date, index) => ({ date, index }))
-    .filter(({ date }) => {
-      const key = `${date.getMonth()},${date.getFullYear()}`;
-      if (dateSet.includes(key)) {
-        return false;
-      } else {
-        dateSet.push(key);
-        return true;
-      }
-    });
+  const dateGroup: Record<string, DateTick[]> = {};
+  const isDaily = series.some((e) => e.isDaily);
+
+  // determine ticks to display based on bandwidth to avoid text overlapping
+  const canDisplayAll = bandwidth > 100;
+  const canDisplayMidmonthDaily = bandwidth > 10 && bandwidth <= 30;
+  const canDisplayEvery4Days = bandwidth > 30 && bandwidth <= 100;
+  const canDisplayMidmonthWeekly = bandwidth > 70;
+  const canDisplayMonthWeekly = (month: number) => {
+    if (bandwidth <= 10) {
+      return month % 6 === 0;
+    } else if (bandwidth > 10 && bandwidth <= 20) {
+      return month % 3 === 0;
+    } else if (bandwidth > 20 && bandwidth <= 30) {
+      return month % 2 === 0;
+    } else {
+      return true;
+    }
+  };
+
+  dates.forEach((date, index) => {
+    const key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+    if (!dateSet.includes(key)) {
+      // display ticks at the start of month
+      const displayMonth = isWeekDay(date);
+      const displayYear = displayMonth && date.getMonth() === 0;
+      const displayTickDaily = isDaily && (displayMonth || displayYear);
+      const displayTickWeekly = !isDaily && (canDisplayMonthWeekly(date.getMonth()) || displayYear);
+      const displayTick = (displayTickDaily || displayTickWeekly) && series[index].close > 0;
+      dateGroup[key] = [{ date, index, displayMonth, displayYear, displayTick }];
+      dateSet.push(key);
+    } else {
+      // display ticks between months
+      const newIndex = dateGroup[key].length;
+      const isMidmonthDaily = isDaily && newIndex === 10 && canDisplayMidmonthDaily;
+      const isEvery4Day = isDaily && newIndex % 4 === 0 && newIndex <= 16 && canDisplayEvery4Days;
+      const displayTickDaily = isMidmonthDaily || isEvery4Day;
+      const displayTickWeekly = !isDaily && newIndex === 2 && canDisplayMidmonthWeekly;
+      const displayTick = (displayTickDaily || displayTickWeekly || canDisplayAll) && series[index].close > 0;
+      dateGroup[key].push({ date, index, displayMonth: false, displayYear: false, displayTick });
+    }
+  });
+
+  return Object.values(dateGroup).flatMap((it) => it);
 };
 
 export const logTicks = (min: number, max: number) => {
@@ -109,6 +144,7 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
     label: getCssVar('--chakra-colors-black'),
     crosshair: getCssVar('--chakra-colors-gray-400'),
     text: getCssVar('--chakra-colors-black'),
+    textSecondary: getCssVar('--chakra-colors-gray-500'),
     overlayText: getCssVar('--chakra-colors-white'),
     overlayBg: getCssVar('--chakra-colors-gray-700'),
     pocketPivotVolume: getCssVar('--chakra-colors-blue-500'),
@@ -131,6 +167,7 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
         up: getCssVar('--chakra-colors-white'),
         down: getCssVar('--colors-down'),
         text: getCssVar('--chakra-colors-white'),
+        textSecondary: getCssVar('--chakra-colors-gray-400'),
         normalVolume: getCssVar('--chakra-colors-gray-700'),
         loserVolume: getCssVar('--colors-volume-down'),
         ema10: getCssVar('--chakra-colors-gray-700'),
@@ -198,8 +235,8 @@ export const plotChart = (
   context.translate(bitmap(zoomState.tx), 0);
   const canvasHeight = context.canvas.height;
   const { xScale, yScale, rsScale } = scales;
-  const bandWidth = Math.max(Math.ceil(Math.abs(xScale(1) - xScale(0)) / 5), Math.floor(devicePixelRatio));
-  const correction = bandWidth % 2 === 0 ? 0 : 0.5;
+  const barWidth = Math.max(Math.ceil(xScale.bandWidth / 5), Math.floor(devicePixelRatio));
+  const correction = barWidth % 2 === 0 ? 0 : 0.5;
   const tickLength = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 3);
   const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors(colorMode);
@@ -207,10 +244,9 @@ export const plotChart = (
 
   // draw vertical line
   const xTickValues = xScale.customTicks;
-  const displayIndex = xScale.displayIndex;
-  xTickValues.forEach((d, i) => {
+  xTickValues.forEach((d) => {
     const x = Math.round(xScale(d.index));
-    if (displayIndex.includes(i)) {
+    if (d.displayTick) {
       context.beginPath();
       context.lineWidth = Math.floor(devicePixelRatio);
       context.strokeStyle = colors.gridLine;
@@ -339,10 +375,10 @@ export const plotChart = (
     // draw price bar
     const isUp = d.change >= 0;
     context.strokeStyle = d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
-    context.lineWidth = bandWidth;
+    context.lineWidth = barWidth;
     context.beginPath();
-    context.moveTo(x, Math.round(low + bandWidth / 2));
-    context.lineTo(x, Math.round(high - bandWidth / 2));
+    context.moveTo(x, Math.round(low + barWidth / 2));
+    context.lineTo(x, Math.round(high - barWidth / 2));
 
     context.moveTo(x, open + correction);
     context.lineTo(Math.floor(x - tickLength), open + correction);
@@ -381,12 +417,11 @@ export const plotVolume = (
   const colors = getChartColors(colorMode);
   const isDaily = series.some((d) => d.isDaily);
   const xTickValues = xScale.customTicks;
-  const displayIndex = xScale.displayIndex;
 
   // draw vertical line
-  xTickValues.forEach((d, i) => {
+  xTickValues.forEach((d) => {
     const x = Math.round(xScale(d.index));
-    if (displayIndex.includes(i)) {
+    if (d.displayTick) {
       context.beginPath();
       context.lineWidth = Math.floor(devicePixelRatio);
       context.strokeStyle = colors.gridLine;
@@ -438,24 +473,20 @@ export const drawXAxis = (
   colorMode: ColorMode
 ) => {
   context.translate(bitmap(zoomState.tx), 0);
-  const canvasWidth = context.canvas.width;
   const font = getLabelFont(12);
+  const fontBold = `bold ${font}`;
   const y = bitmap(15);
   const tickValues = xScale.customTicks;
-  const displayIndex = xScale.displayIndex;
+  const colors = getChartColors(colorMode);
 
-  // hide label if out of visible range
-  const { rangeStart, rangeEnd } = getVisibleRange(canvasWidth, zoomState.tx);
-  const offset = bitmap(10);
-
-  context.fillStyle = getChartColors(colorMode).text;
-  context.font = font;
   context.textBaseline = 'middle';
   context.textAlign = 'center';
-  tickValues.forEach((d, i) => {
+  tickValues.forEach((d) => {
     const x = Math.round(xScale(d.index));
-    if (displayIndex.includes(i) && x > rangeStart + offset && x < rangeEnd - offset) {
-      context.fillText(dateFormat(d.date), x, y);
+    if (d.displayTick) {
+      context.fillStyle = d.displayMonth ? colors.text : colors.textSecondary;
+      context.font = d.displayYear ? fontBold : font;
+      context.fillText(dateFormat(d), x, y);
     }
   });
 };
@@ -613,17 +644,7 @@ export const drawVolumeOverlay = (context: CanvasRenderingContext2D, dataPoint: 
 
 export const updateXScale = (series: StockDataPoint[], zoomState: ZoomState) => {
   const xScale = customLinearScale([0, series.length], zoomState.bandwidth) as XScale;
-  // add custom ticks & display index
-  const tickValues = dateTicks(series.map((d) => d.date));
-  const minDistance = bitmap(30);
-  const diffX =
-    tickValues.length > 1 ? Math.abs(xScale(tickValues[0].index) - xScale(tickValues[1].index)) : minDistance;
-  const step = Math.min(Math.ceil(minDistance / diffX), 4); // step should be 1,2,3,4 to always correctly get January
-  const firstJanIndex = tickValues.map((d) => d.date).findIndex((d) => d.getMonth() === 0);
-  const startIndex = Math.min(...range(firstJanIndex === -1 ? 0 : firstJanIndex, -1, -step));
-  const displayIndex = range(startIndex, tickValues.length, step);
-  xScale.customTicks = tickValues;
-  xScale.displayIndex = displayIndex;
+  xScale.customTicks = dateTicks(series, xScale.bandWidth);
   return { xScale };
 };
 

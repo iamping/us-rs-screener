@@ -56,7 +56,7 @@ export const columns = [
   columnHelper.accessor('percentChange', {
     header: () => <Text textAlign="right">Change %</Text>,
     cell: (cell) => (
-      <Text textAlign="right" color={cell.getValue() > 0 ? 'teal.500' : 'red.500'}>
+      <Text textAlign="right" color={cell.getValue() === 0 ? 'inherit' : cell.getValue() > 0 ? 'teal.500' : 'red.500'}>
         {formatDecimal(cell.getValue())} %
       </Text>
     ),

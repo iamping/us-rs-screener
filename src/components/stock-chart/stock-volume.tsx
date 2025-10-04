@@ -33,7 +33,7 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
       : isLoser
         ? colors.loserVolume
         : undefined;
-  const volChgColor = d.volume > preD.volume ? colors.gainerVolume : colors.loserVolume;
+  const volChgColor = volBuzzVal === 0 ? undefined : d.volume > preD.volume ? colors.gainerVolume : colors.loserVolume;
 
   return (
     <Flex {...rest} background={{ base: 'whiteAlpha.700', _dark: 'blackAlpha.700' }}>

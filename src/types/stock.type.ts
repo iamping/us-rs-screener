@@ -42,6 +42,8 @@ export interface Stock {
   insideDay: number | string;
   think40: number | string;
   episodicPivot: number | string;
+  reclaimEma: number | string;
+  ema10: number;
   ema21: number;
   ema50: number;
   ema89: number;

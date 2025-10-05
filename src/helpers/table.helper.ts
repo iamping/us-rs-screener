@@ -437,22 +437,43 @@ export const priceOptions: SelectOption[] = [
       params: [{ operator: '>', compareField: 'wk52High', comparePercent: -25 }]
     }
   },
+  // {
+  //   value: 'near21/50EMA',
+  //   title: 'Near 21/50 EMA',
+  //   description: '-5% to 5%',
+  //   compareOption: {
+  //     type: 'bound-percent',
+  //     params: [
+  //       {
+  //         operator: 'bound-exclusive',
+  //         compareField: 'ema21',
+  //         comparePercent: 5
+  //       },
+  //       {
+  //         operator: 'bound-exclusive',
+  //         compareField: 'ema50',
+  //         comparePercent: 5
+  //       }
+  //     ]
+  //   }
+  // },
   {
-    value: 'near21/50EMA',
-    title: 'Near 21/50 EMA',
-    description: '-5% to 5%',
+    value: 'near10EMA_atr',
+    title: 'Near 10 EMA',
+    description: '-1ATR to 1ATR',
     compareOption: {
-      type: 'bound-percent',
+      type: 'bound-fixed-callback',
       params: [
         {
-          operator: 'bound-exclusive',
-          compareField: 'ema21',
-          comparePercent: 5
-        },
-        {
-          operator: 'bound-exclusive',
-          compareField: 'ema50',
-          comparePercent: 5
+          operator: 'bound-inclusive',
+          lowerBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema10 - stock.atr;
+          },
+          upperBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema10 + stock.atr;
+          }
         }
       ]
     }
@@ -857,7 +878,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'avgDollarVolume',
-        value: '100up'
+        value: '50up'
       }
     ]
   }

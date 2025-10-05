@@ -207,6 +207,7 @@ export const dataMapping = (stocks: Stock[]) => {
     insideDay: e.insideDay === 0 ? 'No' : 'Yes',
     think40: e.think40 === 0 ? 'No' : 'Yes',
     episodicPivot: e.episodicPivot === 0 ? 'No' : 'Yes',
+    reclaimEma: e.reclaimEma === 0 ? 'No' : 'Yes',
     key: i + 1
   }));
 };

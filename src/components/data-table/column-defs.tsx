@@ -296,5 +296,11 @@ export const columns = [
     cell: (cell) => <CellTemplate.Status cell={cell} />,
     meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
+  }),
+  columnHelper.accessor('reclaimEma', {
+    header: () => 'Reclaim EMA',
+    cell: (cell) => <CellTemplate.Status cell={cell} />,
+    meta: { width: 150, filterVariant: 'combo-box' },
+    filterFn: 'arrIncludesSome'
   })
 ];

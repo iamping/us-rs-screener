@@ -19,8 +19,6 @@ import { getCssVar, isTouchDeviceMatchMedia, isWeekDay } from '@/utils/common.ut
 const isTouchDevice = isTouchDeviceMatchMedia();
 
 export const constant = {
-  domainMultiplier: 0.04,
-  lowerDomainMultiplier: 0.1,
   barArea: 0.8,
   volumeArea: 0.2,
   rsArea: 0.3,
@@ -29,7 +27,10 @@ export const constant = {
   maxBandwidth: 150,
   maxZoom: 30.0,
   minZoom: 1.0,
-  defaultZoomLevel: 2.0
+  defaultZoomLevel: 2.0,
+  multiplierStep: 0.02,
+  maxMultipler: 0.9,
+  minMultipler: 0.1
 };
 
 export const bitmap = (pixel: number) => {
@@ -183,12 +184,12 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
 export const getVisibleDomain = (
   xScale: LinearScale,
   series: StockDataPoint[],
-  translateX: number,
+  zoomState: ZoomState,
   bitmapWidth: number
 ) => {
   const visibleDomain: number[] = [];
   const visibleIndex: number[] = [];
-  const { rangeStart, rangeEnd } = getVisibleRange(bitmapWidth, translateX);
+  const { rangeStart, rangeEnd } = getVisibleRange(bitmapWidth, zoomState.tx);
   // find min & max visible price
   const min: number[] = [];
   const max: number[] = [];
@@ -210,8 +211,8 @@ export const getVisibleDomain = (
   visibleDomain.push(Math.max(...max));
 
   // expand domain a little bit
-  visibleDomain[0] *= 1 - constant.lowerDomainMultiplier;
-  visibleDomain[1] *= 1 + constant.domainMultiplier;
+  visibleDomain[0] *= 1 - zoomState.domainMultiplier;
+  visibleDomain[1] *= 1 + zoomState.domainMultiplier - 0.05; // reduce upper bound a bit
   return { visibleDomain, visibleIndex };
 };
 

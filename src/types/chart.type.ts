@@ -106,6 +106,8 @@ export type ZoomState = {
   originalY: number;
   lastX: number;
   lastY: number;
+  // y axis - domain multiplier
+  domainMultiplier: number;
   // zoom
   zoomFactor: number;
   mouseX: number;

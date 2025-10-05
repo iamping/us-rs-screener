@@ -101,7 +101,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     animationFrame: -1,
     lastPinchDistance: -1,
     time: 0,
-    startX: 0
+    startX: 0,
+    domainMultiplier: 0.1
   });
 
   // state
@@ -137,7 +138,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
 
   const updateChartScales = (series: StockDataPoint[], zoomState: ZoomState, dms: CanvasDimensions) => {
     const { xScale } = updateXScale(series, zoomState);
-    const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, zoomState.tx, dms.bitmapWidth);
+    const { visibleDomain, visibleIndex } = getVisibleDomain(xScale, series, zoomState, dms.bitmapWidth);
     const { yScale, volumeScale, rsScale } = updateRemainingScales(series, visibleDomain, visibleIndex, dms);
     visibleIndexRef.current = visibleIndex;
     chartScalesRef.current = { xScale, yScale, volumeScale, rsScale };
@@ -393,6 +394,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
         }}
       />
       <div
+        // main handler - zoom/pan/momentom scroll
         ref={eventHandlerRef}
         id="event-handler"
         style={{
@@ -541,6 +543,74 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
         }}
         onTouchEnd={onTouchEnd}
         onTouchCancel={onTouchEnd}
+      />
+      <div
+        // yAxis Handler: to re-compute yScale
+        id="yAxisHandler"
+        style={{
+          position: 'absolute',
+          top: chartDms.marginTop,
+          right: 0,
+          width: chartDms.width - chartDms.plotWidth,
+          height: chartDms.plotHeight * (1 - volumeArea),
+          zIndex: 2,
+          cursor: 'ns-resize'
+        }}
+        onMouseDown={(e) => {
+          const zoomState = zoomStateRef.current;
+          zoomState.isDragging = true;
+          zoomState.lastY = e.clientY;
+        }}
+        onMouseMove={(e) => {
+          if (isTouchDevice) return;
+          if (zoomStateRef.current.isDragging) {
+            const zoomState = zoomStateRef.current;
+            const dy = e.clientY - zoomState.lastY;
+            if (dy === 0) return;
+            const delta = dy < 0 ? -constant.multiplierStep : constant.multiplierStep;
+            const newDomainMultiplier = zoomState.domainMultiplier + delta;
+            zoomState.domainMultiplier = Math.max(
+              Math.min(newDomainMultiplier, constant.maxMultipler),
+              constant.minMultipler
+            );
+            zoomState.lastY = e.clientY;
+            redraw();
+          }
+        }}
+        onMouseUp={() => {
+          zoomStateRef.current.isDragging = false;
+        }}
+        onMouseLeave={() => {
+          zoomStateRef.current.isDragging = false;
+        }}
+        onTouchStart={(e) => {
+          const zoomState = zoomStateRef.current;
+          if (e.touches.length === 1) {
+            zoomState.isDragging = true;
+            zoomState.lastY = e.touches[0].clientY;
+          }
+        }}
+        onTouchMove={(e) => {
+          if (e.touches.length === 1 && zoomStateRef.current.isDragging) {
+            const zoomState = zoomStateRef.current;
+            const dy = e.touches[0].clientY - zoomState.lastY;
+            if (dy === 0) return;
+            const delta = dy < 0 ? -constant.multiplierStep : constant.multiplierStep;
+            const newDomainMultiplier = zoomState.domainMultiplier + delta;
+            zoomState.domainMultiplier = Math.max(
+              Math.min(newDomainMultiplier, constant.maxMultipler),
+              constant.minMultipler
+            );
+            zoomState.lastY = e.touches[0].clientY;
+            redraw();
+          }
+        }}
+        onTouchEnd={() => {
+          zoomStateRef.current.isDragging = false;
+        }}
+        onTouchCancel={() => {
+          zoomStateRef.current.isDragging = false;
+        }}
       />
     </div>
   );

@@ -142,10 +142,11 @@ export const computeDataSeries = (
     if (spyLength !== len) {
       const diffLength = spyLength - len;
       const spyDates = spyData.date.filter((_, i) => i < diffLength).map((it) => new Date(it * 1000));
-      dummyBeforeSeries.push(...buildDummyDataPoint(spyDates, isDaily));
+      dummyBeforeSeries.push(...buildDummyDataPoint(previousDates.concat(spyDates), isDaily));
       dummyAfterSeries.push(...buildDummyDataPoint(nextDates, isDaily));
     } else {
       dummyBeforeSeries.push(...buildDummyDataPoint(previousDates, isDaily));
+      dummyAfterSeries.push(...buildDummyDataPoint(nextDates, isDaily));
     }
   } else {
     const diffLength = dailySpyLength - len;

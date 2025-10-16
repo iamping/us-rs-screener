@@ -923,7 +923,7 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'close',
-        value: ['gtEMA89', 'gtEMA150/200', 'above52WLow', 'lower52WHigh', 'near10/21/50EMA_atr']
+        value: ['gtEMA89', 'above52WLow', 'lower52WHigh', 'near10/21/50EMA_atr']
       },
       {
         id: 'adrPercent',

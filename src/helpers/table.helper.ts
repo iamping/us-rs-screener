@@ -104,13 +104,27 @@ export const avgDollarVolOptions: SelectOption[] = [
     } as SelectOption;
   }),
   {
+    value: '10to50',
+    title: '10M to 50M',
+    compareOption: {
+      type: 'bound-fixed',
+      params: [
+        {
+          operator: 'bound-exclusive',
+          lowerBound: 10 * 1000000,
+          upperBound: 50 * 1000000
+        }
+      ]
+    }
+  },
+  {
     value: 'under10',
     title: 'Under 10M',
     compareOption: {
       type: 'fixed',
       params: [
         {
-          operator: '<',
+          operator: '<=',
           compareNumber: 10000000
         }
       ]
@@ -437,6 +451,27 @@ export const priceOptions: SelectOption[] = [
       params: [{ operator: '>', compareField: 'wk52High', comparePercent: -25 }]
     }
   },
+  {
+    value: 'lower52WHigh',
+    title: 'Less than 52W High',
+    description: '-10% to -40%',
+    compareOption: {
+      type: 'bound-fixed-callback',
+      params: [
+        {
+          operator: 'bound-inclusive',
+          lowerBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.wk52High * 0.6;
+          },
+          upperBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.wk52High * 0.9;
+          }
+        }
+      ]
+    }
+  },
   // {
   //   value: 'near21/50EMA',
   //   title: 'Near 21/50 EMA',
@@ -458,8 +493,8 @@ export const priceOptions: SelectOption[] = [
   //   }
   // },
   {
-    value: 'near10EMA_atr',
-    title: 'Near 10 EMA',
+    value: 'near10/21/50EMA_atr',
+    title: 'Near 10/21/50 EMA',
     description: '-1ATR to 1ATR',
     compareOption: {
       type: 'bound-fixed-callback',
@@ -473,6 +508,28 @@ export const priceOptions: SelectOption[] = [
           upperBoundFn: (val) => {
             const stock = val as Stock;
             return stock.ema10 + stock.atr;
+          }
+        },
+        {
+          operator: 'bound-inclusive',
+          lowerBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema21 - stock.atr;
+          },
+          upperBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema21 + stock.atr;
+          }
+        },
+        {
+          operator: 'bound-inclusive',
+          lowerBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema50 - stock.atr;
+          },
+          upperBoundFn: (val) => {
+            const stock = val as Stock;
+            return stock.ema50 + stock.atr;
           }
         }
       ]
@@ -822,29 +879,6 @@ export const presetOptions: SelectOption[] = [
     ]
   },
   {
-    value: 'superFocus',
-    title: 'Super Focus',
-    description: 'Mark + EMA21/50',
-    presetStates: [
-      {
-        id: 'rsRating',
-        value: '70up'
-      },
-      {
-        id: 'close',
-        value: ['markPriceTemplateMAs', 'above52WLow', 'near52WHigh', 'above20', 'near21/50EMA_atr']
-      },
-      {
-        id: 'adrPercent',
-        value: '3up'
-      },
-      {
-        id: 'avgDollarVolume',
-        value: '50up'
-      }
-    ]
-  },
-  {
     value: 'episodicPivot',
     title: 'Episodic Pivot',
     description: 'Price + Volume Surge',
@@ -879,6 +913,29 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'avgDollarVolume',
         value: '50up'
+      }
+    ]
+  },
+  {
+    value: 'myDailyScan',
+    title: 'My Daily Scan',
+    description: 'Liquidity + Pullback',
+    presetStates: [
+      {
+        id: 'close',
+        value: ['gtEMA89', 'gtEMA150/200', 'above52WLow', 'lower52WHigh', 'near10/21/50EMA_atr']
+      },
+      {
+        id: 'adrPercent',
+        value: '3up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '10up'
+      },
+      {
+        id: 'rsRating',
+        value: '80up'
       }
     ]
   }

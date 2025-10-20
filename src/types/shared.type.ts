@@ -7,6 +7,12 @@ export type CompareOperator = '>=' | '>' | '<>' | '<=' | '<' | '=';
 export type BoundOperator = 'bound-inclusive' | 'bound-exclusive';
 export type ChainOperator = 'chain-gt-exclusive' | 'chain-gt-inclusive';
 export type Operator = CompareOperator | BoundOperator | ChainOperator;
+export type GeneralOption = {
+  value: string;
+  altValue: number | string;
+  description: string;
+  shortDescription?: string;
+};
 
 export type CompareOption =
   | {

@@ -1,5 +1,5 @@
 import { ColumnFiltersState, Row, Table } from '@tanstack/react-table';
-import { ColumnVisibility, Operator, SelectOption, Settings } from '@/types/shared.type';
+import { ColumnVisibility, GeneralOption, Operator, SelectOption, Settings } from '@/types/shared.type';
 import { Stock } from '@/types/stock.type';
 
 type TRecord<T> = Row<T & Record<string, number>>;
@@ -618,6 +618,30 @@ export const rmvOptions: SelectOption[] = [
   })
 ];
 
+// Note: each value = bitwise OR of previous one
+// e.g., 8D = 1<<0|1<<1, 10D = 1<<0|1<<1|1<<2
+export const think40Options: GeneralOption[] = [
+  { value: 'No', altValue: 0, description: 'No', shortDescription: '-' },
+  { value: '5D', altValue: 1, description: '5 Days High', shortDescription: '5D' },
+  { value: '8D', altValue: 3, description: '8 Days High', shortDescription: '8D' },
+  { value: '10D', altValue: 7, description: '10 Days High', shortDescription: '10D' },
+  { value: '20D', altValue: 15, description: '20 Days High', shortDescription: '20D' },
+  { value: '40D', altValue: 31, description: '40 Days High', shortDescription: '40D' }
+];
+
+export const think40DescriptionFn = (value: string | number) => {
+  const temp: string[] = [];
+  if (typeof value === 'number') {
+    think40Options.forEach((e) => {
+      if (Number(e.altValue) === value || Number(e.altValue) <= value) {
+        temp.push(e.shortDescription ?? '');
+      }
+    });
+    return temp.slice(-1).join(', ');
+  }
+  return '';
+};
+
 export const amountFilterFn =
   (optionList: SelectOption[]) =>
   <T>(row: Row<T>, columnId: string, filterValue: string) => {
@@ -724,10 +748,25 @@ const compareChainFn = (operator: Operator, values: number[]) => {
   return false;
 };
 
-export const customArrIncludesSome = <T>(row: Row<T>, columnId: string, filterValues: string[]) => {
-  return filterValues.includes(row.getValue(columnId));
+export const customArrIncludesSome = () => {
+  const fn = <T>(row: Row<T>, columnId: string, filterValues: string[]) => {
+    return filterValues.includes(row.getValue(columnId));
+  };
+  fn.autoRemove = (val: string[]) => !val?.length;
+  return fn;
 };
-customArrIncludesSome.autoRemove = (val: string[]) => !val?.length;
+
+export const bitwiseIncludesSome = (optionList: GeneralOption[]) => {
+  const fn = <T>(row: Row<T>, columnId: string, filterValues: string[]) => {
+    const value = Number(row.getValue(columnId));
+    return filterValues.some((key) => {
+      const optionValue = Number(optionList.find((e) => e.value === key)?.altValue ?? -1);
+      return value === 0 ? value === optionValue : value === optionValue || value <= optionValue;
+    });
+  };
+  fn.autoRemove = (val: number[]) => !val?.length;
+  return fn;
+};
 
 export const initialFilter = (stockList: Stock[], settings: Settings) => {
   return (
@@ -874,7 +913,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'think40',
-        value: ['Yes']
+        value: ['40D']
       }
     ]
   },
@@ -923,19 +962,19 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'close',
-        value: ['gtEMA89', 'above52WLow', 'lower52WHigh', 'near10/21/50EMA_atr']
+        value: ['gtEMA89', 'gtEMA150/200', 'above52WLow', 'lower52WHigh']
       },
       {
         id: 'adrPercent',
-        value: '3up'
+        value: '2up'
       },
       {
         id: 'avgDollarVolume',
         value: '10up'
       },
       {
-        id: 'rsRating',
-        value: '80up'
+        id: 'think40',
+        value: ['20D']
       }
     ]
   }

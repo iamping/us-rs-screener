@@ -7,6 +7,7 @@ import { formatDecimal } from '@/utils/common.utils';
 
 interface CellTemplateProps<T> {
   cell: CellContext<Stock, T>;
+  descriptionFn?: (value: string | number) => string;
 }
 
 const FiftyTwoWeek: FC<CellTemplateProps<number>> = ({ cell }) => {
@@ -36,7 +37,12 @@ const FiftyTwoWeek: FC<CellTemplateProps<number>> = ({ cell }) => {
   );
 };
 
-const Status: FC<CellTemplateProps<string | number>> = ({ cell }) => {
+const Status: FC<CellTemplateProps<string | number>> = ({ cell, descriptionFn }) => {
+  if (descriptionFn) {
+    return descriptionFn(cell.getValue());
+  }
+
+  // shared value descriptions
   switch (cell.getValue()) {
     case 'Yes':
       return (

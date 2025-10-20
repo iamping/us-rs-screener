@@ -206,7 +206,6 @@ export const dataMapping = (stocks: Stock[]) => {
     rsNewHigh: e.rsNewHigh === 0 ? 'No' : e.rsNewHigh === 1 ? 'New High' : 'Before Price',
     tightRange: e.tightRange === 0 ? 'No' : 'Yes',
     insideDay: e.insideDay === 0 ? 'No' : 'Yes',
-    think40: e.think40 === 0 ? 'No' : 'Yes',
     episodicPivot: e.episodicPivot === 0 ? 'No' : 'Yes',
     reclaimEma: e.reclaimEma === 0 ? 'No' : 'Yes',
     key: i + 1

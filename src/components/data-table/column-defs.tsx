@@ -4,6 +4,7 @@ import {
   adrPercentOptions,
   amountFilterFn,
   avgDollarVolOptions,
+  bitwiseIncludesSome,
   customArrIncludesSome,
   marketCapOptions,
   multiSelectFilterFn,
@@ -11,7 +12,9 @@ import {
   priceOptions,
   relativeVolOptions,
   rmvOptions,
-  rsRatingOptions
+  rsRatingOptions,
+  think40DescriptionFn,
+  think40Options
 } from '@/helpers/table.helper';
 import { Stock } from '@/types/stock.type';
 import { formatDecimal, formatNumber } from '@/utils/common.utils';
@@ -271,7 +274,7 @@ export const columns = [
     header: () => 'RS New High',
     cell: (cell) => <CellTemplate.Status cell={cell} />,
     meta: { width: 150, filterVariant: 'combo-box' },
-    filterFn: customArrIncludesSome
+    filterFn: customArrIncludesSome()
   }),
   columnHelper.accessor('tightRange', {
     header: () => 'Tight Range',
@@ -287,9 +290,9 @@ export const columns = [
   }),
   columnHelper.accessor('think40', {
     header: () => 'Think 40',
-    cell: (cell) => <CellTemplate.Status cell={cell} />,
-    meta: { width: 130, filterVariant: 'combo-box' },
-    filterFn: 'arrIncludesSome'
+    cell: (cell) => <CellTemplate.Status cell={cell} descriptionFn={think40DescriptionFn} />,
+    meta: { width: 180, filterVariant: 'combo-box', comboBoxOptions: think40Options },
+    filterFn: bitwiseIncludesSome(think40Options)
   }),
   columnHelper.accessor('episodicPivot', {
     header: () => 'Episodic Pivot',

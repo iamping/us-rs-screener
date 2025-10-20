@@ -31,9 +31,12 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
   const rangeCurrentValue = (column.getFilterValue() ?? [min, max]) as number[];
 
   // variant combo box
+  const comboboxOptions = column.columnDef.meta?.comboBoxOptions ?? [];
   const valueList =
     filterVariant === 'combo-box'
-      ? [...column.getFacetedUniqueValues().keys()].sort()
+      ? comboboxOptions.length > 0
+        ? comboboxOptions.map((e) => e.value)
+        : [...column.getFacetedUniqueValues().keys()].sort()
       : filterVariant === 'multi-select'
         ? (column.columnDef.meta?.selectOptions ?? [])
         : [];
@@ -110,6 +113,7 @@ export const Filter = <T,>({ id, popupWidth, filterVariant, column, resetPageInd
                 valueList={valueList}
                 enableSearch={valueList.length > 15}
                 hideSelectAll={valueList.length < 10}
+                comboBoxOptions={comboboxOptions}
                 onChange={onChange}
               />
             </Show>

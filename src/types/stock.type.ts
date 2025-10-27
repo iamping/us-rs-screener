@@ -52,9 +52,11 @@ export interface Stock {
   ema2001M: number;
   wk52Low: number;
   wk52High: number;
+  allTimeHigh: number;
   adrPercent: number;
   rmv: number;
   atr: number;
+  ipoDate: number;
 }
 
 export interface StockInfo {

@@ -1,3 +1,5 @@
+import { utcFormat } from 'd3';
+
 const decimalFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const decimalFormatterWithSign = new Intl.NumberFormat('en-us', {
@@ -7,6 +9,8 @@ const decimalFormatterWithSign = new Intl.NumberFormat('en-us', {
 });
 
 const numberFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+export const commonDateFormat = utcFormat('%b %d, %Y');
 
 export const formatDecimal = (val: string | number, signDisplay: boolean = false) => {
   return signDisplay ? decimalFormatterWithSign.format(Number(val)) : decimalFormatter.format(Number(val));

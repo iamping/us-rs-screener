@@ -1,8 +1,11 @@
 import { ColumnFiltersState, Row, Table } from '@tanstack/react-table';
 import { ColumnVisibility, GeneralOption, Operator, SelectOption, Settings } from '@/types/shared.type';
 import { Stock } from '@/types/stock.type';
+import { commonDateFormat } from '@/utils/common.utils';
 
 type TRecord<T> = Row<T & Record<string, number>>;
+
+const oneYearMilliSeconds = 365.25 * 24 * 60 * 60 * 1000;
 
 export const defaultPagination = {
   pageIndex: 0, //initial page index
@@ -472,6 +475,15 @@ export const priceOptions: SelectOption[] = [
       ]
     }
   },
+  {
+    value: 'nearAllTimeHigh',
+    title: 'Near All Time High',
+    description: 'Not lower than 25%',
+    compareOption: {
+      type: 'compare-field-percent',
+      params: [{ operator: '>', compareField: 'allTimeHigh', comparePercent: -25 }]
+    }
+  },
   // {
   //   value: 'near21/50EMA',
   //   title: 'Near 21/50 EMA',
@@ -629,61 +641,116 @@ export const think40Options: GeneralOption[] = [
   { value: '40D', altValue: 31, description: '40 Days High', shortDescription: '40D' }
 ];
 
-export const think40DescriptionFn = (value: string | number) => {
-  const temp: string[] = [];
-  if (typeof value === 'number') {
-    think40Options.forEach((e) => {
-      if (Number(e.altValue) === value || Number(e.altValue) <= value) {
-        temp.push(e.shortDescription ?? '');
-      }
-    });
-    return temp.slice(-1).join(', ');
+export const ipoDateOptions: SelectOption[] = [
+  {
+    value: 'under5',
+    title: 'Under 5 Years',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: Date.now() - 5 * oneYearMilliSeconds
+        }
+      ]
+    }
+  },
+  {
+    value: 'under10',
+    title: 'Under 10 Years',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: Date.now() - 10 * oneYearMilliSeconds
+        }
+      ]
+    }
+  },
+  {
+    value: 'under15',
+    title: 'Under 15 Years',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: Date.now() - 15 * oneYearMilliSeconds
+        }
+      ]
+    }
+  },
+  {
+    value: 'gt15',
+    title: 'More than 15 Years',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '<',
+          compareNumber: Date.now() - 15 * oneYearMilliSeconds
+        }
+      ]
+    }
   }
-  return '';
-};
+];
+
+export const wk52Options: SelectOption[] = [
+  {
+    value: 'double',
+    title: 'Double from 52-Week Low',
+    compareOption: {
+      type: 'compare-field-percent',
+      params: [{ operator: '>=', compareField: 'wk52Low', comparePercent: 100 }]
+    }
+  }
+];
 
 export const amountFilterFn =
-  (optionList: SelectOption[]) =>
+  (optionList: SelectOption[], specificColumnId?: string) =>
   <T>(row: Row<T>, columnId: string, filterValue: string) => {
     const option = optionList.find((e) => e.value === filterValue)!;
     if (!option) return false;
     const compareOption = option.compareOption!;
     const compareType = compareOption.type;
     const record = row as TRecord<T>;
+    // note: columnId = column accessor
+    const cellValue = specificColumnId ? record.original[specificColumnId] : row.getValue(columnId);
     switch (compareType) {
       case 'fixed':
         return compareOption.params.every((param) => {
-          return compareFn(param.operator, Number(row.getValue(columnId)), param.compareNumber);
+          return compareFn(param.operator, Number(cellValue), param.compareNumber);
         });
       case 'compare-field':
         return compareOption.params.every((param) => {
-          return compareFn(param.operator, Number(row.getValue(columnId)), record.original[param.compareField]);
+          return compareFn(param.operator, Number(cellValue), record.original[param.compareField]);
         });
       case 'compare-field-percent':
         return compareOption.params.every((param) => {
           const compareNumber = (1 + param.comparePercent / 100) * record.original[param.compareField];
-          return compareFn(param.operator, Number(row.getValue(columnId)), compareNumber);
+          return compareFn(param.operator, Number(cellValue), compareNumber);
         });
       case 'bound-fixed':
         return compareOption.params.some((param) => {
-          return boundFn(param.operator, Number(row.getValue(columnId)), param.lowerBound, param.upperBound);
+          return boundFn(param.operator, Number(cellValue), param.lowerBound, param.upperBound);
         });
       case 'bound-fixed-callback':
         return compareOption.params.some((param) => {
           const lowerBound = param.lowerBoundFn(row.original);
           const upperBound = param.upperBoundFn(row.original);
-          return boundFn(param.operator, Number(row.getValue(columnId)), lowerBound, upperBound);
+          return boundFn(param.operator, Number(cellValue), lowerBound, upperBound);
         });
       case 'bound-percent':
         return compareOption.params.some((param) => {
           const upperBound = (1 + param.comparePercent / 100) * record.original[param.compareField];
           const lowerBound = (1 - param.comparePercent / 100) * record.original[param.compareField];
-          return boundFn(param.operator, Number(row.getValue(columnId)), lowerBound, upperBound);
+          return boundFn(param.operator, Number(cellValue), lowerBound, upperBound);
         });
       case 'chain': {
         return compareOption.params.every((param) => {
           const compareValues = param.compareFields.map((field) => record.original[field]);
-          const values = [Number(row.getValue(columnId)), ...compareValues];
+          const values = [Number(cellValue), ...compareValues];
           return compareChainFn(param.operator, values);
         });
       }
@@ -831,6 +898,33 @@ export const presetOptions: SelectOption[] = [
     ]
   },
   {
+    value: 'newLeaders',
+    title: 'New Leaders',
+    description: 'Potential New Leaders',
+    presetStates: [
+      {
+        id: 'close',
+        value: ['gtEMA89', 'gtEMA150/200', 'nearAllTimeHigh']
+      },
+      {
+        id: 'adrPercent',
+        value: '2up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '50up'
+      },
+      {
+        id: '52wkRange',
+        value: 'double'
+      },
+      {
+        id: 'ipoDate',
+        value: 'under15'
+      }
+    ]
+  },
+  {
     value: 'gainingAttraction',
     title: 'Gaining Attraction',
     description: 'Absolute Strength',
@@ -970,7 +1064,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'avgDollarVolume',
-        value: '10up'
+        value: '50up'
       },
       {
         id: 'think40',
@@ -1000,4 +1094,24 @@ export const viewOptions: SelectOption[] = [
 
 export const tableGlobal: { table: Table<Stock> | null } = {
   table: null
+};
+
+// Display description functions
+export const think40DescriptionFn = (value: string | number) => {
+  const temp: string[] = [];
+  if (typeof value === 'number') {
+    think40Options.forEach((e) => {
+      if (Number(e.altValue) === value || Number(e.altValue) <= value) {
+        temp.push(e.shortDescription ?? '');
+      }
+    });
+    return temp.slice(-1).join(', ');
+  }
+  return '';
+};
+
+export const ipoDateDescriptionFn = (value: string | number) => {
+  if (typeof value === 'string') return 'N/A';
+  if (value <= 0) return 'N/A';
+  return commonDateFormat(new Date(value));
 };

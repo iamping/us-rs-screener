@@ -6,6 +6,8 @@ import {
   avgDollarVolOptions,
   bitwiseIncludesSome,
   customArrIncludesSome,
+  ipoDateDescriptionFn,
+  ipoDateOptions,
   marketCapOptions,
   multiSelectFilterFn,
   percentChangeOptions,
@@ -14,7 +16,8 @@ import {
   rmvOptions,
   rsRatingOptions,
   think40DescriptionFn,
-  think40Options
+  think40Options,
+  wk52Options
 } from '@/helpers/table.helper';
 import { Stock } from '@/types/stock.type';
 import { formatDecimal, formatNumber } from '@/utils/common.utils';
@@ -137,10 +140,12 @@ export const columns = [
     header: () => '52 Week Range',
     cell: (cell) => <CellTemplate.FiftyTwoWeek cell={cell} />,
     meta: {
-      width: 120
+      width: 150,
+      filterVariant: 'radio-select',
+      selectOptions: wk52Options
     },
     enableSorting: false,
-    enableColumnFilter: false
+    filterFn: amountFilterFn(wk52Options, 'wk52High')
   }),
   columnHelper.accessor('rsSts', {
     header: () => <Text textAlign="right">RS STS %</Text>,
@@ -305,5 +310,15 @@ export const columns = [
     cell: (cell) => <CellTemplate.Status cell={cell} />,
     meta: { width: 150, filterVariant: 'combo-box' },
     filterFn: 'arrIncludesSome'
+  }),
+  columnHelper.accessor('ipoDate', {
+    header: () => 'IPO Date',
+    cell: (cell) => <CellTemplate.Status cell={cell} descriptionFn={ipoDateDescriptionFn} />,
+    meta: {
+      width: 130,
+      filterVariant: 'radio-select',
+      selectOptions: ipoDateOptions
+    },
+    filterFn: amountFilterFn(ipoDateOptions)
   })
 ];

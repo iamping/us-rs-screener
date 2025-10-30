@@ -76,7 +76,7 @@ export const MultiSelectFilter: FC<MultiSelectFilterProps> = ({ id, initialValue
               </VStack>
             </Show>
             <Show when={e.isSeparator}>
-              <Separator />
+              <Separator width="inherit" />
             </Show>
           </Fragment>
         );

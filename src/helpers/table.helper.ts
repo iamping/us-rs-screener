@@ -91,7 +91,7 @@ export const marketCapOptions: SelectOption[] = [
 ];
 
 export const avgDollarVolOptions: SelectOption[] = [
-  ...[1000, 500, 400, 300, 200, 100, 50, 20, 10].map((n) => {
+  ...[1000, 500, 400, 300, 200, 100, 80, 50, 20, 10].map((n) => {
     return {
       value: `${n}up`,
       title: `${n}M and above`,
@@ -340,6 +340,20 @@ export const priceOptions: SelectOption[] = [
     }
   },
   {
+    value: 'above50',
+    title: '50 and above',
+    description: 'Mid-priced+ up',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 50
+        }
+      ]
+    }
+  },
+  {
     value: 'above20',
     title: '20 and above',
     description: 'Mid-priced up',
@@ -437,27 +451,32 @@ export const priceOptions: SelectOption[] = [
     }
   },
   {
-    value: 'above52WLow',
-    title: 'Above 52W Low',
-    description: 'More than 30%',
+    value: '',
+    title: '',
+    isSeparator: true
+  },
+  {
+    value: 'nearAllTimeHigh',
+    title: 'Near All Time High',
+    description: 'Not lower than 25%',
     compareOption: {
       type: 'compare-field-percent',
-      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: 30 }]
+      params: [{ operator: '>', compareField: 'allTimeHigh', comparePercent: -25 }]
     }
   },
   {
     value: 'near52WHigh',
     title: 'Near 52W High',
-    description: 'Not lower than 25%',
+    description: '0 to 25%',
     compareOption: {
       type: 'compare-field-percent',
       params: [{ operator: '>', compareField: 'wk52High', comparePercent: -25 }]
     }
   },
   {
-    value: 'lower52WHigh',
-    title: 'Less than 52W High',
-    description: '-10% to -40%',
+    value: 'near52WHigh_V2',
+    title: 'Near 52W High v.2',
+    description: '10% to 40%',
     compareOption: {
       type: 'bound-fixed-callback',
       params: [
@@ -476,12 +495,12 @@ export const priceOptions: SelectOption[] = [
     }
   },
   {
-    value: 'nearAllTimeHigh',
-    title: 'Near All Time High',
-    description: 'Not lower than 25%',
+    value: 'above52WLow',
+    title: 'Above 52W Low',
+    description: 'More than 30%',
     compareOption: {
       type: 'compare-field-percent',
-      params: [{ operator: '>', compareField: 'allTimeHigh', comparePercent: -25 }]
+      params: [{ operator: '>', compareField: 'wk52Low', comparePercent: 30 }]
     }
   },
   // {
@@ -504,6 +523,11 @@ export const priceOptions: SelectOption[] = [
   //     ]
   //   }
   // },
+  {
+    value: '',
+    title: '',
+    isSeparator: true
+  },
   {
     value: 'near10/21/50EMA_atr',
     title: 'Near 10/21/50 EMA',
@@ -609,6 +633,25 @@ export const adrPercentOptions: SelectOption[] = [
         }
       ]
     }
+  },
+  {
+    value: '',
+    title: '',
+    isSeparator: true
+  },
+  {
+    value: '3to8',
+    title: '3.0 to 8.0',
+    compareOption: {
+      type: 'bound-fixed',
+      params: [
+        {
+          operator: 'bound-inclusive',
+          lowerBound: 3,
+          upperBound: 8
+        }
+      ]
+    }
   }
 ];
 
@@ -699,10 +742,18 @@ export const ipoDateOptions: SelectOption[] = [
 export const wk52Options: SelectOption[] = [
   {
     value: 'double',
-    title: 'Double from 52-Week Low',
+    title: 'More than double',
     compareOption: {
       type: 'compare-field-percent',
       params: [{ operator: '>=', compareField: 'wk52Low', comparePercent: 100 }]
+    }
+  },
+  {
+    value: 'triple',
+    title: 'More than triple',
+    compareOption: {
+      type: 'compare-field-percent',
+      params: [{ operator: '>=', compareField: 'wk52Low', comparePercent: 200 }]
     }
   }
 ];
@@ -912,7 +963,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'avgDollarVolume',
-        value: '50up'
+        value: '80up'
       },
       {
         id: '52wkRange',
@@ -1037,15 +1088,19 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'close',
-        value: ['gtEMA89', 'above52WLow', 'near52WHigh']
+        value: ['gtEMA89', 'above52WLow', 'near52WHigh', 'above50']
       },
       {
         id: 'adrPercent',
-        value: '3up'
+        value: '3to8'
       },
       {
         id: 'avgDollarVolume',
-        value: '50up'
+        value: '80up'
+      },
+      {
+        id: 'marketCap',
+        value: 'middle'
       }
     ]
   },
@@ -1056,19 +1111,23 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'close',
-        value: ['gtEMA89', 'gtEMA150/200', 'above52WLow', 'lower52WHigh']
+        value: ['gtEMA89', 'gtEMA150/200', 'above52WLow', 'near10/21/50EMA_atr', 'above50']
       },
       {
         id: 'adrPercent',
-        value: '2up'
+        value: '3to8'
       },
       {
         id: 'avgDollarVolume',
-        value: '50up'
+        value: '80up'
       },
       {
         id: 'think40',
         value: ['20D']
+      },
+      {
+        id: 'marketCap',
+        value: 'middle'
       }
     ]
   }

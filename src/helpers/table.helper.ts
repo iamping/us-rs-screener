@@ -640,15 +640,15 @@ export const adrPercentOptions: SelectOption[] = [
     isSeparator: true
   },
   {
-    value: '3to8',
-    title: '3.0 to 8.0',
+    value: '3to9',
+    title: '3.0 to 9.0',
     compareOption: {
       type: 'bound-fixed',
       params: [
         {
           operator: 'bound-inclusive',
           lowerBound: 3,
-          upperBound: 8
+          upperBound: 9
         }
       ]
     }
@@ -1092,7 +1092,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'adrPercent',
-        value: '3to8'
+        value: '3to9'
       },
       {
         id: 'avgDollarVolume',
@@ -1115,7 +1115,7 @@ export const presetOptions: SelectOption[] = [
       },
       {
         id: 'adrPercent',
-        value: '3to8'
+        value: '3to9'
       },
       {
         id: 'avgDollarVolume',

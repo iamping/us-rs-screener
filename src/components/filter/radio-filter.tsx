@@ -1,5 +1,5 @@
 import { Box, HStack, Separator, Show, Text, VStack } from '@chakra-ui/react';
-import { CSSProperties, FC, useEffect, useState } from 'react';
+import { CSSProperties, FC, Fragment, useEffect, useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
 import { SelectOption } from '@/types/shared.type';
 
@@ -32,7 +32,7 @@ export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList
     <VStack id={`radio-filter-${id}`} width="100%" gap={2} style={style} className="scrollbar">
       {optionList.map((e, idx) => {
         return (
-          <>
+          <Fragment key={idx}>
             <Show when={e.isSeparator}>
               <Separator width="inherit" />
             </Show>
@@ -40,7 +40,6 @@ export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList
               <VStack
                 as="label"
                 className="radio-wrapper"
-                key={idx}
                 width="100%"
                 alignItems="start"
                 gap={0}
@@ -69,7 +68,7 @@ export const RadioFilter: FC<RadioFilterProps> = ({ id, initialValue, optionList
                 </Show>
               </VStack>
             </Show>
-          </>
+          </Fragment>
         );
       })}
     </VStack>

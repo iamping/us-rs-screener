@@ -1,4 +1,4 @@
-import { utcFormat } from 'd3';
+import { utcDay, utcFormat, utcMonday, utcWeek } from 'd3';
 
 const decimalFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -10,7 +10,9 @@ const decimalFormatterWithSign = new Intl.NumberFormat('en-us', {
 
 const numberFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-export const commonDateFormat = utcFormat('%b %d, %Y');
+export const commonDateFormat = utcFormat('%b %e, %Y');
+
+export const sortableDateFormat = utcFormat('%Y-%m-%d');
 
 export const formatDecimal = (val: string | number, signDisplay: boolean = false) => {
   return signDisplay ? decimalFormatterWithSign.format(Number(val)) : decimalFormatter.format(Number(val));
@@ -67,13 +69,18 @@ export const getISOWeekAndYear = (date: Date) => {
 };
 
 export const getNextDates = (date: Date, no = 5, isWeekly = false) => {
-  const dates = [];
-  for (let i = 0; i < no; i++) {
-    const nextDate = new Date(date);
-    nextDate.setDate(isWeekly ? date.getDate() + (i + 1) * 7 : date.getDate() + i + 1);
-    dates.push(nextDate);
+  if (isWeekly) {
+    const start = utcWeek.offset(date, 1);
+    const end = utcWeek.offset(date, 365 * 3); // to generate enough dates more than 'no' params
+    return utcMonday.range(start, end).slice(0, no);
+  } else {
+    const start = utcDay.offset(date, 1);
+    const end = utcDay.offset(date, 365 * 3); // to generate enough dates more than 'no' params
+    return utcDay
+      .filter((d) => isWeekDay(d))
+      .range(start, end)
+      .slice(0, no);
   }
-  return dates;
 };
 
 export const getPreviousDates = (date: Date, no = 5, isWeekly = false) => {

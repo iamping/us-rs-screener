@@ -57,6 +57,7 @@ export interface Stock {
   rmv: number;
   atr: number;
   ipoDate: number;
+  earningsDate: number;
 }
 
 export interface StockInfo {

@@ -118,7 +118,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     const dms = dmsRef.current as CanvasDimensions;
     updateZoomState(stockData.series, zoomState, dms);
     updateChartScales(stockData.series, zoomState, dms);
-    plotChartAndAxis(stockData.series, showRS, colorMode);
+    plotChartAndAxis(stockData, showRS, colorMode);
   };
 
   const updateZoomState = (
@@ -145,10 +145,14 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     return { chartScales: chartScalesRef.current };
   };
 
-  const plotChartAndAxis = (series: StockDataPoint[], drawRS: boolean, colorMode: ColorMode) => {
+  const plotChartAndAxis = (stockData: StockChartData, drawRS: boolean, colorMode: ColorMode) => {
     const zoomState = zoomStateRef.current as ZoomState;
     const chartScales = chartScalesRef.current as ChartScales;
-    plotAreaRef.current?.draw((context) => plotChart(context, series, chartScales, zoomState, drawRS, colorMode));
+    const series = stockData.series;
+    const earningsDate = new Date(stockData.stock.earningsDate * 1000);
+    plotAreaRef.current?.draw((context) =>
+      plotChart(context, series, chartScales, zoomState, drawRS, colorMode, earningsDate)
+    );
     volumeAreaRef.current?.draw((context) => plotVolume(context, series, chartScales, zoomState, colorMode));
     xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, zoomState, colorMode));
     yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode, lastPointWithData(series)));
@@ -204,7 +208,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
         const delta = 10 * initialDelta * (1 - ease); // decelerate
         zoomState.originalX += delta;
         redraw();
-        if (t < 1 && Math.abs(initialDelta) > 0.1) {
+        if (t < 1 && Math.abs(initialDelta) > 0.1 && zoomState.isDragging) {
           zoomState.animationFrame = requestAnimationFrame(animateScroll);
         }
       };
@@ -245,6 +249,11 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     const dms = dmsRef.current as CanvasDimensions;
     const zoomState = zoomStateRef.current;
 
+    // reset zoom state when ticker changed
+    zoomState.isDragging = false;
+    zoomState.isZooming = false;
+    zoomState.isLongTap = false;
+
     if (firstRenderRef.current) {
       updateZoomState(series, zoomState, dms, true);
       firstRenderRef.current = false;
@@ -257,7 +266,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     }
 
     updateChartScales(series, zoomState, dms);
-    plotChartAndAxis(series, showRS, colorMode);
+    plotChartAndAxis(stockData, showRS, colorMode);
   }, [stockData, showRS, redrawCount, colorMode]);
 
   return (

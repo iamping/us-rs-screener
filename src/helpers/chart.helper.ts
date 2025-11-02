@@ -1,4 +1,16 @@
-import { bisectCenter, extent, format, line, max, max as maxNumber, range, scaleLinear, scaleLog, utcFormat } from 'd3';
+import {
+  bisectCenter,
+  extent,
+  format,
+  line,
+  max,
+  max as maxNumber,
+  range,
+  scaleLinear,
+  scaleLog,
+  utcDay,
+  utcFormat
+} from 'd3';
 import { TouchEvent } from 'react';
 import { ColorMode } from '@/components/ui/color-mode';
 import {
@@ -30,7 +42,8 @@ export const constant = {
   defaultZoomLevel: 2.0,
   multiplierStep: 0.02,
   maxMultipler: 0.9,
-  minMultipler: 0.1
+  minMultipler: 0.1,
+  excessDates: 500
 };
 
 export const bitmap = (pixel: number) => {
@@ -67,6 +80,7 @@ export const dateTicks = (series: StockDataPoint[], bandwidth: number) => {
   const dateSet: string[] = [];
   const dateGroup: Record<string, DateTick[]> = {};
   const isDaily = series.some((e) => e.isDaily);
+  const firstDateWithData = series.filter((e) => e.close > 0)[0].date;
 
   // determine ticks to display based on bandwidth to avoid text overlapping
   const canDisplayAll = bandwidth > 100;
@@ -87,13 +101,14 @@ export const dateTicks = (series: StockDataPoint[], bandwidth: number) => {
 
   dates.forEach((date, index) => {
     const key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+    const displayAfter1stDateWithData = date >= firstDateWithData;
     if (!dateSet.includes(key)) {
       // display ticks at the start of month
-      const displayMonth = isWeekDay(date);
+      const displayMonth = isWeekDay(date) && (isDaily ? date.getDate() <= 3 : date.getDate() <= 10);
       const displayYear = displayMonth && date.getMonth() === 0;
       const displayTickDaily = isDaily && (displayMonth || displayYear);
       const displayTickWeekly = !isDaily && (canDisplayMonthWeekly(date.getMonth()) || displayYear);
-      const displayTick = (displayTickDaily || displayTickWeekly) && series[index].close > 0;
+      const displayTick = (displayTickDaily || displayTickWeekly) && displayAfter1stDateWithData;
       dateGroup[key] = [{ date, index, displayMonth, displayYear, displayTick }];
       dateSet.push(key);
     } else {
@@ -103,7 +118,7 @@ export const dateTicks = (series: StockDataPoint[], bandwidth: number) => {
       const isEvery4Day = isDaily && newIndex % 4 === 0 && newIndex <= 16 && canDisplayEvery4Days;
       const displayTickDaily = isMidmonthDaily || isEvery4Day;
       const displayTickWeekly = !isDaily && newIndex === 2 && canDisplayMidmonthWeekly;
-      const displayTick = (displayTickDaily || displayTickWeekly || canDisplayAll) && series[index].close > 0;
+      const displayTick = (displayTickDaily || displayTickWeekly || canDisplayAll) && displayAfter1stDateWithData;
       dateGroup[key].push({ date, index, displayMonth: false, displayYear: false, displayTick });
     }
   });
@@ -159,7 +174,10 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
     think40down: getCssVar('--colors-think-40-down'),
     gridLine: getCssVar('--chakra-colors-gray-100'),
     currentPriceBg: getCssVar('--chakra-colors-black'),
-    currentPriceLabel: getCssVar('--chakra-colors-white')
+    currentPriceLabel: getCssVar('--chakra-colors-white'),
+    earningsLabel: getCssVar('--chakra-colors-white'),
+    earningsBg: getCssVar('--chakra-colors-red-600'),
+    earningsBgReported: getCssVar('--chakra-colors-gray-700')
   };
   return colorMode === 'light'
     ? colors
@@ -230,7 +248,8 @@ export const plotChart = (
   scales: ChartScales,
   zoomState: ZoomState,
   showRs = true,
-  colorMode: ColorMode
+  colorMode: ColorMode,
+  earningsDate: Date
 ) => {
   // translate canvas on zoom event
   context.translate(bitmap(zoomState.tx), 0);
@@ -392,11 +411,42 @@ export const plotChart = (
     if ((isNewHigh || isNewHighBeforePrice) && isDaily) {
       const cx = xScale(i);
       const cy = rsScale(d.rs) + rsOffsetY;
-      const radius = devicePixelRatio * constant.rsRadius;
+      const radius = bitmap(constant.rsRadius);
       context.beginPath();
       context.fillStyle = isNewHighBeforePrice ? colors.rsNewHighBeforePrice : colors.rsNewHigh;
       context.arc(cx, cy, radius, 0, 2 * Math.PI);
       context.fill();
+    }
+
+    // draw earnings date
+    if (utcDay.count(d.date, earningsDate) === 0) {
+      const diffFromToday = utcDay.count(new Date(), earningsDate);
+      const isReported = diffFromToday <= 0;
+      const cx = x;
+      const cy = canvasHeight - bitmap(20);
+      const radius = bitmap(10);
+
+      // bg circle
+      context.beginPath();
+      context.fillStyle = isReported ? colors.earningsBgReported : colors.earningsBg;
+      context.arc(cx, cy, radius, 0, 2 * Math.PI);
+      context.fill();
+
+      // label
+      context.font = 'bold ' + getLabelFont(12);
+      context.fillStyle = colors.earningsLabel;
+      context.textBaseline = 'middle';
+      context.textAlign = 'center';
+      context.fillText('E', cx, cy);
+
+      // report in n days
+      if (!isReported) {
+        const labelReport = `Report in ${diffFromToday} days`;
+        context.font = getLabelFont(12);
+        context.fillStyle = colors.up;
+        context.textAlign = 'left';
+        context.fillText(labelReport, cx + bitmap(20), cy);
+      }
     }
   });
 };
@@ -445,6 +495,7 @@ export const plotVolume = (
   });
 
   series.forEach((d, i) => {
+    if (d.volume < 0) return;
     const barX = Math.floor(xScale(i));
     const volumeBarHeight = Math.floor(volumeScale(d.volume));
     const { isPocketPivot, isGainer, isLoser } = d.volumeStatus;
@@ -691,8 +742,10 @@ export const findDataPoint = (
   const canvasY = bitmap(py);
   const domain = xScale.invert(canvasX);
   const tmpIndex = domain < 0 ? 0 : Math.min(Math.round(domain), series.length - 1);
-  const [minIndex, maxIndex] = indexRangeWithData(series);
-  const index = Math.max(Math.min(tmpIndex, maxIndex), minIndex);
+  // const [minIndex, maxIndex] = indexRangeWithData(series);
+  // const index = Math.max(Math.min(tmpIndex, maxIndex), minIndex);
+  const [minIndex] = indexRangeWithData(series);
+  const index = Math.max(tmpIndex, minIndex);
   const x = xScale(index);
   const date = series[index].date;
   const price = yScale.invert(canvasY);
@@ -722,12 +775,15 @@ export const customLinearScale = (inputDomain: [number, number], bandwidth: numb
 };
 
 export const computeTranslation = (series: StockDataPoint[], zoomState: ZoomState, dms: CanvasDimensions) => {
-  const { bandwidth, upperRange } = computeRange(series.length, zoomState.bandwidth);
+  const { bandwidth, ranges } = computeRange(series.length, zoomState.bandwidth);
+  const [firstIndexWithData, lastIndexWithData] = indexRangeWithData(series);
 
   // default translateX
-  const remainingWidth = upperRange % dms.bitmapWidth; // remaining that exceed multiply of viewport width
-  const multiplier = Math.floor(upperRange / dms.bitmapWidth) - 1;
-  const defaultTranslateX = -toCssWidth(remainingWidth + dms.bitmapWidth * multiplier) - bandwidth * 2;
+  const lastRangeWithData = ranges[lastIndexWithData];
+  const remainingWidth = lastRangeWithData % dms.bitmapWidth; // remaining that exceed multiply of viewport width
+  const multiplier = Math.floor(lastRangeWithData / dms.bitmapWidth) - 1;
+  const offset = bandwidth * 2;
+  const defaultTranslateX = -toCssWidth(remainingWidth + dms.bitmapWidth * multiplier) - offset;
 
   // to be translateX
   const originalX = zoomState.isZooming
@@ -736,7 +792,6 @@ export const computeTranslation = (series: StockDataPoint[], zoomState: ZoomStat
   const translateX = zoomState.isRendered ? originalX : defaultTranslateX;
 
   // find max & min translateX
-  const [firstIndexWithData, lastIndexWithData] = indexRangeWithData(series);
   const firstXWithData = firstIndexWithData > 0 ? firstIndexWithData * bandwidth : -1;
   const adjustment = bandwidth * 1.2;
   const minTranslateX = -toCssWidth(lastIndexWithData * bandwidth) + adjustment;

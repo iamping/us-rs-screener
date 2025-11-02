@@ -1,6 +1,7 @@
 import { HistoricalData, StockDataPoint } from '@/types/chart.type';
 import { Stock } from '@/types/stock.type';
 import { findMax, getISOWeekAndYear, getNextDates, getPreviousDates } from '@/utils/common.utils';
+import { constant } from './chart.helper';
 
 export const calculateEMA = (values: number[], period: number) => {
   const k = 2 / (period + 1);
@@ -138,7 +139,7 @@ export const computeDataSeries = (
   const dummyAfterSeries = [];
   if (isDaily) {
     const previousDates = getPreviousDates(new Date(spyData.date[0] * 1000), 1);
-    const nextDates = getNextDates(new Date(spyData.date[spyLength - 1] * 1000), 1);
+    const nextDates = getNextDates(new Date(spyData.date[spyLength - 1] * 1000), constant.excessDates);
     if (spyLength !== len) {
       const diffLength = spyLength - len;
       const spyDates = spyData.date.filter((_, i) => i < diffLength).map((it) => new Date(it * 1000));
@@ -151,7 +152,7 @@ export const computeDataSeries = (
   } else {
     const diffLength = dailySpyLength - len;
     const previousWeeks = getPreviousDates(new Date(stockData.date[0] * 1000), 1 + diffLength, true);
-    const nextWeeks = getNextDates(new Date(stockData.date[spyLength - 1] * 1000), 1, true);
+    const nextWeeks = getNextDates(new Date(spyData.date[spyLength - 1] * 1000), constant.excessDates, true);
     dummyBeforeSeries.push(...buildDummyDataPoint(previousWeeks, isDaily));
     dummyAfterSeries.push(...buildDummyDataPoint(nextWeeks, isDaily));
   }
@@ -222,7 +223,7 @@ const buildDummyDataPoint = (dates: Date[], isDaily: boolean) => {
       high: 0,
       low: 0,
       open: 0,
-      volume: 0,
+      volume: -1,
       relativeVolume: 0,
       date: date,
       ema10: 0,

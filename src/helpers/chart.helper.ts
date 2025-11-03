@@ -257,7 +257,7 @@ export const plotChart = (
   const { xScale, yScale, rsScale } = scales;
   const barWidth = Math.max(Math.ceil(xScale.bandWidth / 5), Math.floor(devicePixelRatio));
   const correction = barWidth % 2 === 0 ? 0 : 0.5;
-  const tickLength = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 3);
+  const tickLength = Math.ceil(xScale.bandWidth / 2.8);
   const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors(colorMode);
   const series = stockData.series;
@@ -421,9 +421,9 @@ export const plotChart = (
 
     // draw earnings date
     const earningsDate = new Date(stockData.stock.earningsDate * 1000);
-    if (utcDay.count(d.date, earningsDate) === 0) {
+    if (utcDay.count(d.date, earningsDate) === 0 && isDaily) {
       const diffFromToday = utcDay.count(new Date(), earningsDate);
-      const isReported = diffFromToday <= 0;
+      const isReported = diffFromToday < 0;
       const cx = x;
       const cy = canvasHeight - bitmap(20);
       const radius = bitmap(10);
@@ -443,7 +443,12 @@ export const plotChart = (
 
       // report in n days
       if (!isReported) {
-        const labelReport = `Report in ${diffFromToday} days`;
+        const labelReport =
+          diffFromToday === 0
+            ? 'Report Today'
+            : diffFromToday === 1
+              ? 'Report Tomorrow'
+              : `Report in ${diffFromToday} days`;
         context.font = getLabelFont(12);
         context.fillStyle = colors.up;
         context.textAlign = 'left';

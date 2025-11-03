@@ -21,6 +21,7 @@ import {
   DataPoint,
   DateTick,
   LinearScale,
+  StockChartData,
   StockDataPoint,
   XScale,
   YScale,
@@ -244,12 +245,11 @@ export const getLabelFont = (fontSize: number) => {
 
 export const plotChart = (
   context: CanvasRenderingContext2D,
-  series: StockDataPoint[],
+  stockData: StockChartData,
   scales: ChartScales,
   zoomState: ZoomState,
   showRs = true,
-  colorMode: ColorMode,
-  earningsDate: Date
+  colorMode: ColorMode
 ) => {
   // translate canvas on zoom event
   context.translate(bitmap(zoomState.tx), 0);
@@ -260,6 +260,7 @@ export const plotChart = (
   const tickLength = Math.ceil(Math.abs(xScale(1) - xScale(0)) / 3);
   const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors(colorMode);
+  const series = stockData.series;
   const isDaily = series.some((d) => d.isDaily);
 
   // draw vertical line
@@ -419,6 +420,7 @@ export const plotChart = (
     }
 
     // draw earnings date
+    const earningsDate = new Date(stockData.stock.earningsDate * 1000);
     if (utcDay.count(d.date, earningsDate) === 0) {
       const diffFromToday = utcDay.count(new Date(), earningsDate);
       const isReported = diffFromToday <= 0;

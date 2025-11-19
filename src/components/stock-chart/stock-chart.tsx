@@ -168,6 +168,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     lastXYRef.current = pointer;
     if (series[dataPoint.index].close > 0) {
       setActivePoint(dataPoint);
+    } else {
+      setActivePoint({ ...dataPoint, index: -1 }); // index -1 will get last point with data
     }
   };
 

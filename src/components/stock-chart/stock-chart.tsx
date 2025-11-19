@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { FC, useEffect, useRef, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import {
   bitmap,
   computeTranslation,
@@ -267,6 +267,146 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     plotChartAndAxis(stockData, showRS, colorMode);
   }, [stockData, showRS, redrawCount, colorMode]);
 
+  // optimize styles so canvas won't be unneccesary re-rendered
+  const plotAreaStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop,
+      left: chartDms.marginLeft,
+      width: chartDms.plotWidth,
+      height: chartDms.plotHeight * (1 - volumeArea)
+    }),
+    [chartDms]
+  );
+
+  const volumeAreaStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
+      left: chartDms.marginLeft,
+      width: chartDms.plotWidth,
+      height: chartDms.plotHeight * volumeArea
+    }),
+    [chartDms]
+  );
+
+  const crosshairStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop,
+      left: chartDms.marginLeft,
+      width: chartDms.plotWidth,
+      height: chartDms.plotHeight
+    }),
+    [chartDms]
+  );
+
+  const xAxisOverlayStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop + chartDms.plotHeight,
+      left: chartDms.marginLeft,
+      width: chartDms.plotWidth,
+      height: chartDms.height - chartDms.plotHeight - chartDms.marginTop,
+      zIndex: 1
+    }),
+    [chartDms]
+  );
+
+  const xAxisStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop + chartDms.plotHeight,
+      left: chartDms.marginLeft,
+      width: chartDms.plotWidth,
+      height: chartDms.height - chartDms.plotHeight - chartDms.marginTop
+    }),
+    [chartDms]
+  );
+
+  const yAxisOverlayStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop,
+      right: 0,
+      width: chartDms.width - chartDms.plotWidth,
+      height: chartDms.plotHeight * (1 - volumeArea),
+      zIndex: 1
+    }),
+    [chartDms]
+  );
+
+  const yAxisStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop,
+      right: 0,
+      width: chartDms.width - chartDms.plotWidth,
+      height: chartDms.plotHeight * (1 - volumeArea)
+    }),
+    [chartDms]
+  );
+
+  const volumeAxisOverlayStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
+      right: 0,
+      width: chartDms.width - chartDms.plotWidth,
+      height: chartDms.plotHeight * volumeArea,
+      zIndex: 1
+    }),
+    [chartDms]
+  );
+
+  const volumeAxisStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
+      right: 0,
+      width: chartDms.width - chartDms.plotWidth,
+      height: chartDms.plotHeight * volumeArea
+    }),
+    [chartDms]
+  );
+
+  const eventHandlerStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop,
+      left: chartDms.marginLeft,
+      width: chartDms.plotWidth,
+      height: chartDms.plotHeight,
+      zIndex: 2
+    }),
+    [chartDms]
+  );
+
+  const hrStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
+      left: chartDms.marginLeft,
+      width: chartDms.width,
+      height: 1,
+      borderTopWidth: 1
+    }),
+    [chartDms]
+  );
+
+  const yAxisHandlerStyle = useMemo(
+    () => ({
+      position: 'absolute' as const,
+      top: chartDms.marginTop,
+      right: 0,
+      width: chartDms.width - chartDms.plotWidth,
+      height: chartDms.plotHeight * (1 - volumeArea),
+      zIndex: 2,
+      cursor: 'ns-resize'
+    }),
+    [chartDms]
+  );
+
   return (
     <div ref={chartRef} {...props}>
       <StockQuote
@@ -288,130 +428,21 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
         zIndex={2}
         top={chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea)}
       />
-      <Canvas
-        id="plotArea"
-        ref={plotAreaRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop,
-          left: chartDms.marginLeft,
-          width: chartDms.plotWidth,
-          height: chartDms.plotHeight * (1 - volumeArea)
-        }}
-      />
-      <Canvas
-        id="volumeArea"
-        ref={volumeAreaRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
-          left: chartDms.marginLeft,
-          width: chartDms.plotWidth,
-          height: chartDms.plotHeight * volumeArea
-        }}
-      />
-      <hr
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
-          left: chartDms.marginLeft,
-          width: chartDms.width,
-          height: 1,
-          borderTopWidth: 1
-        }}
-      />
-      <Canvas
-        id="crosshair"
-        ref={crosshairRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop,
-          left: chartDms.marginLeft,
-          width: chartDms.plotWidth,
-          height: chartDms.plotHeight
-        }}
-      />
-      <Canvas
-        id="xAxisOverlay"
-        ref={xOverlayRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop + chartDms.plotHeight,
-          left: chartDms.marginLeft,
-          width: chartDms.plotWidth,
-          height: chartDms.height - chartDms.plotHeight - chartDms.marginTop,
-          zIndex: 1
-        }}
-      />
-      <Canvas
-        id="xAxis"
-        ref={xAxisRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop + chartDms.plotHeight,
-          left: chartDms.marginLeft,
-          width: chartDms.plotWidth,
-          height: chartDms.height - chartDms.plotHeight - chartDms.marginTop
-        }}
-      />
-      <Canvas
-        id="yAxisOverlay"
-        ref={yOverlayRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop,
-          right: 0,
-          width: chartDms.width - chartDms.plotWidth,
-          height: chartDms.plotHeight * (1 - volumeArea),
-          zIndex: 1
-        }}
-      />
-      <Canvas
-        id="yAxis"
-        ref={yAxisRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop,
-          right: 0,
-          width: chartDms.width - chartDms.plotWidth,
-          height: chartDms.plotHeight * (1 - volumeArea)
-        }}
-      />
-      <Canvas
-        id="volumeAxisOverlay"
-        ref={volumeOverlayRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
-          right: 0,
-          width: chartDms.width - chartDms.plotWidth,
-          height: chartDms.plotHeight * volumeArea,
-          zIndex: 1
-        }}
-      />
-      <Canvas
-        id="volumeAxis"
-        ref={volumeAxisRef}
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop + chartDms.plotHeight * (1 - volumeArea),
-          right: 0,
-          width: chartDms.width - chartDms.plotWidth,
-          height: chartDms.plotHeight * volumeArea
-        }}
-      />
+      <Canvas id="plotArea" ref={plotAreaRef} style={plotAreaStyle} />
+      <Canvas id="volumeArea" ref={volumeAreaRef} style={volumeAreaStyle} />
+      <hr style={hrStyle} />
+      <Canvas id="crosshair" ref={crosshairRef} style={crosshairStyle} />
+      <Canvas id="xAxisOverlay" ref={xOverlayRef} style={xAxisOverlayStyle} />
+      <Canvas id="xAxis" ref={xAxisRef} style={xAxisStyle} />
+      <Canvas id="yAxisOverlay" ref={yOverlayRef} style={yAxisOverlayStyle} />
+      <Canvas id="yAxis" ref={yAxisRef} style={yAxisStyle} />
+      <Canvas id="volumeAxisOverlay" ref={volumeOverlayRef} style={volumeAxisOverlayStyle} />
+      <Canvas id="volumeAxis" ref={volumeAxisRef} style={volumeAxisStyle} />
       <div
         // main handler - zoom/pan/momentom scroll
         ref={eventHandlerRef}
         id="event-handler"
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop,
-          left: chartDms.marginLeft,
-          width: chartDms.plotWidth,
-          height: chartDms.plotHeight,
-          zIndex: 2
-        }}
+        style={eventHandlerStyle}
         onMouseDown={(e) => {
           const zoomState = zoomStateRef.current;
           const eventHandlerElement = eventHandlerRef.current as HTMLDivElement;
@@ -554,15 +585,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
       <div
         // yAxis Handler: to re-compute yScale
         id="yAxisHandler"
-        style={{
-          position: 'absolute',
-          top: chartDms.marginTop,
-          right: 0,
-          width: chartDms.width - chartDms.plotWidth,
-          height: chartDms.plotHeight * (1 - volumeArea),
-          zIndex: 2,
-          cursor: 'ns-resize'
-        }}
+        style={yAxisHandlerStyle}
         onMouseDown={(e) => {
           const zoomState = zoomStateRef.current;
           zoomState.isDragging = true;

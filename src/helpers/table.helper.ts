@@ -1154,7 +1154,18 @@ export const viewOptions: SelectOption[] = [
     description: 'Hide unimportant columns',
     columnVisibility: {
       sector: false,
-      sectorRank: false
+      sectorRank: false,
+      rmv: false,
+      rsRating3M: false,
+      rsRating6M: false,
+      rsRating1Y: false,
+      asRating3M: false,
+      asRating6M: false,
+      asRating1Y: false,
+      industryRank: false,
+      rsNewHigh: false,
+      tightRange: false,
+      ipoDate: false
     }
   }
 ];

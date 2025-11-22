@@ -1006,6 +1006,14 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'close',
         value: ['markPriceTemplateMAs', 'above52WLow', 'near52WHigh', 'above20']
+      },
+      {
+        id: 'adrPercent',
+        value: '2up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '20up'
       }
     ]
   },

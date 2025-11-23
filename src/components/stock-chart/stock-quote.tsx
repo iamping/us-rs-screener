@@ -34,6 +34,7 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
     <Box {...rest}>
       <Heading
         paddingX={0.5}
+        marginRight={16}
         flexGrow={1}
         size="sm"
         fontWeight="500"
@@ -49,7 +50,7 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
           {stock.industry}
         </Text>
       </Heading>
-      <Flex flexWrap="wrap">
+      <Flex flexWrap="wrap" marginRight={16}>
         <ValueItem title="O" value={open} color={color} />
         <ValueItem title="H" value={high} color={color} />
         <ValueItem title="L" value={low} color={color} />
@@ -57,9 +58,11 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
       </Flex>
       <Flex>
         <ValueItem title="M.Cap " value={`${formatDecimal(stock.marketCap / 1000000000)}B`} />
+        <ValueItem title="Avg$Vol " value={`${formatDecimal(stock.avgDollarVolume / 1000000)}M`} />
       </Flex>
       <Flex>
         <ValueItem title="RS " value={stock.rsRating.toString()} />
+        <ValueItem title="STR " value={`${stock.rsSts.toString()}%`} />
       </Flex>
     </Box>
   );

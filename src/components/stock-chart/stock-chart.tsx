@@ -169,7 +169,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     if (series[dataPoint.index].close > 0) {
       setActivePoint(dataPoint);
     } else {
-      setActivePoint({ ...dataPoint, index: -1 }); // index -1 will get last point with data
+      setActivePoint(null);
     }
   };
 
@@ -416,9 +416,11 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
         stockData={stockData}
         position="absolute"
         margin={2}
+        marginTop={0}
         zIndex={2}
         left={0}
-        maxW={'calc(100% - 120px)'}
+        top={10}
+        width={'full'}
       />
       <StockVolume
         index={activePoint?.index ?? -1}

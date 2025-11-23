@@ -231,7 +231,7 @@ export const getVisibleDomain = (
 
   // expand domain a little bit
   visibleDomain[0] *= 1 - zoomState.domainMultiplier;
-  visibleDomain[1] *= 1 + zoomState.domainMultiplier - 0.05; // reduce upper bound a bit
+  visibleDomain[1] *= 1 + zoomState.domainMultiplier + 0.05; // increase upper bound a bit
   return { visibleDomain, visibleIndex };
 };
 

@@ -32,25 +32,19 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
   const color = d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
   return (
     <Box {...rest}>
-      <Heading
-        paddingX={0.5}
-        marginRight={16}
-        flexGrow={1}
-        size="sm"
-        fontWeight="500"
-        truncate={true}
-        title={stock.ticker}
-        background={{ base: 'whiteAlpha.600', _dark: 'blackAlpha.600' }}>
-        {stock.ticker} {' - '}
-        <Text as="span" fontSize="sm" fontWeight="500" color="subtle">
-          {stock.companyName}
-        </Text>
-        <Text as="span" fontSize="xs" fontWeight="500">
-          {' #'}
-          {stock.industry}
+      <Heading paddingX={0.5} flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stock.ticker}>
+        <Text as="span" background={{ base: 'whiteAlpha.600', _dark: 'blackAlpha.600' }}>
+          {stock.ticker} {' - '}
+          <Text as="span" fontSize="sm" fontWeight="500" color="subtle">
+            {stock.companyName}
+          </Text>
+          <Text as="span" fontSize="xs" fontWeight="500">
+            {' #'}
+            {stock.industry}
+          </Text>
         </Text>
       </Heading>
-      <Flex flexWrap="wrap" marginRight={16}>
+      <Flex flexWrap="wrap">
         <ValueItem title="O" value={open} color={color} />
         <ValueItem title="H" value={high} color={color} />
         <ValueItem title="L" value={low} color={color} />

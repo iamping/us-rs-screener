@@ -30,7 +30,7 @@ export const App: FC = () => {
   }, [setStockList]);
 
   if (error) {
-    return error;
+    return <Box padding={2}>{error}</Box>;
   }
 
   return (

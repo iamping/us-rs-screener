@@ -298,7 +298,7 @@ export const plotChart = (
   context.beginPath();
   context.setLineDash([gap, gap * 2]);
   context.lineWidth = currentPriceLineWidth;
-  context.strokeStyle = colors.currentPriceBg;
+  context.strokeStyle = getColorForPrice(lastPoint, colors);
   context.moveTo(-100000, y);
   context.lineTo(100000, y);
   context.stroke();
@@ -394,8 +394,7 @@ export const plotChart = (
     const open = Math.round(yScale(d.open));
 
     // draw price bar
-    const isUp = d.change >= 0;
-    context.strokeStyle = d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
+    context.strokeStyle = getColorForPrice(d, colors);
     context.lineWidth = barWidth;
     context.beginPath();
     context.moveTo(x, Math.round(low + barWidth / 2));
@@ -577,7 +576,7 @@ export const drawYAxis = (
   const y = Math.round(yScale(lastPoint.close));
   const rectHeight = bitmap(28);
   const width = context.canvas.width;
-  context.fillStyle = colors.currentPriceBg;
+  context.fillStyle = getColorForPrice(lastPoint, colors);
   context.fillRect(0, Math.floor(y - rectHeight / 2), width, rectHeight);
   context.fillStyle = colors.currentPriceLabel;
   context.fillText(priceFormatFnc(lastPoint.close), x, y);
@@ -847,4 +846,9 @@ export const updateZoomLevel = (zoomState: ZoomState, delta: number) => {
     zoomFactor: zoomFactor,
     bandwidth: bandwidth
   };
+};
+
+export const getColorForPrice = (d: StockDataPoint, colors: Record<string, string>) => {
+  const isUp = d.change >= 0;
+  return d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
 };

@@ -16,11 +16,13 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
     return null;
   }
   const { series } = stockData;
-  const idx = index < 0 || index > series.length - 1 ? series.length - 1 : index;
+  const lastValidData = series.filter((d) => d.close > 0).slice(-1)[0];
+  const idx = index < 0 || index > series.length - 1 ? series.findIndex((d) => d === lastValidData) : index;
   const d = series[idx];
   const preD = idx > 0 ? series[idx - 1] : d;
   const relVol = formatDecimal(d.relativeVolume);
-  const volBuzz = `${formatDecimal((100 * (d.volume - preD.volume)) / preD.volume, true)}%`;
+  const volBuzzVal = preD.volume > 0 ? (100 * (d.volume - preD.volume)) / preD.volume : 0;
+  const volBuzz = `${formatDecimal(volBuzzVal, true)}%`;
   const volume = volumeFormat(d.volume, 3);
   const colors = getChartColors(colorMode.colorMode);
   const { isPocketPivot, isGainer, isLoser } = d.volumeStatus;
@@ -31,7 +33,7 @@ export const StockVolume: FC<StockVolumeProps> = ({ index, stockData, ...rest })
       : isLoser
         ? colors.loserVolume
         : undefined;
-  const volChgColor = d.volume > preD.volume ? colors.gainerVolume : colors.loserVolume;
+  const volChgColor = volBuzzVal === 0 ? undefined : d.volume > preD.volume ? colors.gainerVolume : colors.loserVolume;
 
   return (
     <Flex {...rest} background={{ base: 'whiteAlpha.700', _dark: 'blackAlpha.700' }}>

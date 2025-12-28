@@ -4,6 +4,7 @@ import { ChangeEvent, FC, ReactNode, useCallback, useEffect, useMemo, useRef, us
 import { PiMagnifyingGlass, PiXDuotone } from 'react-icons/pi';
 import { EmptyState } from '@/components/ui/empty-state';
 import { InputGroup } from '@/components/ui/input-group';
+import { GeneralOption } from '@/types/shared.type';
 
 interface ComboBoxFilterProps {
   id?: string;
@@ -12,6 +13,7 @@ interface ComboBoxFilterProps {
   onChange: (val: string[]) => void;
   enableSearch?: boolean;
   hideSelectAll?: boolean;
+  comboBoxOptions?: GeneralOption[];
 }
 
 export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
@@ -20,6 +22,7 @@ export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
   initialValue,
   enableSearch,
   hideSelectAll,
+  comboBoxOptions,
   onChange
 }) => {
   const selectAll = 'Select All';
@@ -39,6 +42,14 @@ export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
         : [selectAll, ...valueList.filter((e) => highlight[e])];
     }
   }, [valueList, highlight, keyword, hideSelectAll]);
+
+  const optionDescriptions = useMemo(() => {
+    const temp: Record<string, string> = {};
+    comboBoxOptions?.forEach((e) => {
+      temp[e.value] = e.description;
+    });
+    return temp;
+  }, [comboBoxOptions]);
 
   const onSelect = (event: ChangeEvent<HTMLInputElement>, value: string) => {
     let currentValues = [];
@@ -142,7 +153,9 @@ export const ComboBoxFilter: FC<ComboBoxFilterProps> = ({
                       whiteSpace: 'nowrap',
                       fontWeight: value === selectAll ? 500 : ''
                     }}>
-                    {highlight[value] ?? value}
+                    {Object.keys(optionDescriptions).length > 0
+                      ? optionDescriptions[value]
+                      : (highlight[value] ?? value)}
                   </label>
                 </div>
               );

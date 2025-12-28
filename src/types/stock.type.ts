@@ -42,6 +42,8 @@ export interface Stock {
   insideDay: number | string;
   think40: number | string;
   episodicPivot: number | string;
+  reclaimEma: number | string;
+  ema10: number;
   ema21: number;
   ema50: number;
   ema89: number;
@@ -50,9 +52,12 @@ export interface Stock {
   ema2001M: number;
   wk52Low: number;
   wk52High: number;
+  allTimeHigh: number;
   adrPercent: number;
   rmv: number;
   atr: number;
+  ipoDate: number;
+  earningsDate: number;
 }
 
 export interface StockInfo {

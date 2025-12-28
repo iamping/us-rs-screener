@@ -1,3 +1,5 @@
+import { utcDay, utcFormat, utcMonday, utcWeek } from 'd3';
+
 const decimalFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const decimalFormatterWithSign = new Intl.NumberFormat('en-us', {
@@ -7,6 +9,10 @@ const decimalFormatterWithSign = new Intl.NumberFormat('en-us', {
 });
 
 const numberFormatter = new Intl.NumberFormat('en-us', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+export const commonDateFormat = utcFormat('%b %e, %Y');
+
+export const sortableDateFormat = utcFormat('%Y-%m-%d');
 
 export const formatDecimal = (val: string | number, signDisplay: boolean = false) => {
   return signDisplay ? decimalFormatterWithSign.format(Number(val)) : decimalFormatter.format(Number(val));
@@ -62,6 +68,31 @@ export const getISOWeekAndYear = (date: Date) => {
   return { week: weekNo, year: isoYear };
 };
 
+export const getNextDates = (date: Date, no = 5, isWeekly = false) => {
+  if (isWeekly) {
+    const start = utcWeek.offset(date, 1);
+    const end = utcWeek.offset(date, 365 * 3); // to generate enough dates more than 'no' params
+    return utcMonday.range(start, end).slice(0, no);
+  } else {
+    const start = utcDay.offset(date, 1);
+    const end = utcDay.offset(date, 365 * 3); // to generate enough dates more than 'no' params
+    return utcDay
+      .filter((d) => isWeekDay(d))
+      .range(start, end)
+      .slice(0, no);
+  }
+};
+
+export const getPreviousDates = (date: Date, no = 5, isWeekly = false) => {
+  const dates = [];
+  for (let i = no; i > 0; i--) {
+    const previousDate = new Date(date);
+    previousDate.setDate(isWeekly ? date.getDate() - i * 7 : date.getDate() - i);
+    dates.push(previousDate);
+  }
+  return dates;
+};
+
 export const isTouchDeviceMatchMedia = () => {
   return (
     window.matchMedia('(pointer: coarse)').matches ||
@@ -69,4 +100,8 @@ export const isTouchDeviceMatchMedia = () => {
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0
   );
+};
+
+export const isWeekDay = (date: Date) => {
+  return date.getDay() !== 0 && date.getDay() !== 6;
 };

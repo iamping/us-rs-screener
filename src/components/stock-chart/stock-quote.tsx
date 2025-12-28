@@ -22,8 +22,8 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
     return null;
   }
   const { series, stock } = stockData;
-  const d = index < 0 || index > series.length - 1 ? series[series.length - 1] : series[index];
-  const isUp = d.change > 0;
+  const d = index < 0 || index > series.length - 1 ? series.filter((d) => d.close > 0).slice(-1)[0] : series[index];
+  const isUp = d.change >= 0;
   const open = formatDecimal(d.open);
   const high = formatDecimal(d.high);
   const low = formatDecimal(d.low);
@@ -32,21 +32,16 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
   const color = d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
   return (
     <Box {...rest}>
-      <Heading
-        paddingX={0.5}
-        flexGrow={1}
-        size="sm"
-        fontWeight="500"
-        truncate={true}
-        title={stock.ticker}
-        background={{ base: 'whiteAlpha.600', _dark: 'blackAlpha.600' }}>
-        {stock.ticker} {' - '}
-        <Text as="span" fontSize="sm" fontWeight="500" color="subtle">
-          {stock.companyName}
-        </Text>
-        <Text as="span" fontSize="xs" fontWeight="500">
-          {' #'}
-          {stock.industry}
+      <Heading paddingX={0.5} flexGrow={1} size="sm" fontWeight="500" truncate={true} title={stock.ticker}>
+        <Text as="span" background={{ base: 'whiteAlpha.600', _dark: 'blackAlpha.600' }}>
+          {stock.ticker} {' - '}
+          <Text as="span" fontSize="sm" fontWeight="500" color="subtle">
+            {stock.companyName}
+          </Text>
+          <Text as="span" fontSize="xs" fontWeight="500">
+            {' #'}
+            {stock.industry}
+          </Text>
         </Text>
       </Heading>
       <Flex flexWrap="wrap">
@@ -57,9 +52,11 @@ export const StockQuote: FC<StockQuoteProps> = ({ index, stockData, ...rest }) =
       </Flex>
       <Flex>
         <ValueItem title="M.Cap " value={`${formatDecimal(stock.marketCap / 1000000000)}B`} />
+        <ValueItem title="Avg$Vol " value={`${formatDecimal(stock.avgDollarVolume / 1000000)}M`} />
       </Flex>
       <Flex>
         <ValueItem title="RS " value={stock.rsRating.toString()} />
+        <ValueItem title="STR " value={`${stock.rsSts.toString()}%`} />
       </Flex>
     </Box>
   );

@@ -1,4 +1,4 @@
-import { FC, RefObject, useEffect, useImperativeHandle, useRef } from 'react';
+import { FC, memo, RefObject, useEffect, useImperativeHandle, useRef } from 'react';
 
 type DrawFunc = (context: CanvasRenderingContext2D) => void;
 interface CanvasProps extends React.HTMLAttributes<HTMLCanvasElement> {
@@ -11,7 +11,7 @@ export interface CanvasHandle {
   clear: () => void;
 }
 
-export const Canvas: FC<CanvasProps> = ({ ref, ...rest }) => {
+export const Canvas: FC<CanvasProps> = memo(({ ref, ...rest }: CanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawRef = useRef<DrawFunc>(null);
 
@@ -75,7 +75,8 @@ export const Canvas: FC<CanvasProps> = ({ ref, ...rest }) => {
   }, []);
 
   return <canvas ref={canvasRef} {...rest}></canvas>;
-};
+});
+Canvas.displayName = 'Canvas';
 
 const render = (context: CanvasRenderingContext2D, draw: DrawFunc) => {
   predraw(context);

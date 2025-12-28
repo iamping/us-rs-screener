@@ -1,6 +1,7 @@
 import { HistoricalData, StockDataPoint } from '@/types/chart.type';
 import { Stock } from '@/types/stock.type';
-import { findMax, getISOWeekAndYear } from '@/utils/common.utils';
+import { findMax, getISOWeekAndYear, getNextDates, getPreviousDates } from '@/utils/common.utils';
+import { constant } from './chart.helper';
 
 export const calculateEMA = (values: number[], period: number) => {
   const k = 2 / (period + 1);
@@ -47,9 +48,15 @@ export const calculateSMA = (values: number[], period: number, fillNull = false)
   return smaArray;
 };
 
-export const computeDataSeries = (stockData: HistoricalData, spyData: HistoricalData, isDaily: boolean) => {
+export const computeDataSeries = (
+  stockData: HistoricalData,
+  spyData: HistoricalData,
+  isDaily: boolean,
+  dailySpyLength: number
+) => {
   const series: StockDataPoint[] = [];
   const spyPriceData = spyData.close.slice(-stockData.close.length);
+  const spyLength = spyData.close.length;
   const len = stockData.date.length;
   const ema10 = calculateEMA(stockData.close, 10);
   const ema21 = calculateEMA(stockData.close, 21);
@@ -126,7 +133,31 @@ export const computeDataSeries = (stockData: HistoricalData, spyData: Historical
       rsStatus
     });
   }
-  return series;
+
+  // add dummy data point
+  const dummyBeforeSeries = [];
+  const dummyAfterSeries = [];
+  if (isDaily) {
+    const previousDates = getPreviousDates(new Date(spyData.date[0] * 1000), 1);
+    const nextDates = getNextDates(new Date(spyData.date[spyLength - 1] * 1000), constant.excessDates);
+    if (spyLength !== len) {
+      const diffLength = spyLength - len;
+      const spyDates = spyData.date.filter((_, i) => i < diffLength).map((it) => new Date(it * 1000));
+      dummyBeforeSeries.push(...buildDummyDataPoint(previousDates.concat(spyDates), isDaily));
+      dummyAfterSeries.push(...buildDummyDataPoint(nextDates, isDaily));
+    } else {
+      dummyBeforeSeries.push(...buildDummyDataPoint(previousDates, isDaily));
+      dummyAfterSeries.push(...buildDummyDataPoint(nextDates, isDaily));
+    }
+  } else {
+    const diffLength = dailySpyLength - len;
+    const previousWeeks = getPreviousDates(new Date(stockData.date[0] * 1000), 1 + diffLength, true);
+    const nextWeeks = getNextDates(new Date(spyData.date[spyLength - 1] * 1000), constant.excessDates, true);
+    dummyBeforeSeries.push(...buildDummyDataPoint(previousWeeks, isDaily));
+    dummyAfterSeries.push(...buildDummyDataPoint(nextWeeks, isDaily));
+  }
+
+  return dummyBeforeSeries.concat(series).concat(dummyAfterSeries);
 };
 
 export const convertDailyToWeekly = (data: HistoricalData) => {
@@ -176,8 +207,35 @@ export const dataMapping = (stocks: Stock[]) => {
     rsNewHigh: e.rsNewHigh === 0 ? 'No' : e.rsNewHigh === 1 ? 'New High' : 'Before Price',
     tightRange: e.tightRange === 0 ? 'No' : 'Yes',
     insideDay: e.insideDay === 0 ? 'No' : 'Yes',
-    think40: e.think40 === 0 ? 'No' : 'Yes',
     episodicPivot: e.episodicPivot === 0 ? 'No' : 'Yes',
+    reclaimEma: e.reclaimEma === 0 ? 'No' : 'Yes',
+    ipoDate: e.ipoDate * 1000,
     key: i + 1
   }));
+};
+
+const buildDummyDataPoint = (dates: Date[], isDaily: boolean) => {
+  return dates.map((date) => {
+    return {
+      isDaily,
+      isThink40: false,
+      close: 0,
+      high: 0,
+      low: 0,
+      open: 0,
+      volume: -1,
+      relativeVolume: 0,
+      date: date,
+      ema10: 0,
+      ema21: 0,
+      ema40: 0,
+      ema50: 0,
+      ema200: 0,
+      rs: 0,
+      change: 0,
+      changePercent: 0,
+      volumeStatus: { isPocketPivot: false, isGainer: false, isLoser: false },
+      rsStatus: { isNewHigh: false, isNewHighBeforePrice: false }
+    } as StockDataPoint;
+  });
 };

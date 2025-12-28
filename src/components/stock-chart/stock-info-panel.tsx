@@ -38,10 +38,13 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
     Promise.all([fetchHistoricalData(ticker), fetchHistoricalData('SPY')])
       .then((data) => {
         const dataLength = data[0].close.length;
+        const spyLength = data[1].close.length;
         if (active) {
-          setDailySeries(computeDataSeries(data[0], data[1], true));
+          setDailySeries(computeDataSeries(data[0], data[1], true, spyLength));
           if (dataLength > 50) {
-            setWeeklySeries(computeDataSeries(convertDailyToWeekly(data[0]), convertDailyToWeekly(data[1]), false));
+            setWeeklySeries(
+              computeDataSeries(convertDailyToWeekly(data[0]), convertDailyToWeekly(data[1]), false, spyLength)
+            );
             setInterval((val) => (val === 'NW' ? 'D' : val));
           } else {
             setWeeklySeries([]);
@@ -88,6 +91,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           gap={2}
           position="absolute"
           zIndex={2}
+          left={0}
           right={0}
           background={{ base: 'whiteAlpha.600', _dark: 'blackAlpha.600' }}>
           {isLoading && <Text>Loading {ticker}...</Text>}
@@ -111,6 +115,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
               </Button>
             </Group>
           )}
+          <Spacer />
           <CloseButton size="2xs" variant="plain" loading={isLoading} onClick={() => setTicker('')} />
         </Flex>
         <StockChart

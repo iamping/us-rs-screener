@@ -342,13 +342,27 @@ export const priceOptions: SelectOption[] = [
   {
     value: 'above50',
     title: '50 and above',
-    description: 'Mid-priced+ up',
+    description: 'Mid-priced up',
     compareOption: {
       type: 'fixed',
       params: [
         {
           operator: '>=',
           compareNumber: 50
+        }
+      ]
+    }
+  },
+  {
+    value: 'above30',
+    title: '30 and above',
+    description: 'Mid-priced up',
+    compareOption: {
+      type: 'fixed',
+      params: [
+        {
+          operator: '>=',
+          compareNumber: 30
         }
       ]
     }
@@ -1034,8 +1048,8 @@ export const presetOptions: SelectOption[] = [
   },
   {
     value: 'uptrend+',
-    title: 'Uptrend + 21/50',
-    description: 'Near EMA21/50',
+    title: 'Uptrend +',
+    description: 'Uptrend with Liquidity',
     presetStates: [
       {
         id: 'rsRating',
@@ -1044,6 +1058,14 @@ export const presetOptions: SelectOption[] = [
       {
         id: 'close',
         value: ['gtEMA150/200', 'above52WLow', 'near52WHigh', 'near21/50EMA_atr']
+      },
+      {
+        id: 'adrPercent',
+        value: '2up'
+      },
+      {
+        id: 'avgDollarVolume',
+        value: '50up'
       }
     ]
   },
@@ -1096,7 +1118,7 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'close',
-        value: ['gtEMA89', 'above52WLow', 'near52WHigh', 'above50']
+        value: ['gtEMA89', 'above52WLow', 'near52WHigh', 'above30']
       },
       {
         id: 'adrPercent',
@@ -1119,7 +1141,7 @@ export const presetOptions: SelectOption[] = [
     presetStates: [
       {
         id: 'close',
-        value: ['gtEMA89', 'gtEMA150/200', 'above52WLow', 'near10/21/50EMA_atr', 'above50']
+        value: ['gtEMA89', 'gtEMA150/200', 'above52WLow', 'near10/21/50EMA_atr', 'above30']
       },
       {
         id: 'adrPercent',

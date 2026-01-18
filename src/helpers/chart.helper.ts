@@ -200,6 +200,10 @@ export const getChartColors = (colorMode: ColorMode = 'light') => {
       };
 };
 
+export const getPairedColor = (color: string) => {
+  return color === getCssVar('--colors-down') ? getCssVar('--chakra-colors-white') : undefined;
+};
+
 export const getVisibleDomain = (
   xScale: LinearScale,
   series: StockDataPoint[],
@@ -298,7 +302,7 @@ export const plotChart = (
   context.beginPath();
   context.setLineDash([gap, gap * 2]);
   context.lineWidth = currentPriceLineWidth;
-  context.strokeStyle = getColorForPrice(lastPoint, colors);
+  context.strokeStyle = getColorForPrice(lastPoint, colors).primaryColor;
   context.moveTo(-100000, y);
   context.lineTo(100000, y);
   context.stroke();
@@ -394,7 +398,7 @@ export const plotChart = (
     const open = Math.round(yScale(d.open));
 
     // draw price bar
-    context.strokeStyle = getColorForPrice(d, colors);
+    context.strokeStyle = getColorForPrice(d, colors).primaryColor;
     context.lineWidth = barWidth;
     context.beginPath();
     context.moveTo(x, Math.round(low + barWidth / 2));
@@ -576,9 +580,10 @@ export const drawYAxis = (
   const y = Math.round(yScale(lastPoint.close));
   const rectHeight = bitmap(28);
   const width = context.canvas.width;
-  context.fillStyle = getColorForPrice(lastPoint, colors);
+  const colorForPrice = getColorForPrice(lastPoint, colors);
+  context.fillStyle = colorForPrice.primaryColor;
   context.fillRect(0, Math.floor(y - rectHeight / 2), width, rectHeight);
-  context.fillStyle = colors.currentPriceLabel;
+  context.fillStyle = colorForPrice.pairedColor ?? colors.currentPriceLabel;
   context.fillText(priceFormatFnc(lastPoint.close), x, y);
 };
 
@@ -850,5 +855,10 @@ export const updateZoomLevel = (zoomState: ZoomState, delta: number) => {
 
 export const getColorForPrice = (d: StockDataPoint, colors: Record<string, string>) => {
   const isUp = d.change >= 0;
-  return d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
+  const primaryColor = d.isThink40 ? (isUp ? colors.think40 : colors.think40down) : isUp ? colors.up : colors.down;
+  const pairedColor = getPairedColor(primaryColor);
+  return {
+    primaryColor,
+    pairedColor
+  };
 };

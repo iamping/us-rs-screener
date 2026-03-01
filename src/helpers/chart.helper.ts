@@ -253,15 +253,20 @@ export const plotChart = (
   scales: ChartScales,
   zoomState: ZoomState,
   showRs = true,
-  colorMode: ColorMode
+  colorMode: ColorMode,
+  chartStyle: 'line' | 'candle' = 'line'
 ) => {
   // translate canvas on zoom event
   context.translate(bitmap(zoomState.tx), 0);
   const canvasHeight = context.canvas.height;
   const { xScale, yScale, rsScale } = scales;
-  const barWidth = Math.max(Math.ceil(xScale.bandWidth / 5), Math.floor(devicePixelRatio));
+  const rawBandWidth = xScale.bandWidth;
+  const barWidth =
+    chartStyle === 'candle'
+      ? Math.max(2, Math.round(rawBandWidth * 0.5))
+      : Math.max(Math.ceil(rawBandWidth / 5), Math.floor(devicePixelRatio));
   const correction = barWidth % 2 === 0 ? 0 : 0.5;
-  const tickLength = Math.ceil(xScale.bandWidth / 2.8);
+  const tickLength = Math.ceil(rawBandWidth / 2.8);
   const lineWidth = Math.min(devicePixelRatio, 2);
   const colors = getChartColors(colorMode);
   const series = stockData.series;
@@ -396,19 +401,38 @@ export const plotChart = (
     const high = yScale(d.high);
     const close = Math.round(yScale(d.close));
     const open = Math.round(yScale(d.open));
+    const color = getColorForPrice(d, colors).primaryColor;
 
-    // draw price bar
-    context.strokeStyle = getColorForPrice(d, colors).primaryColor;
-    context.lineWidth = barWidth;
-    context.beginPath();
-    context.moveTo(x, Math.round(low + barWidth / 2));
-    context.lineTo(x, Math.round(high - barWidth / 2));
+    if (chartStyle === 'candle') {
+      const bodyTop = Math.round(Math.min(open, close));
+      const bodyBottom = Math.round(Math.max(open, close));
+      const bodyHeight = Math.max(1, bodyBottom - bodyTop);
+      const candleWidth = Math.max(2, Math.round(rawBandWidth * 0.5));
+      const candleX = Math.round(xScale(i));
+      const wickX = candleX + 0.5;
 
-    context.moveTo(x, open + correction);
-    context.lineTo(Math.floor(x - tickLength), open + correction);
-    context.moveTo(x, close + correction);
-    context.lineTo(Math.floor(x + tickLength), close + correction);
-    context.stroke();
+      context.strokeStyle = color;
+      context.lineWidth = 1;
+      context.beginPath();
+      context.moveTo(wickX, Math.round(low));
+      context.lineTo(wickX, Math.round(high));
+      context.stroke();
+
+      context.fillStyle = color;
+      context.fillRect(candleX - Math.floor(candleWidth / 2), bodyTop, candleWidth, bodyHeight);
+    } else {
+      context.strokeStyle = color;
+      context.lineWidth = barWidth;
+      context.beginPath();
+      context.moveTo(x, Math.round(low + barWidth / 2));
+      context.lineTo(x, Math.round(high - barWidth / 2));
+
+      context.moveTo(x, open + correction);
+      context.lineTo(Math.floor(x - tickLength), open + correction);
+      context.moveTo(x, close + correction);
+      context.lineTo(Math.floor(x + tickLength), close + correction);
+      context.stroke();
+    }
 
     // draw small circle for rs new high
     const { isNewHigh, isNewHighBeforePrice } = d.rsStatus;

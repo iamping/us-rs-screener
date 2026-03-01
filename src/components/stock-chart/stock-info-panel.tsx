@@ -1,6 +1,7 @@
 import { Button, CloseButton, Flex, Group, Link, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useState } from 'react';
+import { LuChartCandlestick, LuChartColumn } from 'react-icons/lu';
 import { computeDataSeries, convertDailyToWeekly } from '@/helpers/data.helper';
 import { fetchHistoricalData } from '@/services/data.service';
 import { stockListAtom, tickerAtom } from '@/states/atom';
@@ -17,6 +18,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
   const [nextTicker, setNextTicker] = useState('');
   const [status, setStatus] = useState<'loading' | 'normal' | 'error'>('normal');
   const [interval, setInterval] = useState<'D' | 'W' | 'NW'>('D');
+  const [chartStyle, setChartStyle] = useState<'line' | 'candle'>('line');
   const [retry, setRetry] = useState(0);
   const stockList = useAtomValue(stockListAtom);
   const setTicker = useSetAtom(tickerAtom);
@@ -113,6 +115,13 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
                 onClick={() => setInterval('W')}>
                 W
               </Button>
+              <Button
+                size="2xs"
+                width="24px"
+                variant={chartStyle === 'candle' ? 'solid' : 'subtle'}
+                onClick={() => setChartStyle(chartStyle === 'line' ? 'candle' : 'line')}>
+                {chartStyle === 'candle' ? <LuChartCandlestick /> : <LuChartColumn />}
+              </Button>
             </Group>
           )}
           <Spacer />
@@ -124,6 +133,7 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           data-loading={isLoading}
           ticker={nextTicker}
           stockData={stockChartData}
+          chartStyle={chartStyle}
         />
       </Flex>
     </>

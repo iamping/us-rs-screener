@@ -40,13 +40,14 @@ import { StockVolume } from './stock-volume';
 interface StockChartProps extends React.HTMLProps<HTMLDivElement> {
   ticker: string;
   stockData: StockChartData;
+  chartStyle?: 'line' | 'candle';
 }
 
 // constant
 const { volumeArea } = constant;
 const isTouchDevice = isTouchDeviceMatchMedia();
 
-export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props }) => {
+export const StockChart: FC<StockChartProps> = ({ ticker, stockData, chartStyle = 'line', ...props }) => {
   const [chartRef, chartDms] = useChartDimensions<HTMLDivElement>({
     marginRight: 55,
     marginBottom: 30,
@@ -118,7 +119,7 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     const dms = dmsRef.current as CanvasDimensions;
     updateZoomState(stockData.series, zoomState, dms);
     updateChartScales(stockData.series, zoomState, dms);
-    plotChartAndAxis(stockData, showRS, colorMode);
+    plotChartAndAxis(stockData, showRS, colorMode, chartStyle);
   };
 
   const updateZoomState = (
@@ -145,11 +146,18 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     return { chartScales: chartScalesRef.current };
   };
 
-  const plotChartAndAxis = (stockData: StockChartData, drawRS: boolean, colorMode: ColorMode) => {
+  const plotChartAndAxis = (
+    stockData: StockChartData,
+    drawRS: boolean,
+    colorMode: ColorMode,
+    chartStyle: 'line' | 'candle'
+  ) => {
     const zoomState = zoomStateRef.current as ZoomState;
     const chartScales = chartScalesRef.current as ChartScales;
     const series = stockData.series;
-    plotAreaRef.current?.draw((context) => plotChart(context, stockData, chartScales, zoomState, drawRS, colorMode));
+    plotAreaRef.current?.draw((context) =>
+      plotChart(context, stockData, chartScales, zoomState, drawRS, colorMode, chartStyle)
+    );
     volumeAreaRef.current?.draw((context) => plotVolume(context, series, chartScales, zoomState, colorMode));
     xAxisRef.current?.draw((context) => drawXAxis(context, chartScales.xScale, zoomState, colorMode));
     yAxisRef.current?.draw((context) => drawYAxis(context, chartScales.yScale, colorMode, lastPointWithData(series)));
@@ -266,8 +274,8 @@ export const StockChart: FC<StockChartProps> = ({ ticker, stockData, ...props })
     }
 
     updateChartScales(series, zoomState, dms);
-    plotChartAndAxis(stockData, showRS, colorMode);
-  }, [stockData, showRS, redrawCount, colorMode]);
+    plotChartAndAxis(stockData, showRS, colorMode, chartStyle);
+  }, [stockData, showRS, redrawCount, colorMode, chartStyle]);
 
   // optimize styles so canvas won't be unneccesary re-rendered
   const plotAreaStyle = useMemo(

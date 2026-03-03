@@ -5,6 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import importPlugin from 'eslint-plugin-import';
+import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   { ignores: ['dist'] },
@@ -13,14 +14,15 @@ export default tseslint.config(
       js.configs.recommended,
       tseslint.configs.recommended,
       importPlugin.flatConfigs.recommended,
-      importPlugin.flatConfigs.typescript
+      importPlugin.flatConfigs.typescript,
+      prettier
     ],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        projectService: true,
         tsconfigRootDir: import.meta.dirname
       }
     },
@@ -33,7 +35,7 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       ...react.configs.recommended.rules,
-      ...react.configs['jsx-runtime'].rules,
+      'react/react-in-jsx-scope': 'off', // Not needed in React 17+ with new JSX transform
       'import/order': [
         1,
         {
@@ -45,7 +47,7 @@ export default tseslint.config(
           }
         }
       ],
-      'import/namespace': 'off'
+      'import/namespace': 'off' // Disabled: TypeScript handles namespace checks
     },
     settings: {
       react: {
@@ -53,8 +55,7 @@ export default tseslint.config(
       },
       'import/resolver': {
         typescript: {
-          alwaysTryTypes: true,
-          project: ['./tsconfig.node.json', './tsconfig.app.json']
+          alwaysTryTypes: true
         }
       }
     }

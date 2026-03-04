@@ -1,4 +1,4 @@
-import { Button, CloseButton, Flex, Group, Link, Spacer, Text } from '@chakra-ui/react';
+import { CloseButton, Flex, Link, SegmentGroup, Spacer, Text } from '@chakra-ui/react';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { FC, useEffect, useState } from 'react';
 import { LuChartCandlestick, LuChartColumn } from 'react-icons/lu';
@@ -98,31 +98,33 @@ export const StockInfoPanel: FC<StockInfoPanelProps> = ({ ticker }) => {
           background={{ base: 'whiteAlpha.600', _dark: 'blackAlpha.600' }}>
           {isLoading && <Text>Loading {ticker}...</Text>}
           {!isLoading && (
-            <Group>
-              <Button
-                size="2xs"
-                width="24px"
-                variant={isDaily ? 'solid' : 'subtle'}
-                disabled={isLoading || intervalDisabled}
-                onClick={() => setInterval('D')}>
-                D
-              </Button>
-              <Button
-                size="2xs"
-                width="24px"
-                variant={interval === 'W' ? 'solid' : 'subtle'}
-                disabled={isLoading || intervalDisabled}
-                onClick={() => setInterval('W')}>
-                W
-              </Button>
-              <Button
-                size="2xs"
-                width="24px"
-                variant={chartStyle === 'candle' ? 'solid' : 'subtle'}
-                onClick={() => setChartStyle(chartStyle === 'line' ? 'candle' : 'line')}>
-                {chartStyle === 'candle' ? <LuChartCandlestick /> : <LuChartColumn />}
-              </Button>
-            </Group>
+            <>
+              <SegmentGroup.Root
+                size="xs"
+                value={interval === 'W' ? 'W' : 'D'}
+                onValueChange={(e) => setInterval(e.value as 'D' | 'W')}
+                disabled={isLoading || intervalDisabled}>
+                <SegmentGroup.Indicator />
+                <SegmentGroup.Items
+                  items={[
+                    { value: 'D', label: 'D' },
+                    { value: 'W', label: 'W' }
+                  ]}
+                />
+              </SegmentGroup.Root>
+              <SegmentGroup.Root
+                size="xs"
+                value={chartStyle}
+                onValueChange={(e) => setChartStyle(e.value as 'line' | 'candle')}>
+                <SegmentGroup.Indicator />
+                <SegmentGroup.Items
+                  items={[
+                    { value: 'line', label: <LuChartColumn /> },
+                    { value: 'candle', label: <LuChartCandlestick /> }
+                  ]}
+                />
+              </SegmentGroup.Root>
+            </>
           )}
           <Spacer />
           <CloseButton size="2xs" variant="plain" loading={isLoading} onClick={() => setTicker('')} />
